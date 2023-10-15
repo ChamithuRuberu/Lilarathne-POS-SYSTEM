@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="522.0" prefWidth="1288.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.ProductMainPageController">
+   <children>
+      <Label layoutX="14.0" layoutY="17.0" text="Product Management" textFill="#430404">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Label>
+      <Separator layoutX="14.0" layoutY="48.0" prefHeight="0.0" prefWidth="1254.0" />
+      <Button layoutX="1179.0" layoutY="14.0" onAction="#btnBackToHomeOnAction" style="-fx-background-color: #7f8c8d;" text="Back to home" textFill="WHITE">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <AnchorPane layoutX="14.0" layoutY="59.0" prefHeight="444.0" prefWidth="438.0" style="-fx-background-color: #bdc3c7;">
+         <children>
+            <Button layoutX="317.0" layoutY="13.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="106.0" style="-fx-background-color: #2980b9;" text="+ New Product" textFill="WHITE">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </Button>
+            <TextField editable="false" layoutX="14.0" layoutY="13.0" promptText="Product Code">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </TextField>
+            <TextArea layoutX="14.0" layoutY="53.0" prefHeight="118.0" prefWidth="411.0" promptText="Description">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </TextArea>
+            <Button layoutX="282.0" layoutY="180.0" onAction="#btnNewCustomerOnAction" prefHeight="29.0" prefWidth="141.0" style="-fx-background-color: #2980b9;" text="Save Product" textFill="WHITE">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Button>
+            <TextField layoutX="14.0" layoutY="222.0" prefHeight="25.0" prefWidth="411.0" promptText="search here" />
+            <TableView layoutX="14.0" layoutY="254.0" prefHeight="183.0" prefWidth="411.0">
+              <columns>
+                <TableColumn prefWidth="75.0" text="#" />
+                <TableColumn prefWidth="120.0" text="Desc" />
+                  <TableColumn prefWidth="122.0" text="Show more" />
+                  <TableColumn prefWidth="93.0" text="Delete" />
+              </columns>
+            </TableView>
+         </children>
+      </AnchorPane>
+      <Separator layoutX="463.0" layoutY="59.0" orientation="VERTICAL" prefHeight="444.0" prefWidth="9.0" />
+      <TableView layoutX="473.0" layoutY="217.0" prefHeight="275.0" prefWidth="797.0">
+         <columns>
+            <TableColumn prefWidth="49.0" text="#" />
+            <TableColumn prefWidth="94.39996337890625" text="QTY" />
+            <TableColumn prefWidth="116.0" text="Selling Price" />
+            <TableColumn prefWidth="125.5999755859375" text="Buying Price" />
+            <TableColumn prefWidth="80.79998779296875" text="D:Av" />
+            <TableColumn prefWidth="164.800048828125" text="Show Price" />
+            <TableColumn prefWidth="167.19997558593752" text="Delete" />
+         </columns>
+      </TableView>
+      <TextField layoutX="472.0" layoutY="59.0" prefHeight="25.0" prefWidth="148.0" promptText="Selected Product Code" />
+      <TextArea layoutX="472.0" layoutY="91.0" prefHeight="118.0" prefWidth="798.0" promptText="Description">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </TextArea>
+      <Button layoutX="641.0" layoutY="59.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="117.0" style="-fx-background-color: #2980b9;" text="+ New Batch" textFill="WHITE">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+   </children>
+</AnchorPane>

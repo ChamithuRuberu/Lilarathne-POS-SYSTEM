@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="context" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="632.0" prefWidth="1161.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.CustomerFormController">
+<AnchorPane fx:id="context" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="600.0" minWidth="960.0" prefHeight="600.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.CustomerFormController">
    <Label layoutX="13.0" layoutY="14.0" text="Customer Management" textFill="#430404">
       <font>
          <Font name="System Bold" size="16.0" />
@@ -42,7 +42,7 @@
          <Font name="System Bold" size="13.0" />
       </font>
    </TextField>
-   <TextField fx:id="txtContact" layoutX="680.0" layoutY="56.0" prefHeight="30.0" prefWidth="291.0" promptText="contact">
+   <TextField fx:id="txtContact" layoutX="680.0" layoutY="56.0" prefHeight="30.0" prefWidth="268.0" promptText="contact">
       <font>
          <Font name="System Bold" size="13.0" />
       </font>
@@ -61,14 +61,14 @@
       </cursor>
    </Button>
    <TextField fx:id="txtSearch" layoutX="14.0" layoutY="149.0" prefHeight="26.0" prefWidth="405.0" promptText="search here" />
-   <TableView fx:id="tbl" layoutX="12.0" layoutY="223.0" prefHeight="394.0" prefWidth="1135.0">
+   <TableView fx:id="tbl" layoutX="41.0" layoutY="224.0" prefHeight="356.0" prefWidth="887.0" AnchorPane.leftAnchor="41.0" AnchorPane.rightAnchor="32.0">
       <columns>
          <TableColumn fx:id="colId" prefWidth="106.3999605178833" text="#" />
          <TableColumn fx:id="colEmail" prefWidth="192.00001525878906" text="email" />
          <TableColumn fx:id="colName" prefWidth="180.0" text="name" />
          <TableColumn fx:id="colContact" minWidth="0.0" prefWidth="175.20001220703125" text="contact" />
          <TableColumn fx:id="colSalary" prefWidth="229.60003662109375" text="salary" />
-         <TableColumn fx:id="colOperate" prefWidth="250.39996337890625" text="Operate" />
+         <TableColumn fx:id="colOperate" prefWidth="250.39996337890625" resizable="false" text="Operate" />
       </columns>
    </TableView>
 </AnchorPane>

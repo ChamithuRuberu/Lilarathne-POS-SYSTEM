@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
@@ -9,26 +10,32 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="598.0" prefWidth="901.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.OrderDetailsFormController">
+<AnchorPane prefHeight="800.0" prefWidth="1540.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.OrderDetailsFormController">
    <children>
-      <TableView layoutX="14.0" layoutY="179.0" prefHeight="409.0" prefWidth="871.0">
+      <TableView layoutX="73.0" layoutY="179.0" prefHeight="612.0" prefWidth="1374.0" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="73.0" AnchorPane.rightAnchor="93.0" AnchorPane.topAnchor="179.0">
         <columns>
-          <TableColumn fx:id="colId" prefWidth="104.00000190734863" text="Code" />
-          <TableColumn fx:id="colCustomerEmail" prefWidth="165.59996795654297" text="Customer Email" />
-            <TableColumn fx:id="colDate" prefWidth="152.79998779296875" text="Issued Date" />
-            <TableColumn fx:id="colDiscount" prefWidth="125.60006713867188" text="Discount" />
-            <TableColumn fx:id="colUserEmail" prefWidth="203.99993896484375" text="User Email" />
-            <TableColumn fx:id="colTotal" prefWidth="123.99992675781255" text="Total Price" />
+          <TableColumn fx:id="colId" prefWidth="128.79998397827148" text="Code" />
+          <TableColumn fx:id="colCustomerEmail" prefWidth="396.0000457763672" text="Customer Email" />
+            <TableColumn fx:id="colDate" prefWidth="143.199951171875" text="Issued Date" />
+            <TableColumn fx:id="colDiscount" prefWidth="264.0" text="Discount" />
+            <TableColumn fx:id="colUserEmail" minWidth="0.0" prefWidth="218.39996337890625" text="User Email" />
+            <TableColumn fx:id="colTotal" prefWidth="238.800048828125" text="Total Price" />
         </columns>
       </TableView>
-      <Separator layoutX="14.0" layoutY="54.0" prefHeight="0.0" prefWidth="871.0" />
-      <Text layoutX="14.0" layoutY="39.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order Details">
+      <Separator layoutX="76.0" layoutY="79.0" prefHeight="0.0" prefWidth="1368.0" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="79.0" />
+      <Text layoutX="76.0" layoutY="52.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order Details" wrappingWidth="162.46560668945312">
          <font>
-            <Font name="System Bold" size="16.0" />
+            <Font name="System Bold" size="23.0" />
          </font>
       </Text>
-      <Button layoutX="778.0" layoutY="16.0" mnemonicParsing="false" onAction="#BackToHomeOnAction" prefHeight="32.0" prefWidth="99.0" text="Back to home" />
-      <Button layoutX="382.0" layoutY="85.0" mnemonicParsing="false" onAction="#OderDetailsShowOnAction" prefHeight="32.0" prefWidth="99.0" text="Search" />
-      <TextField fx:id="txtEmailSearch" layoutX="14.0" layoutY="79.0" prefHeight="32.0" prefWidth="336.0" />
+      <Button layoutX="1347.0" layoutY="27.0" mnemonicParsing="false" onAction="#BackToHomeOnAction" prefHeight="32.0" prefWidth="99.0" text="Back to home">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor></Button>
+      <Button layoutX="1347.0" layoutY="129.0" mnemonicParsing="false" onAction="#OderDetailsShowOnAction" prefHeight="32.0" prefWidth="99.0" text="Search">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor></Button>
+      <TextField fx:id="txtEmailSearch" layoutX="986.0" layoutY="129.0" prefHeight="32.0" prefWidth="336.0" />
    </children>
 </AnchorPane>

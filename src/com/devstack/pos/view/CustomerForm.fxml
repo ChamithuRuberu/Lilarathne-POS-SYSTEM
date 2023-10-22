@@ -10,65 +10,68 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="context" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="632.0" prefWidth="1161.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.CustomerFormController">
-   <Label layoutX="13.0" layoutY="14.0" text="Customer Management" textFill="#430404">
+<AnchorPane fx:id="context" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1540.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.CustomerFormController">
+   <Label layoutX="13.0" layoutY="14.0" text="Customer Management" textFill="#484747">
       <font>
-         <Font name="System Bold" size="16.0" />
+         <Font name="System Bold" size="18.0" />
       </font>
    </Label>
-   <Separator layoutX="13.0" layoutY="45.0" prefHeight="5.0" prefWidth="959.0" />
-   <Button layoutX="836.0" layoutY="7.0" onAction="#btnBackToHomeOnAction" prefHeight="26.0" prefWidth="106.0" style="-fx-background-color: #7f8c8d;" text="Back to home" textFill="WHITE">
+   <Separator layoutX="13.0" layoutY="45.0" prefHeight="5.0" prefWidth="1514.0" />
+   <Button layoutX="1350.0" layoutY="7.0" onAction="#btnBackToHomeOnAction" prefHeight="26.0" prefWidth="106.0" style="-fx-background-color: F7B500;" text="Back to home" textFill="WHITE">
       <cursor>
          <Cursor fx:constant="HAND" />
       </cursor>
    </Button>
-   <Button layoutX="826.0" layoutY="149.0" style="-fx-background-color: #16a085;" text="Mange Loyalty Cards" textFill="WHITE">
+   <Button layoutX="1350.0" layoutY="165.0" style="-fx-background-color: #7F8C8D;" text="Mange Loyalty Cards" textFill="WHITE">
       <cursor>
          <Cursor fx:constant="HAND" />
       </cursor>
    </Button>
-   <Button layoutX="836.0" layoutY="103.0" onAction="#btnNewCustomerOnAction" style="-fx-background-color: #2980b9;" text="+ New Customer" textFill="WHITE">
+   <Button layoutX="1350.0" layoutY="119.0" onAction="#btnNewCustomerOnAction" prefHeight="26.0" prefWidth="127.0" style="-fx-background-color: #7F8C8D;" text="+ New Customer" textFill="WHITE">
+      <cursor>
+         <Cursor fx:constant="HAND" />
+      </cursor>
+      <font>
+         <Font name="System Bold" size="12.0" />
+      </font>
+   </Button>
+   <TextField fx:id="txtEmail" layoutX="40.0" layoutY="61.0" prefHeight="30.0" prefWidth="291.0" promptText="email">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font>
+   </TextField>
+   <TextField fx:id="txtName" layoutX="400.0" layoutY="60.0" prefHeight="30.0" prefWidth="291.0" promptText="name">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font>
+   </TextField>
+   <TextField fx:id="txtContact" layoutX="740.0" layoutY="60.0" prefHeight="30.0" prefWidth="291.0" promptText="contact">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font>
+   </TextField>
+   <TextField fx:id="txtSalary" layoutX="40.0" layoutY="111.0" prefHeight="30.0" prefWidth="291.0" promptText="salary">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font>
+   </TextField>
+   <Button fx:id="btnSaveUpdate" layoutX="460.0" layoutY="160.0" onAction="#btnSaveUpdateOnAction" prefHeight="29.0" prefWidth="144.0" style="-fx-background-color: F7B500;" text="Save Customer" textFill="WHITE">
+      <font>
+         <Font name="System Bold" size="13.0" />
+      </font>
       <cursor>
          <Cursor fx:constant="HAND" />
       </cursor>
    </Button>
-   <TextField fx:id="txtEmail" layoutX="13.0" layoutY="56.0" prefHeight="30.0" prefWidth="291.0" promptText="email">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font>
-   </TextField>
-   <TextField fx:id="txtName" layoutX="348.0" layoutY="56.0" prefHeight="30.0" prefWidth="291.0" promptText="name">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font>
-   </TextField>
-   <TextField fx:id="txtContact" layoutX="680.0" layoutY="56.0" prefHeight="30.0" prefWidth="291.0" promptText="contact">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font>
-   </TextField>
-   <TextField fx:id="txtSalary" layoutX="13.0" layoutY="101.0" prefHeight="30.0" prefWidth="291.0" promptText="salary">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font>
-   </TextField>
-   <Button fx:id="btnSaveUpdate" layoutX="442.0" layoutY="147.0" onAction="#btnSaveUpdateOnAction" prefHeight="29.0" prefWidth="144.0" style="-fx-background-color: #2980b9;" text="Save Customer" textFill="WHITE">
-      <font>
-         <Font name="System Bold" size="13.0" />
-      </font>
-      <cursor>
-         <Cursor fx:constant="HAND" />
-      </cursor>
-   </Button>
-   <TextField fx:id="txtSearch" layoutX="14.0" layoutY="149.0" prefHeight="26.0" prefWidth="405.0" promptText="search here" />
-   <TableView fx:id="tbl" layoutX="12.0" layoutY="223.0" prefHeight="394.0" prefWidth="1135.0">
+   <TextField fx:id="txtSearch" layoutX="40.0" layoutY="163.0" prefHeight="26.0" prefWidth="405.0" promptText="search here" />
+   <TableView fx:id="tbl" layoutX="40.0" layoutY="249.0" prefHeight="533.0" prefWidth="1460.0">
       <columns>
          <TableColumn fx:id="colId" prefWidth="106.3999605178833" text="#" />
-         <TableColumn fx:id="colEmail" prefWidth="192.00001525878906" text="email" />
-         <TableColumn fx:id="colName" prefWidth="180.0" text="name" />
-         <TableColumn fx:id="colContact" minWidth="0.0" prefWidth="175.20001220703125" text="contact" />
-         <TableColumn fx:id="colSalary" prefWidth="229.60003662109375" text="salary" />
-         <TableColumn fx:id="colOperate" prefWidth="250.39996337890625" text="Operate" />
+         <TableColumn fx:id="colEmail" prefWidth="264.8000183105469" text="email" />
+         <TableColumn fx:id="colName" prefWidth="192.79998779296875" text="name" />
+         <TableColumn fx:id="colContact" minWidth="0.0" prefWidth="173.60003662109375" text="contact" />
+         <TableColumn fx:id="colSalary" prefWidth="190.40008544921875" text="salary" />
+         <TableColumn fx:id="colOperate" prefWidth="268.800048828125" text="Operate" />
       </columns>
    </TableView>
 </AnchorPane>

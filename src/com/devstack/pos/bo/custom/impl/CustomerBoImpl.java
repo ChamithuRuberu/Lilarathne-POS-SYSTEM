@@ -1,12 +1,10 @@
 package com.devstack.pos.bo.custom.impl;
-
 import com.devstack.pos.bo.custom.CustomerBo;
 import com.devstack.pos.dao.DaoFactory;
 import com.devstack.pos.dao.custom.CustomerDao;
 import com.devstack.pos.dto.CustomerDto;
 import com.devstack.pos.entity.Customer;
 import com.devstack.pos.enums.DaoType;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;

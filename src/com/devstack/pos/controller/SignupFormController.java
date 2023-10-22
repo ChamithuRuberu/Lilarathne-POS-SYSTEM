@@ -11,6 +11,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -19,8 +21,8 @@ import java.sql.SQLException;
 
 public class SignupFormController {
     public AnchorPane context;
-    public JFXTextField txtEmail;
-    public JFXPasswordField textPassword;
+    public TextField txtEmail;
+    public PasswordField textPassword;
 
     UserBo bo= BoFactory.getInstance().getBo(BoType.USER);
 

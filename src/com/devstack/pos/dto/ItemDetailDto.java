@@ -2,6 +2,7 @@ package com.devstack.pos.dto;
 
 public class ItemDetailDto {
     private String detailCode;
+    private int order;
     private int qty;
     private double discount;
     private double amount;
@@ -11,6 +12,7 @@ public class ItemDetailDto {
 
     public ItemDetailDto(String detailCode, int qty, double discount, double amount) {
         this.detailCode = detailCode;
+        this.order = order;
         this.qty = qty;
         this.discount = discount;
         this.amount = amount;
@@ -24,6 +26,13 @@ public class ItemDetailDto {
         this.detailCode = detailCode;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
     public int getQty() {
         return qty;
@@ -53,6 +62,7 @@ public class ItemDetailDto {
     public String toString() {
         return "ItemDetailDto{" +
                 "detailCode='" + detailCode + '\'' +
+                ", order=" + order +
                 ", qty=" + qty +
                 ", discount=" + discount +
                 ", amount=" + amount +

@@ -6,4 +6,6 @@ import java.sql.SQLException;
 
 public interface ItemDetailBo {
 
+    public boolean saveItemDetail(ItemDetailDto itemDetailDto) throws SQLException, ClassNotFoundException;
+
 }

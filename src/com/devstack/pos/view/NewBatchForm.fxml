@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.Button?>
 <AnchorPane prefHeight="429.0" prefWidth="509.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.NewBatchFormController">
    <children>
       <Label layoutX="24.0" layoutY="27.0" text="Product Management" textFill="#430404">
@@ -71,13 +72,13 @@
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></RadioButton>
-      <JFXButton buttonType="RAISED" layoutX="405.0" layoutY="277.0" onAction="#saveBatch" style="-fx-background-color: #27ae60;" text="Save Batch" textFill="WHITE">
+      <Button layoutX="405.0" layoutY="277.0" onAction="#saveBatch" style="-fx-background-color: #27ae60;" text="Save Batch" textFill="WHITE">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
-      </JFXButton>
+      </Button>
    </children>
 </AnchorPane>

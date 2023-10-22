@@ -305,10 +305,10 @@ public class PlaceOrderFormController {
                 dtoList
         );
         try {
-            if (orderDetailBo.makeOrder(dto)) {
+            if(orderDetailBo.makeOrder(dto)){
                 new Alert(Alert.AlertType.CONFIRMATION, "Customer Updated!").show();
                 clearFields();
-            } else {
+            }else{
                 new Alert(Alert.AlertType.WARNING, "Try Again!").show();
             }
         } catch (SQLException e) {
@@ -316,7 +316,6 @@ public class PlaceOrderFormController {
             new Alert(Alert.AlertType.WARNING, "Try Again!").show();
         }
     }
-
     private void clearFields() {
     }
 }

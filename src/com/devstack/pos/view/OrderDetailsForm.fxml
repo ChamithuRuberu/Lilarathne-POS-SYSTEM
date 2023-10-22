@@ -10,32 +10,35 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1540.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.OrderDetailsFormController">
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="647.0" prefWidth="1393.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.OrderDetailsFormController">
    <children>
-      <TableView layoutX="73.0" layoutY="179.0" prefHeight="612.0" prefWidth="1374.0" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="73.0" AnchorPane.rightAnchor="93.0" AnchorPane.topAnchor="179.0">
+      <TableView layoutX="73.0" layoutY="179.0" prefHeight="410.0" prefWidth="1272.0" AnchorPane.bottomAnchor="122.0" AnchorPane.leftAnchor="73.0" AnchorPane.rightAnchor="65.0" AnchorPane.topAnchor="179.0">
         <columns>
-          <TableColumn fx:id="colId" prefWidth="128.79998397827148" text="Code" />
-          <TableColumn fx:id="colCustomerEmail" prefWidth="396.0000457763672" text="Customer Email" />
-            <TableColumn fx:id="colDate" prefWidth="143.199951171875" text="Issued Date" />
-            <TableColumn fx:id="colDiscount" prefWidth="264.0" text="Discount" />
-            <TableColumn fx:id="colUserEmail" minWidth="0.0" prefWidth="218.39996337890625" text="User Email" />
-            <TableColumn fx:id="colTotal" prefWidth="238.800048828125" text="Total Price" />
+          <TableColumn fx:id="colId" prefWidth="95.0" text="Code" />
+          <TableColumn fx:id="colCustomerEmail" prefWidth="219.0" text="Customer Email" />
+            <TableColumn fx:id="colDate" prefWidth="258.0" text="Issued Date" />
+            <TableColumn fx:id="colDiscount" prefWidth="250.0" text="Discount" />
+            <TableColumn fx:id="colUserEmail" minWidth="0.0" prefWidth="185.0" text="User Email" />
+            <TableColumn fx:id="colTotal" prefWidth="306.0" text="Total Price" />
         </columns>
       </TableView>
       <Separator layoutX="76.0" layoutY="79.0" prefHeight="0.0" prefWidth="1368.0" AnchorPane.leftAnchor="76.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="79.0" />
-      <Text layoutX="76.0" layoutY="52.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order Details" wrappingWidth="162.46560668945312">
+      <Text fill="#484747" layoutX="76.0" layoutY="65.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Order Details" wrappingWidth="162.46560668945312">
          <font>
-            <Font name="System Bold" size="23.0" />
+            <Font name="System Bold" size="20.0" />
          </font>
       </Text>
-      <Button layoutX="1347.0" layoutY="27.0" mnemonicParsing="false" onAction="#BackToHomeOnAction" prefHeight="32.0" prefWidth="99.0" text="Back to home">
+      <Button layoutX="1218.0" layoutY="26.0" mnemonicParsing="false" onAction="#BackToHomeOnAction" prefHeight="32.0" prefWidth="99.0" style="-fx-background-color: #f78500;" text="Back to home" textFill="WHITE">
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font></Button>
+      <Button layoutX="1218.0" layoutY="113.0" mnemonicParsing="false" onAction="#OderDetailsShowOnAction" prefHeight="32.0" prefWidth="99.0" style="-fx-background-color: #7f8c8d;" text="Search" textFill="WHITE">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button layoutX="1347.0" layoutY="129.0" mnemonicParsing="false" onAction="#OderDetailsShowOnAction" prefHeight="32.0" prefWidth="99.0" text="Search">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></Button>
-      <TextField fx:id="txtEmailSearch" layoutX="986.0" layoutY="129.0" prefHeight="32.0" prefWidth="336.0" />
+      <TextField fx:id="txtEmailSearch" layoutX="863.0" layoutY="113.0" prefHeight="32.0" prefWidth="336.0" />
    </children>
 </AnchorPane>

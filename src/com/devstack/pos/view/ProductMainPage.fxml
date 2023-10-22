@@ -26,7 +26,7 @@
       </Button>
       <AnchorPane layoutX="14.0" layoutY="59.0" prefHeight="444.0" prefWidth="438.0" style="-fx-background-color: #bdc3c7;">
          <children>
-            <Button layoutX="317.0" layoutY="13.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="106.0" style="-fx-background-color: #2980b9;" text="+ New Product" textFill="WHITE">
+            <Button layoutX="317.0" layoutY="13.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="106.0" style="-fx-background-color: #7f8c8d;" text="+ New Product" textFill="WHITE">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
@@ -41,7 +41,7 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </TextArea>
-            <Button layoutX="282.0" layoutY="180.0" onAction="#btnNewCustomerOnAction" prefHeight="29.0" prefWidth="141.0" style="-fx-background-color: #2980b9;" text="Save Product" textFill="WHITE">
+            <Button layoutX="282.0" layoutY="180.0" onAction="#btnNewCustomerOnAction" prefHeight="29.0" prefWidth="141.0" style="-fx-background-color: #f78500;" text="Save Product" textFill="WHITE">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
@@ -78,7 +78,7 @@
             <Font name="System Bold" size="13.0" />
          </font>
       </TextArea>
-      <Button layoutX="641.0" layoutY="59.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="117.0" style="-fx-background-color: #2980b9;" text="+ New Batch" textFill="WHITE">
+      <Button layoutX="641.0" layoutY="59.0" onAction="#btnNewCustomerOnAction" prefHeight="25.0" prefWidth="117.0" style="-fx-background-color: #7f8c8d;" text="+ New Batch" textFill="WHITE">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>

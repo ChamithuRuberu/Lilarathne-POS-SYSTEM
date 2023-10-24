@@ -15,6 +15,7 @@ import com.devstack.pos.enums.DaoType;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
 public class OrderDetailBoImpl implements OrderDetailBo {
 
@@ -44,14 +45,15 @@ public class OrderDetailBoImpl implements OrderDetailBo {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            connection.setAutoCommit(true);
+            Objects.requireNonNull(connection).setAutoCommit(true);
         }
         return false;
     }
 
     private boolean saveOrder(OrderDetailDto dto) throws SQLException, ClassNotFoundException {
         return dao.save(
-                new OrderDetail(dto.getCode(),
+                new OrderDetail(
+                        dto.getCode(),
                         dto.getIssuedDate(), dto.getTotalCost(),
                         dto.getCustomerEmail(), dto.getDiscount(),
                         dto.getOperatorEmail())

@@ -8,24 +8,24 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane fx:id="context" prefHeight="476.0" prefWidth="797.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.LoginFormController">
+<AnchorPane fx:id="context" prefHeight="400.0" prefWidth="365.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.LoginFormController">
    <children>
-      <Text fill="#510303" layoutX="81.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Robotikka-POS SYSTEM">
+      <Text fill="#484747" layoutX="152.0" layoutY="42.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Login">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
       </Text>
-      <TextField fx:id="txtEmail" layoutX="26.0" layoutY="86.0" prefHeight="29.0" prefWidth="290.0" promptText="email" text="tcdruberu@gmail.com">
+      <TextField fx:id="txtEmail" layoutX="36.0" layoutY="96.0" prefHeight="29.0" prefWidth="290.0" promptText="email" text="tcdrubeu@gmail.com">
          <font>
             <Font name="System Bold" size="13.0" />
          </font>
       </TextField>
-      <PasswordField fx:id="txtPassword" layoutX="26.0" layoutY="154.0" prefHeight="29.0" prefWidth="290.0" promptText="Password" text="12">
+      <PasswordField fx:id="txtPassword" layoutX="36.0" layoutY="150.0" prefHeight="29.0" prefWidth="290.0" promptText="Password" text="1234">
          <font>
             <Font name="System Bold" size="13.0" />
          </font>
       </PasswordField>
-      <Button layoutX="26.0" layoutY="201.0" onAction="#btnSignInOnAction" prefHeight="37.0" prefWidth="290.0" style="-fx-background-color: #3498db;" text="Sign in" textFill="WHITE">
+      <Button layoutX="36.0" layoutY="211.0" onAction="#btnSignInOnAction" prefHeight="37.0" prefWidth="290.0" style="-fx-background-color: F7B500;" text="Sign in" textFill="WHITE">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>
@@ -33,7 +33,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button layoutX="26.0" layoutY="290.0" onAction="#btnCreateAnAccountOnAction" prefHeight="37.0" prefWidth="290.0" style="-fx-background-color: #34495e;" text="Create an account" textFill="WHITE">
+      <Button layoutX="36.0" layoutY="300.0" onAction="#btnCreateAnAccountOnAction" prefHeight="37.0" prefWidth="290.0" style="-fx-background-color: #7f8c8d;" text="Create an account" textFill="WHITE">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>
@@ -41,7 +41,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Text fill="#040546" layoutX="157.0" layoutY="268.0" strokeType="OUTSIDE" strokeWidth="0.0" text="OR">
+      <Text fill="#484747" layoutX="167.0" layoutY="278.0" strokeType="OUTSIDE" strokeWidth="0.0" text="OR">
          <font>
             <Font size="13.0" />
          </font>

@@ -16,8 +16,7 @@ public class OrderDetail implements SuperEntity {
     public OrderDetail() {
     }
 
-    public OrderDetail(int code, Date issuedDate, double totalCost, String customerEmail, double discount, String operatorEmail) {
-        this.code = code;
+    public OrderDetail(int code, Date issuedDate, double totalCost, String customerEmail, double discount, String operatorEmail) {        this.code = code;
         this.issuedDate = issuedDate;
         this.totalCost = totalCost;
         this.customerEmail = customerEmail;

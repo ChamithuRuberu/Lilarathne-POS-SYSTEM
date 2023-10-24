@@ -309,7 +309,7 @@ public class PlaceOrderFormController {
                 new Alert(Alert.AlertType.CONFIRMATION, "Customer Updated!").show();
                 clearFields();
             }else{
-                new Alert(Alert.AlertType.WARNING, "Try Again!").show();
+                new Alert(Alert.AlertType.WARNING, "Try !").show();
             }
         } catch (SQLException e) {
             e.printStackTrace();

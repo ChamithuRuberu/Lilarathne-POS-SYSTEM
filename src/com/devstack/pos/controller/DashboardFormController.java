@@ -40,4 +40,15 @@ public class DashboardFormController {
         stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
+
+    public void btnSettingsOnAction(ActionEvent actionEvent) {
+
+    }
+
+    public void btnDashboardOnAction(ActionEvent actionEvent) {
+
+    }
+
+    public void btnLogoutOnAction(ActionEvent actionEvent) {
+    }
 }

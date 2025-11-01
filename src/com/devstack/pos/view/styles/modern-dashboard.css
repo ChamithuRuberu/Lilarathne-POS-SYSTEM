@@ -1,0 +1,100 @@
+.root {
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+}
+
+.sidebar {
+    -fx-background-color: rgba(25, 25, 25, 0.95);
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.2, 0, 0);
+}
+
+.sidebar-title {
+    -fx-fill: #00ffd0;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.sidebar-btn, .sidebar-btn-active { /* 🎯 Combined for consistency */
+    -fx-background-color: transparent;
+    -fx-text-fill: #eaeaea;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
+}
+.sidebar-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.1);
+    -fx-text-fill: #00ffd0;
+}
+.sidebar-btn-active { /* Specific style for active button */
+    -fx-background-color: rgba(0, 255, 208, 0.1);
+    -fx-text-fill: #00ffd0;
+}
+
+.header-title {
+    -fx-fill: #eaeaea; /* 🎯 FIX: Changed to light color for dark background */
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.glass-card {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 20;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0.2, 0, 5);
+    -fx-transition: all 0.3s ease;
+}
+.glass-card:hover {
+    -fx-background-color: rgba(0, 255, 200, 0.1);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.card-icon {
+    -fx-fill: #00ffd0;
+    -fx-font-size: 42px;
+}
+.card-title {
+    -fx-fill: #eaeaea; /* 🎯 FIX: Light color for dark background */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+.card-desc, .welcome-text { /* 🎯 Added welcome-text here for color consistency */
+    -fx-fill: #bbb;
+    -fx-font-size: 13px;
+}
+
+.btn-glass {
+    -fx-background-color: linear-gradient(to right, #00ffd0, #00b4ff);
+    -fx-text-fill: #000;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+.btn-glass:hover {
+    -fx-background-color: linear-gradient(to right, #00b4ff, #00ffd0);
+}
+
+/* ============================
+   CHART SECTION STYLING (Kept for completeness)
+============================ */
+.charts-container {
+    -fx-padding: 20 0 0 0;
+}
+
+.chart-box {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-background-radius: 20;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.2, 0, 5);
+}
+
+.chart-title {
+    -fx-fill: #00ffd0;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 10 0;
+}
+
+.chart-legend {
+    -fx-text-fill: #ddd;
+}

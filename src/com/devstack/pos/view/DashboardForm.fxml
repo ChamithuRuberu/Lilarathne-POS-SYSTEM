@@ -2,192 +2,104 @@
 
 <?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.control.Separator?>
 
-<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.DashboardFormController" stylesheets="@styles/pos-styles.css">
+<AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.devstack.pos.controller.DashboardFormController"
+            stylesheets="@styles/modern-dashboard.css"
+            style="-fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2a2a2a);">
    <children>
-      <!-- Header Bar -->
-      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+      <VBox prefWidth="250" spacing="25" styleClass="sidebar"
+            AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
+         <padding>
+            <Insets top="30" right="15" bottom="30" left="15" />
+         </padding>
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0;">
-               <Text styleClass="header-title" text="POS Dashboard">
-                  <font>
-                     <Font name="System Bold" size="28.0" />
-                  </font>
-               </Text>
-            </HBox>
-         </children>
+            <Text text="Kumara Haradware" styleClass="sidebar-title" />
+
+            <Separator style="-fx-max-width: 180; -fx-background-color: #555555;"/>
+
+            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-active" />
+            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn" />
+            <JFXButton text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn" />
+            <JFXButton text="🛒 Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn" />
+            <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn" />
+
+            <VBox VBox.vgrow="ALWAYS" />
+            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn" /> </children>
       </VBox>
-      
-      <!-- Main Content -->
-      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="80" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
-         <Text text="Quick Actions" styleClass="label-section">
-            <font>
-               <Font name="System Bold" size="22.0" />
-            </font>
-         </Text>
-         
-         <!-- Dashboard Cards Grid -->
-         <GridPane hgap="24" vgap="24" alignment="TOP_LEFT">
-            <columnConstraints>
-               <ColumnConstraints hgrow="SOMETIMES" minWidth="260.0" prefWidth="280.0" />
-               <ColumnConstraints hgrow="SOMETIMES" minWidth="260.0" prefWidth="280.0" />
-               <ColumnConstraints hgrow="SOMETIMES" minWidth="260.0" prefWidth="280.0" />
-            </columnConstraints>
-            <rowConstraints>
-               <RowConstraints minHeight="180.0" prefHeight="180.0" vgrow="SOMETIMES" />
-               <RowConstraints minHeight="180.0" prefHeight="180.0" vgrow="SOMETIMES" />
-            </rowConstraints>
-            
-            <!-- Customer Management Card -->
-            <VBox styleClass="dashboard-card" alignment="TOP_LEFT" spacing="16" GridPane.columnIndex="0" GridPane.rowIndex="0">
-               <VBox spacing="8">
-                  <Text text="👥" style="-fx-font-size: 48px;">
-                     <font>
-                        <Font size="48.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-title" text="Customer Management">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-desc" text="Manage customers, loyalty cards, and customer data">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </Text>
+
+      <VBox spacing="30" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
+            AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
+         <children>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+               <Text text="Dashboard Overview" styleClass="header-title"/>
+               <Region HBox.hgrow="ALWAYS"/>
+               <Text text="Welcome, John Doe (Manager)" styleClass="card-desc"/> </HBox>
+
+            <GridPane hgap="30" vgap="30">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+               </columnConstraints>
+
+               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="0">
+                  <Text text="👥" styleClass="card-icon"/>
+                  <Text text="Customer Management" styleClass="card-title"/>
+                  <Text text="Manage customer loyalty and contact details." styleClass="card-desc"/>
+                  <Region VBox.vgrow="ALWAYS"/>
+                  <JFXButton text="GO TO CUSTOMERS →" onAction="#btnCustomerOnAction" styleClass="btn-glass"/>
                </VBox>
-               <JFXButton onAction="#btnCustomerOnAction" text="Open" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0" style="-fx-font-size: 13px;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </VBox>
-            
-            <!-- Product Management Card -->
-            <VBox styleClass="dashboard-card" alignment="TOP_LEFT" spacing="16" GridPane.columnIndex="1" GridPane.rowIndex="0">
-               <VBox spacing="8">
-                  <Text text="📦" style="-fx-font-size: 48px;">
-                     <font>
-                        <Font size="48.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-title" text="Product Management">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-desc" text="Add products, manage batches, and update inventory">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </Text>
+
+               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="1">
+                  <Text text="📦" styleClass="card-icon"/>
+                  <Text text="Product Management" styleClass="card-title"/>
+                  <Text text="Add, edit, or track product inventory and categories." styleClass="card-desc"/>
+                  <Region VBox.vgrow="ALWAYS"/>
+                  <JFXButton text="GO TO PRODUCTS →" onAction="#btnProductOnActions" styleClass="btn-glass"/>
                </VBox>
-               <JFXButton onAction="#btnProductOnActions" text="Open" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0" style="-fx-font-size: 13px;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </VBox>
-            
-            <!-- Place Order Card -->
-            <VBox styleClass="dashboard-card" alignment="TOP_LEFT" spacing="16" GridPane.columnIndex="2" GridPane.rowIndex="0">
-               <VBox spacing="8">
-                  <Text text="🛒" style="-fx-font-size: 48px;">
-                     <font>
-                        <Font size="48.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-title" text="Place Order">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-desc" text="Process orders, scan barcodes, and complete transactions">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </Text>
+
+               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="2">
+                  <Text text="🛒" styleClass="card-icon"/>
+                  <Text text="New Order / POS" styleClass="card-title"/>
+                  <Text text="Instantly process sales and manage transactions." styleClass="card-desc"/>
+                  <Region VBox.vgrow="ALWAYS"/>
+                  <JFXButton text="START ORDER →" onAction="#btnPlaceOrderOnAction" styleClass="btn-glass"/>
                </VBox>
-               <JFXButton onAction="#btnPlaceOrderOnAction" text="Open" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0" style="-fx-font-size: 13px;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </VBox>
-            
-            <!-- Order Details Card -->
-            <VBox styleClass="dashboard-card" alignment="TOP_LEFT" spacing="16" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
-               <VBox spacing="8">
-                  <Text text="📋" style="-fx-font-size: 48px;">
-                     <font>
-                        <Font size="48.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-title" text="Order Details">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-desc" text="View order history, search orders, and analyze sales data">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </Text>
+
+               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                  <Text text="📋" styleClass="card-icon"/>
+                  <Text text="Order History" styleClass="card-title"/>
+                  <Text text="View detailed transaction logs and history." styleClass="card-desc"/>
+                  <Region VBox.vgrow="ALWAYS"/>
+                  <JFXButton text="VIEW HISTORY →" onAction="#btnOrderDetailsOnAction" styleClass="btn-glass"/>
                </VBox>
-               <JFXButton onAction="#btnOrderDetailsOnAction" text="Open" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0" style="-fx-font-size: 13px;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </VBox>
-            
-            <!-- Income Report Card -->
-            <VBox styleClass="dashboard-card" alignment="TOP_LEFT" spacing="16" GridPane.columnIndex="2" GridPane.rowIndex="1">
-               <VBox spacing="8">
-                  <Text text="📊" style="-fx-font-size: 48px;">
-                     <font>
-                        <Font size="48.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-title" text="Income Report">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <Text styleClass="dashboard-card-desc" text="Generate reports, view analytics, and track revenue">
-                     <font>
-                        <Font size="13.0" />
-                     </font>
-                  </Text>
+
+               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                  <Text text="📊" styleClass="card-icon"/>
+                  <Text text="Income Reports" styleClass="card-title"/>
+                  <Text text="Analyze revenue, profits, and sales trends." styleClass="card-desc"/>
+                  <Region VBox.vgrow="ALWAYS"/>
+                  <JFXButton text="ANALYZE REPORTS →" onAction="#btnIncomeReportOnAction" styleClass="btn-glass"/>
                </VBox>
-               <JFXButton onAction="#btnIncomeReportOnAction" text="Open" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0" style="-fx-font-size: 13px;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </VBox>
-         </GridPane>
+
+               <VBox styleClass="glass-card" spacing="10" alignment="TOP_LEFT" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                  <Text text="Today's Sales" styleClass="card-title"/>
+                  <Text text="Rs. 2,500,000 /=" styleClass="card-icon"/> <Region VBox.vgrow="ALWAYS"/>
+                  <HBox alignment="CENTER_LEFT" spacing="15">
+                     <Text text="Active Users: 5" styleClass="card-desc"/>
+                     <Text text="Invoices: 45" styleClass="card-desc"/>
+                  </HBox>
+               </VBox>
+
+            </GridPane>
+         </children>
       </VBox>
    </children>
 </AnchorPane>

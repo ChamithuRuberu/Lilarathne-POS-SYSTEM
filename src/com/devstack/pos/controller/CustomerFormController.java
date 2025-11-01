@@ -162,4 +162,8 @@ public class CustomerFormController {
         btnSaveUpdate.setText("Save Customer");
         clearFields();
     }
+
+    public void searchCustomer(ActionEvent actionEvent) {
+
+    }
 }

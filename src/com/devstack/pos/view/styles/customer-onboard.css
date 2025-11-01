@@ -1,0 +1,147 @@
+/* ========== GLOBAL COLOR VARIABLES ========== */
+.background-modern {
+    -fx-background-color: #f9fafb;
+    -fx-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -fx-text-fill: #1f2937;
+}
+
+/* ========== HEADER ========== */
+.header-bar {
+    -fx-background-color: #ffffff;
+    -fx-padding: 18 32;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.header-title {
+    -fx-fill: #1f2937;
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
+}
+
+/* ========== SECTION LABELS ========== */
+.label-section {
+    -fx-fill: #1f2937;
+    -fx-font-weight: 700;
+}
+
+/* ========== FORM ========== */
+.form-section {
+    -fx-background-color: #ffffff;
+    -fx-padding: 24;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.form-label {
+    -fx-fill: #6b7280;
+    -fx-font-weight: 600;
+}
+
+/* ========== TEXT FIELDS ========== */
+.text-field-modern {
+    -fx-background-color: #f3f4f6;
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-padding: 8 12;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2937;
+}
+
+.text-field-modern:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+/* ========== TABLE VIEW ========== */
+.table-view-modern {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-background-radius: 12;
+    -fx-table-cell-border-color: #e5e7eb;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.table-view-modern .column-header-background {
+    -fx-background-color: #f1f5f9;
+    -fx-border-radius: 12 12 0 0;
+}
+
+.table-view-modern .column-header {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1f2937;
+}
+
+.table-view-modern .table-row-cell {
+    -fx-font-size: 13px;
+    -fx-text-fill: #1f2937;
+}
+
+.table-view-modern .table-row-cell:selected {
+    -fx-background-color: #eff6ff;
+}
+
+/* ========== BUTTONS ========== */
+.btn-primary {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.btn-primary:hover {
+    -fx-background-color: #1d4ed8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0, 0, 4);
+}
+
+.btn-success {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 6, 0, 0, 2);
+}
+
+.btn-success:hover {
+    -fx-background-color: #16a34a;
+}
+
+.btn-secondary {
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #1f2937;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #dbeafe;
+}
+
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #2563eb;
+    -fx-border-radius: 8;
+    -fx-text-fill: #2563eb;
+    -fx-font-weight: 600;
+}
+
+.btn-outline:hover {
+    -fx-background-color: #eff6ff;
+}
+
+/* ========== TABLE ACTION BUTTONS ========== */
+.table-action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2563eb;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.table-action-btn:hover {
+    -fx-text-fill: #1d4ed8;
+}

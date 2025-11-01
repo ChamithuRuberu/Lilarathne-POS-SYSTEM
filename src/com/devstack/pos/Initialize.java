@@ -19,48 +19,76 @@ public class Initialize extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
+    public void start(Stage primaryStage) {
         Initialize.primaryStage = primaryStage;
 
-        if (springContext == null) {
-            throw new IllegalStateException("Spring context not initialized");
-        }
-
         try {
-            // Get Spring context
-            FXMLLoader loader = new FXMLLoader();
+            if (springContext == null) {
+                throw new IllegalStateException("Spring context not initialized");
+            }
 
-            // Try to find the FXML file
+            FXMLLoader loader = new FXMLLoader();
             var fxmlUrl = getClass().getResource("/com/devstack/pos/view/LoginForm.fxml");
 
             if (fxmlUrl == null) {
-                System.err.println("FXML file not found at: /view/LoginForm.fxml");
-                System.err.println("Trying alternative paths...");
-
-                // Try alternative path
-                fxmlUrl = getClass().getResource("/com/devstack/pos/view/LoginForm.fxml");
-                if (fxmlUrl == null) {
-                    throw new IOException("Could not find LoginForm.fxml in any expected location");
-                }
-                System.out.println("Found FXML at: /view/LoginForm.fxml");
-            } else {
-                System.out.println("Found FXML at: /view/LoginForm.fxml");
+                System.err.println("FXML file not found");
+                throw new IOException("Could not find LoginForm.fxml");
             }
 
             loader.setLocation(fxmlUrl);
             loader.setControllerFactory(springContext::getBean);
 
-            primaryStage.setScene(new Scene(loader.load()));
+            System.out.println("Loading FXML...");
+            Scene scene = new Scene(loader.load());
+            System.out.println("FXML loaded successfully");
+
+            // Load CSS
+            try {
+                var cssUrl = getClass().getResource("/com/devstack/pos/view/styles/pos-styles.css");
+                if (cssUrl != null) {
+                    System.out.println("CSS found: " + cssUrl);
+                    scene.getStylesheets().add(cssUrl.toExternalForm());
+                    System.out.println("CSS loaded successfully");
+                } else {
+                    System.err.println("CSS not found");
+                }
+            } catch (Exception cssEx) {
+                System.err.println("════════════════════════════════════");
+                System.err.println("CSS EXCEPTION:");
+                cssEx.printStackTrace(System.err);
+                System.err.println("════════════════════════════════════");
+            }
+
+            System.out.println("About to set scene...");
+            primaryStage.setScene(scene);
             primaryStage.setTitle("POS System");
+            primaryStage.setMinWidth(400);
+            primaryStage.setMinHeight(500);
+
+            System.out.println("About to show window...");
             primaryStage.centerOnScreen();
             primaryStage.show();
+            primaryStage.toFront();
 
             System.out.println("JavaFX application started successfully!");
 
-        } catch (Exception e) {
-            System.err.println("Error starting JavaFX application:");
-            e.printStackTrace();
-            throw e;
+        } catch (Throwable e) {  // Changed to Throwable to catch everything
+            System.err.println("════════════════════════════════════");
+            System.err.println("FATAL ERROR:");
+            e.printStackTrace(System.err);
+
+            Throwable cause = e.getCause();
+            int depth = 0;
+            while (cause != null && depth < 10) {
+                System.err.println("────────────────────────────────────");
+                System.err.println("Caused by (" + depth + "):");
+                cause.printStackTrace(System.err);
+                cause = cause.getCause();
+                depth++;
+            }
+            System.err.println("════════════════════════════════════");
+            Platform.exit();
+            System.exit(1);
         }
     }
 

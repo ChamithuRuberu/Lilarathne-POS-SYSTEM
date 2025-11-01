@@ -5,7 +5,6 @@ import lombok.Getter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 public class PosApplication {
@@ -14,17 +13,32 @@ public class PosApplication {
     private static ConfigurableApplicationContext applicationContext;
 
     public static void main(String[] args) {
-        // Start Spring Boot context (non-web mode, headless=false for JavaFX)
-        applicationContext = new SpringApplicationBuilder(PosApplication.class)
-                .headless(false)
-                .run(args);
+        // Capture ALL exceptions
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            System.err.println("═══════════════════════════════════════════");
+            System.err.println("UNCAUGHT EXCEPTION in thread: " + thread.getName());
+            System.err.println("═══════════════════════════════════════════");
+            throwable.printStackTrace(System.err);
+            System.err.println("═══════════════════════════════════════════");
+        });
 
-        // Set Spring context in Initialize class before launching JavaFX
-        Initialize.setSpringContext(applicationContext);
+        try {
+            // Start Spring Boot context (non-web mode, headless=false for JavaFX)
+            applicationContext = new SpringApplicationBuilder(PosApplication.class)
+                    .headless(false)
+                    .run(args);
 
-        // Launch JavaFX application
-        // This will block until JavaFX application exits
-        Application.launch(Initialize.class, args);
+            // Set Spring context in Initialize class before launching JavaFX
+            Initialize.setSpringContext(applicationContext);
+
+            // Launch JavaFX application
+            Application.launch(Initialize.class, args);
+        } catch (Exception e) {
+            System.err.println("═══════════════════════════════════════════");
+            System.err.println("EXCEPTION IN MAIN:");
+            System.err.println("═══════════════════════════════════════════");
+            e.printStackTrace(System.err);
+            System.err.println("═══════════════════════════════════════════");
+        }
     }
-
 }

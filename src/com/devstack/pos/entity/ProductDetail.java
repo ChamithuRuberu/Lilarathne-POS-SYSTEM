@@ -1,103 +1,42 @@
 package com.devstack.pos.entity;
 
-public class ProductDetail implements SuperEntity {
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "product_detail")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductDetail {
+    @Id
+    @Column(name = "code", length = 100)
     private String code;
+    
+    @Column(name = "barcode", columnDefinition = "TEXT")
     private String barcode;
+    
+    @Column(name = "qty_on_hand", nullable = false)
     private int qtyOnHand;
+    
+    @Column(name = "selling_price", nullable = false)
     private double sellingPrice;
+    
+    @Column(name = "show_price", nullable = false)
     private double showPrice;
+    
+    @Column(name = "buying_price", nullable = false)
     private double buyingPrice;
+    
+    @Column(name = "product_code", nullable = false)
     private int productCode;
+    
+    @Column(name = "discount_availability", nullable = false)
     private boolean discountAvailability;
-
-    public ProductDetail() {
-    }
-
-    public ProductDetail(String code, String barcode, int qtyOnHand, double sellingPrice, double showPrice, double buyingPrice, int productCode, boolean discountAvailability) {
-        this.code = code;
-        this.barcode = barcode;
-        this.qtyOnHand = qtyOnHand;
-        this.sellingPrice = sellingPrice;
-        this.showPrice = showPrice;
-        this.buyingPrice = buyingPrice;
-        this.productCode = productCode;
-        this.discountAvailability = discountAvailability;
-    }
-
-    public boolean isDiscountAvailability() {
-        return discountAvailability;
-    }
-
-    public void setDiscountAvailability(boolean discountAvailability) {
-        this.discountAvailability = discountAvailability;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-
-    public int getQtyOnHand() {
-        return qtyOnHand;
-    }
-
-    public void setQtyOnHand(int qtyOnHand) {
-        this.qtyOnHand = qtyOnHand;
-    }
-
-    public double getSellingPrice() {
-        return sellingPrice;
-    }
-
-    public void setSellingPrice(double sellingPrice) {
-        this.sellingPrice = sellingPrice;
-    }
-
-    public double getShowPrice() {
-        return showPrice;
-    }
-
-    public void setShowPrice(double showPrice) {
-        this.showPrice = showPrice;
-    }
-
-    public double getBuyingPrice() {
-        return buyingPrice;
-    }
-
-    public void setBuyingPrice(double buyingPrice) {
-        this.buyingPrice = buyingPrice;
-    }
-
-    public int getProductCode() {
-        return productCode;
-    }
-
-    public void setProductCode(int productCode) {
-        this.productCode = productCode;
-    }
-
-    @Override
-    public String toString() {
-        return "Batch{" +
-                "code=" + code +
-                ", barcode='" + barcode + '\'' +
-                ", qtyOnHand=" + qtyOnHand +
-                ", sellingPrice=" + sellingPrice +
-                ", showPrice=" + showPrice +
-                ", buyingPrice=" + buyingPrice +
-                ", productCode=" + productCode +
-                '}';
-    }
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_code", insertable = false, updatable = false)
+    private Product product;
 }

@@ -1,181 +1,302 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import com.jfoenix.controls.JFXRadioButton?>
+<?import com.jfoenix.controls.JFXToggleGroup?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.control.Hyperlink?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
 
-
-<?import javafx.scene.control.Button?>
-<AnchorPane fx:id="context" prefHeight="600.0" prefWidth="1093.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.PlaceOrderFormController">
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.PlaceOrderFormController" stylesheets="@styles/pos-styles.css">
    <children>
-      <Label layoutX="24.0" layoutY="27.0" text="Place Order Form" textFill="#430404">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      <Separator layoutX="24.0" layoutY="55.0" prefHeight="1.0" prefWidth="1057.0" />
-      <RadioButton layoutX="24.0" layoutY="67.0" mnemonicParsing="false" selected="true" text="Manual Mode" textFill="#06538a">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-         <toggleGroup>
-            <ToggleGroup fx:id="model" />
-         </toggleGroup>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </RadioButton>
-      <RadioButton layoutX="153.0" layoutY="67.0" mnemonicParsing="false" text="Auto Mode" textFill="#06538a" toggleGroup="$model">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </RadioButton>
-      <Label layoutX="25.0" layoutY="127.0" text="Customer Details" textFill="#430404">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      <Button layoutX="990.0" layoutY="15.0" onAction="#btnBackToHomeOnAction" style="-fx-background-color: #7f8c8d;" text="Back to home" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <Separator layoutX="24.0" layoutY="150.0" prefHeight="1.0" prefWidth="1057.0" />
-      <TextField fx:id="txtEmail" layoutX="25.0" layoutY="163.0" onAction="#searchCustomer" prefHeight="29.0" prefWidth="211.0" promptText="email">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <Separator layoutX="244.0" layoutY="163.0" orientation="VERTICAL" prefHeight="29.0" prefWidth="0.0" />
-      <TextField fx:id="txtName" editable="false" layoutX="250.0" layoutY="163.0" prefHeight="29.0" prefWidth="211.0" promptText="name">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtContact" editable="false" layoutX="471.0" layoutY="163.0" prefHeight="29.0" prefWidth="211.0" promptText="contact">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtSalary" editable="false" layoutX="693.0" layoutY="163.0" prefHeight="29.0" prefWidth="211.0" promptText="salary">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <Button  layoutX="931.0" layoutY="62.0" onAction="#btnAddNewCustomerOnAction" prefHeight="29.0" prefWidth="148.0" style="-fx-background-color: #2980b9;" text="+ New Customer" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-         <font>
-            <Font size="13.0" />
-         </font>
-      </Button>
-      <Hyperlink fx:id="urlNewLoyalty" layoutX="25.0" layoutY="192.0" onAction="#newLoyaltyOnAction" text="Show Loyalty Card Information" underline="true" visible="false" />
-      <Label fx:id="lblLoyaltyType" layoutX="139.0" layoutY="128.0" text="(GOLD Member)" textFill="#0774e3" visible="false">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-      </Label>
-      <TextField fx:id="txtBarcode" layoutX="131.0" layoutY="225.0" onAction="#loadProduct" prefHeight="29.0" prefWidth="211.0" promptText="Barcode">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <Label layoutX="24.0" layoutY="230.0" text="Product Details" textFill="#430404">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      <Button  layoutX="815.0" layoutY="62.0" onAction="#btnAddNewProductOnAction" prefHeight="29.0" prefWidth="109.0" style="-fx-background-color: #2980b9;" text="+ New Product" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-         <font>
-            <Font size="13.0" />
-         </font>
-      </Button>
-      <Separator layoutX="24.0" layoutY="262.0" prefHeight="1.0" prefWidth="1057.0" />
-      <TextField fx:id="txtDescription" editable="false" layoutX="25.0" layoutY="272.0" prefHeight="29.0" prefWidth="211.0" promptText="Description">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtSellingPrice" editable="false" layoutX="244.0" layoutY="272.0" prefHeight="29.0" prefWidth="141.0" promptText="Selling Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtDiscount" editable="false" layoutX="391.0" layoutY="271.0" prefHeight="29.0" prefWidth="141.0" promptText="Discount" style="-fx-border-color: #1abc9c;">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtShowPrice" editable="false" layoutX="541.0" layoutY="272.0" prefHeight="29.0" prefWidth="141.0" promptText="Show Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtQtyOnHand" editable="false" layoutX="693.0" layoutY="272.0" prefHeight="29.0" prefWidth="141.0" promptText="Qty On Hand">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <Label fx:id="lblDiscountAvl" layoutX="26.0" layoutY="305.0" text="Discount Available" textFill="#c0392b" visible="false">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-      </Label>
-      <TextField fx:id="txtBuyingPrice" editable="false" layoutX="841.0" layoutY="272.0" prefHeight="29.0" prefWidth="141.0" promptText="Buying Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtQty" layoutX="988.0" layoutY="271.0" onAction="#addToCart" prefHeight="29.0" prefWidth="93.0" promptText="QTY" style="-fx-border-color: #2980b9;">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TableView fx:id="tblCart" layoutX="26.0" layoutY="333.0" prefHeight="200.0" prefWidth="1057.0">
-        <columns>
-          <TableColumn fx:id="colCode" prefWidth="125.0" text="#" />
-          <TableColumn fx:id="colDesc" prefWidth="269.99998474121094" text="Description" />
-            <TableColumn fx:id="colSelPrice" prefWidth="112.0" text="Selling Price" />
-            <TableColumn fx:id="colSelDisc" prefWidth="109.0" text="Discount" />
-            <TableColumn fx:id="colSelShPrice" prefWidth="91.0" text="Show Price" />
-            <TableColumn fx:id="colSelQty" prefWidth="101.0" text="QTY" />
-            <TableColumn fx:id="colSelTotal" prefWidth="115.0" text="Total Cost" />
-            <TableColumn fx:id="colSelOperation" prefWidth="132.0" text="Operation" />
-        </columns>
-      </TableView>
-      <Button layoutX="935.0" layoutY="541.0" onAction="#btnCompleteOrder" prefHeight="29.0" prefWidth="148.0" style="-fx-background-color: #2980b9;" text="Complete Order" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-         <font>
-            <Font size="13.0" />
-         </font>
-      </Button>
-      <Label layoutX="26.0" layoutY="547.0" text="Total Cost" textFill="#c0392b">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="txtTotal" layoutX="130.0" layoutY="547.0" text="0.00 /=" textFill="#c0392b">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Label>
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+               <Text styleClass="header-title" text="Place Order">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <HBox spacing="12" alignment="CENTER_RIGHT">
+                  <JFXButton onAction="#btnAddNewProductOnAction" text="+ New Product" buttonType="RAISED" styleClass="btn-outline" prefWidth="140.0">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+                  <JFXButton onAction="#btnAddNewCustomerOnAction" text="+ New Customer" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+                  <JFXButton onAction="#btnBackToHomeOnAction" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+               </HBox>
+            </HBox>
+         </children>
+      </VBox>
+      
+      <!-- Main Content -->
+      <ScrollPane fitToWidth="true" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" style="-fx-background: transparent; -fx-border-width: 0;">
+         <VBox spacing="24" style="-fx-padding: 32;">
+            <!-- Mode Selection -->
+            <VBox styleClass="form-section" spacing="16">
+               <Text text="Order Mode" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="18.0" />
+                  </font>
+               </Text>
+               <HBox spacing="16" alignment="CENTER_LEFT">
+                  <JFXRadioButton fx:id="radioManual" text="Manual Mode" selected="true" toggleGroup="$model" style="-fx-font-size: 14px;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXRadioButton>
+                  <JFXRadioButton text="Auto Mode" toggleGroup="$model" style="-fx-font-size: 14px;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXRadioButton>
+               </HBox>
+            </VBox>
+            
+            <!-- Customer Details Section -->
+            <VBox styleClass="form-section" spacing="16">
+               <Text text="Customer Information" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="18.0" />
+                  </font>
+               </Text>
+               <GridPane hgap="16" vgap="16">
+                  <columnConstraints>
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                  </columnConstraints>
+                  
+                  <JFXTextField fx:id="txtEmail" promptText="Email" styleClass="text-field-modern" onAction="#searchCustomer" GridPane.columnIndex="0" prefWidth="220.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtName" editable="false" promptText="Name" styleClass="text-field-modern" GridPane.columnIndex="1" prefWidth="220.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtContact" editable="false" promptText="Contact" styleClass="text-field-modern" GridPane.columnIndex="2" prefWidth="220.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtSalary" editable="false" promptText="Salary" styleClass="text-field-modern" GridPane.columnIndex="3" prefWidth="220.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+               </GridPane>
+               <HBox spacing="12" alignment="CENTER_LEFT">
+                  <Hyperlink fx:id="urlNewLoyalty" onAction="#newLoyaltyOnAction" text="Show Loyalty Card Information" underline="true" visible="false" style="-fx-font-size: 14px; -fx-text-fill: #2563eb;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Hyperlink>
+                  <Label fx:id="lblLoyaltyType" text="(GOLD Member)" visible="false" style="-fx-font-size: 14px; -fx-text-fill: #10b981; -fx-font-weight: bold;">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
+               </HBox>
+            </VBox>
+            
+            <!-- Product Details Section -->
+            <VBox styleClass="form-section" spacing="16">
+               <Text text="Product Information" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="18.0" />
+                  </font>
+               </Text>
+               <HBox spacing="16" alignment="CENTER_LEFT">
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Text text="Scan or Enter Barcode" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtBarcode" promptText="Enter barcode" styleClass="text-field-modern" onAction="#loadProduct" prefWidth="300.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Text text="Discount Available" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <Label fx:id="lblDiscountAvl" text="Discount Available" visible="false" style="-fx-text-fill: #10b981; -fx-font-size: 14px; -fx-font-weight: bold;">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Label>
+                  </VBox>
+               </HBox>
+               
+               <GridPane hgap="12" vgap="12">
+                  <columnConstraints>
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
+                  </columnConstraints>
+                  
+                  <JFXTextField fx:id="txtDescription" editable="false" promptText="Description" styleClass="text-field-modern" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtSellingPrice" editable="false" promptText="Selling Price" styleClass="text-field-modern" GridPane.columnIndex="2">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtDiscount" editable="false" promptText="Discount" styleClass="text-field-modern" GridPane.columnIndex="3">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtShowPrice" editable="false" promptText="Show Price" styleClass="text-field-modern" GridPane.columnIndex="4">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtQtyOnHand" editable="false" promptText="Qty On Hand" styleClass="text-field-modern" GridPane.columnIndex="5">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  
+                  <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price" styleClass="text-field-modern" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="5">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+                  <JFXTextField fx:id="txtQty" promptText="Quantity" styleClass="text-field-modern" onAction="#addToCart" GridPane.rowIndex="1" GridPane.columnIndex="5">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+               </GridPane>
+            </VBox>
+            
+            <!-- Cart Section -->
+            <VBox spacing="16">
+               <HBox alignment="CENTER_LEFT" spacing="12">
+                  <Text text="Shopping Cart" styleClass="label-section">
+                     <font>
+                        <Font name="System Bold" size="20.0" />
+                     </font>
+                  </Text>
+                  <Region HBox.hgrow="ALWAYS" />
+               </HBox>
+               
+               <TableView fx:id="tblCart" styleClass="table-view-modern" prefHeight="300.0">
+                  <columns>
+                     <TableColumn fx:id="colCode" prefWidth="100.0" text="Code">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colDesc" prefWidth="250.0" text="Description">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelPrice" prefWidth="120.0" text="Selling Price">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelDisc" prefWidth="100.0" text="Discount">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelShPrice" prefWidth="100.0" text="Show Price">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelQty" prefWidth="80.0" text="QTY">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelTotal" prefWidth="120.0" text="Total Cost">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                     <TableColumn fx:id="colSelOperation" prefWidth="150.0" text="Actions">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                     </TableColumn>
+                  </columns>
+               </TableView>
+               
+               <!-- Total and Complete Order -->
+               <HBox alignment="CENTER_RIGHT" spacing="24" style="-fx-padding: 16 0;">
+                  <VBox alignment="CENTER_RIGHT" spacing="8">
+                     <Text text="Total Cost:" style="-fx-font-size: 18px; -fx-fill: #64748b;">
+                        <font>
+                           <Font name="System" size="18.0" />
+                        </font>
+                     </Text>
+                     <Text fx:id="txtTotal" text="0.00 /=" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-fill: #2563eb;">
+                        <font>
+                           <Font name="System Bold" size="32.0" />
+                        </font>
+                     </Text>
+                  </VBox>
+                  <JFXButton onAction="#btnCompleteOrder" text="Complete Order" buttonType="RAISED" styleClass="btn-success" prefWidth="200.0" prefHeight="56.0" style="-fx-font-size: 18px; -fx-font-weight: bold;">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+               </HBox>
+            </VBox>
+         </VBox>
+      </ScrollPane>
    </children>
 </AnchorPane>

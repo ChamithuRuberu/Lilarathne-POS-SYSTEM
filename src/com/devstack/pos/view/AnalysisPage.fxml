@@ -1,14 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.devstack.pos.controller.AnalysisPageController"
-            prefHeight="400.0" prefWidth="600.0">
-
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.AnalysisPageController" stylesheets="@styles/pos-styles.css">
+   <children>
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+               <Text styleClass="header-title" text="Analytics & Reports">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+            </HBox>
+         </children>
+      </VBox>
+      
+      <!-- Main Content -->
+      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32" alignment="CENTER">
+         <Text text="Analytics Dashboard" styleClass="label-title" textAlignment="CENTER">
+            <font>
+               <Font name="System Bold" size="32.0" />
+            </font>
+         </Text>
+         <Text text="Sales reports and analytics will be displayed here" styleClass="label-subtitle" textAlignment="CENTER">
+            <font>
+               <Font size="16.0" />
+            </font>
+         </Text>
+      </VBox>
+   </children>
 </AnchorPane>

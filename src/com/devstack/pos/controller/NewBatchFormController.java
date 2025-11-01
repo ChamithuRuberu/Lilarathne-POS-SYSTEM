@@ -1,18 +1,14 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.bo.BoFactory;
-import com.devstack.pos.bo.custom.ProductDetailBo;
-import com.devstack.pos.dto.CustomerDto;
-import com.devstack.pos.dto.ProductDetailDto;
-import com.devstack.pos.enums.BoType;
-import com.devstack.pos.util.QrDataGenerator;
+import com.devstack.pos.entity.ProductDetail;
+import com.devstack.pos.service.ProductDetailService;
+import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.view.tm.ProductDetailTm;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import javafx.application.Platform;
+import com.google.zxing.oned.Code128Writer;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
@@ -22,15 +18,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-import org.apache.commons.codec.binary.Base64;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.SQLException;
+import java.util.Base64;
 
-
+@Component
+@RequiredArgsConstructor
 public class NewBatchFormController {
 
     public ImageView barcodeImage;
@@ -43,61 +42,63 @@ public class NewBatchFormController {
     public RadioButton rBtnYes;
     String uniqueData = null;
     BufferedImage bufferedImage = null;
-    Stage stage=null;
+    Stage stage = null;
 
-    private ProductDetailBo productDetailBo = BoFactory.getInstance().getBo(BoType.PRODUCT_DETAIL);
+    private final ProductDetailService productDetailService;
 
     public void initialize() throws WriterException {
-
     }
 
-    private void setQRCode() throws WriterException {
-        uniqueData = QrDataGenerator.generate(25);
-        //----------------------Gen QR
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        bufferedImage =
-                MatrixToImageWriter.toBufferedImage(
-                        qrCodeWriter.encode(
-                                uniqueData,
-                                BarcodeFormat.QR_CODE,
-                                160, 160
-                        )
-                );
-        //----------------------Gen QR
+    private void setBarcode() throws WriterException {
+        // Generate unique numeric barcode for POS system
+        uniqueData = BarcodeGenerator.generateNumeric(12); // 12 digits for EAN-13 compatible
+        
+        // Generate CODE 128 barcode (standard POS barcode format)
+        Code128Writer barcodeWriter = new Code128Writer();
+        BitMatrix bitMatrix = barcodeWriter.encode(
+                uniqueData,
+                BarcodeFormat.CODE_128,
+                300,  // width
+                80    // height (barcode height)
+        );
+        
+        bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
         barcodeImage.setImage(image);
     }
 
     public void setDetails(int code, String description, Stage stage,
                            boolean state, ProductDetailTm tm) {
-        this.stage=stage;
+        this.stage = stage;
 
-        if (state){
+        if (state) {
             try {
-                ProductDetailDto productDetail = productDetailBo.findProductDetail(tm.getCode());
+                ProductDetail productDetail = productDetailService.findProductDetail(tm.getCode());
 
-                if (productDetail!=null){
+                if (productDetail != null) {
                     txtQty.setText(String.valueOf(productDetail.getQtyOnHand()));
                     txtBuyingPrice.setText(String.valueOf(productDetail.getBuyingPrice()));
                     txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
                     txtShowPrice.setText(String.valueOf(productDetail.getShowPrice()));
                     rBtnYes.setSelected(productDetail.isDiscountAvailability());
+                    uniqueData = productDetail.getCode();
 
-                    byte[] data = Base64.decodeBase64(productDetail.getBarcode());
+                    // Decode barcode image from Base64
+                    byte[] data = Base64.getDecoder().decode(productDetail.getBarcode());
                     barcodeImage.setImage(
                             new Image(new ByteArrayInputStream(data))
                     );
 
-                }else{
+                } else {
                     stage.close();
                 }
 
-            } catch (SQLException | ClassNotFoundException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }else{
+        } else {
             try {
-                setQRCode();
+                setBarcode();
             } catch (WriterException e) {
                 throw new RuntimeException(e);
             }
@@ -105,39 +106,33 @@ public class NewBatchFormController {
 
         txtProductCode.setText(String.valueOf(code));
         txtSelectedProdDescription.setText(description);
-
     }
 
+    @Transactional
     public void saveBatch(ActionEvent actionEvent) throws IOException {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        javax.imageio.ImageIO.write(bufferedImage, "png", baos);
-        byte[] arr = baos.toByteArray();
-
-        ProductDetailDto dto = new ProductDetailDto(
-                uniqueData, Base64.encodeBase64String(arr),
-                Integer.parseInt(txtQty.getText()), Double.parseDouble(txtSellingPrice.getText()),
-                Double.parseDouble(txtShowPrice.getText()),
-                Double.parseDouble(txtBuyingPrice.getText()),
-                Integer.parseInt(txtProductCode.getText()), rBtnYes.isSelected() ? true : false
-        );
-
         try {
-            if (
-                    productDetailBo.saveProductDetail(dto)
-            ) {
-                new Alert(Alert.AlertType.CONFIRMATION, "Batch Saved!").show();
-                Thread.sleep(3000);
-                this.stage.close();
-               /* Platform.runLater(() -> {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(bufferedImage, "png", baos);
+            byte[] arr = baos.toByteArray();
 
-                });*/
-            } else {
-                new Alert(Alert.AlertType.WARNING, "Try Again!").show();
-            }
+            ProductDetail productDetail = new ProductDetail();
+            productDetail.setCode(uniqueData);
+            productDetail.setBarcode(Base64.getEncoder().encodeToString(arr));
+            productDetail.setQtyOnHand(Integer.parseInt(txtQty.getText()));
+            productDetail.setSellingPrice(Double.parseDouble(txtSellingPrice.getText()));
+            productDetail.setShowPrice(Double.parseDouble(txtShowPrice.getText()));
+            productDetail.setBuyingPrice(Double.parseDouble(txtBuyingPrice.getText()));
+            productDetail.setProductCode(Integer.parseInt(txtProductCode.getText()));
+            productDetail.setDiscountAvailability(rBtnYes.isSelected());
 
-        } catch (SQLException | ClassNotFoundException | InterruptedException e) {
-            throw new RuntimeException(e);
+            productDetailService.saveProductDetail(productDetail);
+            
+            new Alert(Alert.AlertType.CONFIRMATION, "Batch Saved!").show();
+            Thread.sleep(3000);
+            this.stage.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error saving batch: " + e.getMessage()).show();
         }
     }
 }

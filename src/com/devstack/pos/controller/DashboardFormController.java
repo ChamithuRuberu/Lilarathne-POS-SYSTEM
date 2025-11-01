@@ -5,9 +5,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Component
 public class DashboardFormController {
     public AnchorPane context;
 
@@ -32,9 +34,10 @@ public class DashboardFormController {
 
     private void setUi(String url) throws IOException {
         Stage stage = (Stage) context.getScene().getWindow();
-        stage.setScene(
-                new Scene(FXMLLoader.load(getClass().getResource("../view/" + url + ".fxml")))
-        );
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
+        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+        stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
 }

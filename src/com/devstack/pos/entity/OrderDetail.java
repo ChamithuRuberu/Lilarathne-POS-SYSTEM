@@ -1,87 +1,35 @@
 package com.devstack.pos.entity;
 
-import com.devstack.pos.dto.ItemDetailDto;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
-public class OrderDetail implements SuperEntity {
-    private int code;
-    private Date issuedDate;
+@Entity
+@Table(name = "order_detail")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderDetail {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "code")
+    private Integer code;
+    
+    @Column(name = "issued_date", nullable = false)
+    private LocalDateTime issuedDate;
+    
+    @Column(name = "total_cost", nullable = false)
     private double totalCost;
+    
+    @Column(name = "customer_email", length = 100)
     private String customerEmail;
+    
+    @Column(name = "discount")
     private double discount;
+    
+    @Column(name = "operator_email", length = 100)
     private String operatorEmail;
-
-    public OrderDetail() {
-    }
-
-    public OrderDetail(int code, Date issuedDate, double totalCost, String customerEmail, double discount, String operatorEmail) {        this.code = code;
-        this.issuedDate = issuedDate;
-        this.totalCost = totalCost;
-        this.customerEmail = customerEmail;
-        this.discount = discount;
-        this.operatorEmail = operatorEmail;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public Date getIssuedDate() {
-        return issuedDate;
-    }
-
-    public void setIssuedDate(Date issuedDate) {
-        this.issuedDate = issuedDate;
-    }
-
-    public double getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(double totalCost) {
-        this.totalCost = totalCost;
-    }
-
-    public String getCustomerEmail() {
-        return customerEmail;
-    }
-
-    public void setCustomerEmail(String customerEmail) {
-        this.customerEmail = customerEmail;
-    }
-
-    public double getDiscount() {
-        return discount;
-    }
-
-    public void setDiscount(double discount) {
-        this.discount = discount;
-    }
-
-    public String getOperatorEmail() {
-        return operatorEmail;
-    }
-
-    public void setOperatorEmail(String operatorEmail) {
-        this.operatorEmail = operatorEmail;
-    }
-
-
-    @Override
-    public String toString() {
-        return "OrderDetail{" +
-                "code=" + code +
-                ", issuedDate=" + issuedDate +
-                ", totalCost=" + totalCost +
-                ", customerEmail='" + customerEmail + '\'' +
-                ", discount=" + discount +
-                ", operatorEmail='" + operatorEmail + '\'' +
-                '}';
-    }
 }

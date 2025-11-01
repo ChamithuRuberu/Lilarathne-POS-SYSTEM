@@ -1,84 +1,181 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import com.jfoenix.controls.JFXRadioButton?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.image.ImageView?>
 
-<?import javafx.scene.control.Button?>
-<AnchorPane prefHeight="429.0" prefWidth="509.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.NewBatchFormController">
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.NewBatchFormController" stylesheets="@styles/pos-styles.css">
    <children>
-      <Label layoutX="24.0" layoutY="27.0" text="Product Management" textFill="#430404">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      <Separator layoutX="24.0" layoutY="55.0" prefHeight="4.0" prefWidth="459.0" />
-      <AnchorPane layoutX="24.0" layoutY="69.0" prefHeight="194.0" prefWidth="214.0" style="-fx-background-color: #bdc3c7;">
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
          <children>
-            <ImageView fx:id="barcodeImage" fitHeight="176.0" fitWidth="202.0" layoutX="6.0" layoutY="9.0" pickOnBounds="true" />
+            <HBox alignment="CENTER_LEFT" spacing="12">
+               <Text styleClass="header-title" text="Add New Batch">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </HBox>
          </children>
-      </AnchorPane>
-      <TextField fx:id="txtQty" layoutX="254.0" layoutY="69.0" prefHeight="25.0" prefWidth="232.0" promptText="Qty">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtSellingPrice" layoutX="254.0" layoutY="144.0" prefHeight="25.0" prefWidth="232.0" promptText="Selling Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtShowPrice" layoutX="254.0" layoutY="180.0" prefHeight="25.0" prefWidth="232.0" promptText="Show Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtBuyingPrice" layoutX="254.0" layoutY="106.0" prefHeight="25.0" prefWidth="232.0" promptText="Buying Price">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextField fx:id="txtProductCode" layoutX="24.0" layoutY="275.0" prefHeight="29.0" prefWidth="214.0" promptText="Product Id">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextField>
-      <TextArea fx:id="txtSelectedProdDescription" editable="false" layoutX="24.0" layoutY="316.0" prefHeight="104.0" prefWidth="459.0" promptText="Description">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextArea>
-      <RadioButton fx:id="rBtnYes" layoutX="255.0" layoutY="244.0" mnemonicParsing="false" text="YES">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-         <toggleGroup>
-            <ToggleGroup fx:id="deiscount" />
-         </toggleGroup></RadioButton>
-      <Label layoutX="254.0" layoutY="219.0" text="Discount %" textFill="#0118ab">
-         <font>
-            <Font size="13.0" />
-         </font>
-      </Label>
-      <RadioButton layoutX="311.0" layoutY="244.0" mnemonicParsing="false" selected="true" text="NO" toggleGroup="$deiscount">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor></RadioButton>
-      <Button layoutX="405.0" layoutY="277.0" onAction="#saveBatch" style="-fx-background-color: #27ae60;" text="Save Batch" textFill="WHITE">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
+      </VBox>
+      
+      <!-- Main Content -->
+      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
+         <HBox spacing="24" alignment="TOP_LEFT">
+            <!-- Left Side - Barcode Image -->
+            <VBox styleClass="form-section" spacing="16" alignment="CENTER" prefWidth="280.0">
+               <Text text="Barcode" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+               </Text>
+               <VBox alignment="CENTER" spacing="12" style="-fx-padding: 20; -fx-background-color: #f8fafc; -fx-background-radius: 12;">
+                  <ImageView fx:id="barcodeImage" fitWidth="240.0" fitHeight="180.0" preserveRatio="true" />
+               </VBox>
+               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+                  <Text text="Product Code" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtProductCode" editable="false" promptText="Product Code" styleClass="text-field-modern" prefWidth="280.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
+               </VBox>
+               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+                  <Text text="Description" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <TextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Product description" styleClass="text-field-modern" prefHeight="100.0" prefWidth="280.0" wrapText="true">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </TextArea>
+               </VBox>
+            </VBox>
+            
+            <!-- Right Side - Batch Form -->
+            <VBox styleClass="form-section" spacing="20" HBox.hgrow="ALWAYS">
+               <Text text="Batch Information" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+               </Text>
+               
+               <GridPane hgap="16" vgap="20">
+                  <columnConstraints>
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                  </columnConstraints>
+                  <rowConstraints>
+                     <RowConstraints minHeight="60.0" vgrow="NEVER" />
+                     <RowConstraints minHeight="60.0" vgrow="NEVER" />
+                     <RowConstraints minHeight="60.0" vgrow="NEVER" />
+                     <RowConstraints minHeight="60.0" vgrow="NEVER" />
+                  </rowConstraints>
+                  
+                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                     <Text text="Quantity" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtQty" promptText="Enter quantity" styleClass="text-field-modern" prefWidth="220.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
+                  
+                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                     <Text text="Buying Price" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtBuyingPrice" promptText="Enter buying price" styleClass="text-field-modern" prefWidth="220.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
+                  
+                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                     <Text text="Selling Price" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtSellingPrice" promptText="Enter selling price" styleClass="text-field-modern" prefWidth="220.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
+                  
+                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <Text text="Show Price" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtShowPrice" promptText="Enter show price" styleClass="text-field-modern" prefWidth="220.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
+                  
+                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                     <Text text="Discount Available" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <JFXRadioButton fx:id="rBtnYes" text="Yes" toggleGroup="$deiscount" style="-fx-font-size: 14px;">
+                           <font>
+                              <Font name="System" size="14.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXRadioButton>
+                        <JFXRadioButton text="No" selected="true" toggleGroup="$deiscount" style="-fx-font-size: 14px;">
+                           <font>
+                              <Font name="System" size="14.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXRadioButton>
+                     </HBox>
+                  </VBox>
+               </GridPane>
+               
+               <HBox spacing="12" alignment="CENTER_RIGHT" style="-fx-padding: 16 0;">
+                  <JFXButton onAction="#saveBatch" text="Save Batch" buttonType="RAISED" styleClass="btn-success" prefWidth="160.0" prefHeight="48.0" style="-fx-font-size: 16px; -fx-font-weight: bold;">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+               </HBox>
+            </VBox>
+         </HBox>
+      </VBox>
    </children>
 </AnchorPane>

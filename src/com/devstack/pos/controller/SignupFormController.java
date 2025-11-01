@@ -1,12 +1,6 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.bo.BoFactory;
-import com.devstack.pos.bo.custom.UserBo;
-import com.devstack.pos.bo.custom.impl.UserBoImpl;
-import com.devstack.pos.dto.UserDto;
-import com.devstack.pos.enums.BoType;
-import com.jfoenix.controls.JFXPasswordField;
-import com.jfoenix.controls.JFXTextField;
+import com.devstack.pos.service.UserService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -15,16 +9,19 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
+@Component
+@RequiredArgsConstructor
 public class SignupFormController {
     public AnchorPane context;
     public TextField txtEmail;
     public PasswordField textPassword;
 
-    UserBo bo= BoFactory.getInstance().getBo(BoType.USER);
+    private final UserService userService;
 
     public void btnAlreadyHaveAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("LoginForm");
@@ -32,18 +29,16 @@ public class SignupFormController {
 
     public void btnRegisterNowOnAction(ActionEvent actionEvent) {
         try {
-            if (bo.saveUser(new UserDto(txtEmail.getText(), textPassword.getText()))) {
+            if (userService.saveUser(txtEmail.getText(), textPassword.getText())) {
                 new Alert(Alert.AlertType.CONFIRMATION, "User Saved!").show();
                 clearFields();
             } else {
-                new Alert(Alert.AlertType.WARNING, "Try Again!").show();
+                new Alert(Alert.AlertType.WARNING, "User already exists or Try Again!").show();
             }
-
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         }
-
     }
 
     private void clearFields() {
@@ -53,9 +48,10 @@ public class SignupFormController {
 
     private void setUi(String url) throws IOException {
         Stage stage = (Stage) context.getScene().getWindow();
-        stage.setScene(
-                new Scene(FXMLLoader.load(getClass().getResource("../view/" + url + ".fxml")))
-        );
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
+        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+        stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
 }

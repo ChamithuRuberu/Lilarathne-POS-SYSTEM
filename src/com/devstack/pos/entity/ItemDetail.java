@@ -1,71 +1,33 @@
 package com.devstack.pos.entity;
 
-public class ItemDetail implements SuperEntity {
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "item_detail")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ItemDetail {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "code")
+    private Long code;
+    
+    @Column(name = "detail_code", length = 100)
     private String detailCode;
-    private int order;
+    
+    @Column(name = "order_code", nullable = false)
+    private Integer orderCode;
+    
+    @Column(name = "qty", nullable = false)
     private int qty;
+    
+    @Column(name = "discount")
     private double discount;
+    
+    @Column(name = "amount", nullable = false)
     private double amount;
-
-    public ItemDetail() {
-    }
-
-    public ItemDetail(String detailCode, int order, int qty, double discount, double amount) {
-        this.detailCode = detailCode;
-        this.order = order;
-        this.qty = qty;
-        this.discount = discount;
-        this.amount = amount;
-    }
-
-    public String getDetailCode() {
-        return detailCode;
-    }
-
-    public void setDetailCode(String detailCode) {
-        this.detailCode = detailCode;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public int getQty() {
-        return qty;
-    }
-
-    public void setQty(int qty) {
-        this.qty = qty;
-    }
-
-    public double getDiscount() {
-        return discount;
-    }
-
-    public void setDiscount(double discount) {
-        this.discount = discount;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    @Override
-    public String toString() {
-        return "ItemDetailDto{" +
-                "detailCode='" + detailCode + '\'' +
-                ", order=" + order +
-                ", qty=" + qty +
-                ", discount=" + discount +
-                ", amount=" + amount +
-                '}';
-    }
 }

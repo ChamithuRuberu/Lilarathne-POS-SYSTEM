@@ -1,13 +1,8 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.bo.BoFactory;
-import com.devstack.pos.bo.custom.CustomerBo;
-import com.devstack.pos.bo.custom.impl.CustomerBoImpl;
-import com.devstack.pos.dto.CustomerDto;
-import com.devstack.pos.enums.BoType;
+import com.devstack.pos.entity.Customer;
+import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.view.tm.CustomerTm;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXTextField;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -17,11 +12,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Optional;
 
+@Component
+@RequiredArgsConstructor
 public class CustomerFormController {
 
     public AnchorPane context;
@@ -39,11 +37,10 @@ public class CustomerFormController {
     public TableColumn colSalary;
     public TableColumn colOperate;
 
-    private String searchText="";
+    private String searchText = "";
+    private final CustomerService customerService;
 
-    CustomerBo bo = BoFactory.getInstance().getBo(BoType.CUSTOMER);
-
-    public void initialize() throws SQLException, ClassNotFoundException {
+    public void initialize() {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -56,19 +53,14 @@ public class CustomerFormController {
         tbl.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((observable, oldValue, newValue) -> {
-            if (newValue!=null){
-                setData(newValue);
-            }
-        });
+                    if (newValue != null) {
+                        setData(newValue);
+                    }
+                });
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
-            searchText=newValue;
-            try {
-                loadAllCustomers(searchText);
-            } catch (SQLException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            searchText = newValue;
+            loadAllCustomers(searchText);
         });
-
     }
 
     private void setData(CustomerTm newValue) {
@@ -77,85 +69,72 @@ public class CustomerFormController {
         txtEmail.setText(newValue.getEmail());
         txtName.setText(newValue.getName());
         txtSalary.setText(String.valueOf(newValue.getSalary()));
-        // txtSalary.setText(""+newValue.getSalary());
         txtContact.setText(newValue.getContact());
     }
 
-    private void loadAllCustomers(String searchText) throws SQLException, ClassNotFoundException {
+    private void loadAllCustomers(String searchText) {
         ObservableList<CustomerTm> observableList = FXCollections.observableArrayList();
-        int counter=1;
-        for (CustomerDto dto:
-                searchText.length()>0?bo.searchCustomers(searchText):bo.findAllCustomers()){
+        int counter = 1;
+        for (Customer customer : (searchText.length() > 0 ? customerService.searchCustomers(searchText) : customerService.findAllCustomers())) {
             Button btn = new Button("Delete");
             CustomerTm tm = new CustomerTm(
-                    counter,dto.getEmail(), dto.getName(), dto.getContact(), dto.getSalary(),
+                    counter, customer.getEmail(), customer.getName(), customer.getContact(), customer.getSalary(),
                     btn
             );
             observableList.add(tm);
             counter++;
 
-            btn.setOnAction((e)->{
-                try{
+            btn.setOnAction((e) -> {
+                try {
                     Alert alert = new
                             Alert(Alert.AlertType.CONFIRMATION,
-                            "Are you sure?", ButtonType.YES,ButtonType.NO);
+                            "Are you sure?", ButtonType.YES, ButtonType.NO);
                     Optional<ButtonType> selectedButtonType = alert.showAndWait();
-                    if (selectedButtonType.get().equals(ButtonType.YES)){
-                        if (bo.deleteCustomer(dto.getEmail())){
+                    if (selectedButtonType.isPresent() && selectedButtonType.get().equals(ButtonType.YES)) {
+                        if (customerService.deleteCustomer(customer.getEmail())) {
                             new Alert(Alert.AlertType.CONFIRMATION, "Customer Deleted!").show();
                             loadAllCustomers(searchText);
-                        }else{
+                        } else {
                             new Alert(Alert.AlertType.WARNING, "Try Again!").show();
                         }
                     }
-                }catch (SQLException | ClassNotFoundException exception){
+                } catch (Exception exception) {
                     exception.printStackTrace();
                     new Alert(Alert.AlertType.ERROR, exception.getMessage()).show();
                 }
             });
-
         }
         tbl.setItems(observableList);
     }
-    public void btnSaveUpdateOnAction(ActionEvent actionEvent) {
-        try{
 
-            if (btnSaveUpdate.getText().equals("Save Customer")){
-                if (
-                        bo.saveCustomer(
-                                new CustomerDto(txtEmail.getText(),txtName.getText(),
-                                txtContact.getText(),Double.parseDouble(txtSalary.getText())
-                        ))
-                ){
+    public void btnSaveUpdateOnAction(ActionEvent actionEvent) {
+        try {
+            Customer customer = new Customer(txtEmail.getText(), txtName.getText(),
+                    txtContact.getText(), Double.parseDouble(txtSalary.getText()));
+
+            if (btnSaveUpdate.getText().equals("Save Customer")) {
+                if (customerService.saveCustomer(customer)) {
                     new Alert(Alert.AlertType.CONFIRMATION, "Customer Saved!").show();
                     clearFields();
                     loadAllCustomers(searchText);
-                }else{
-                    new Alert(Alert.AlertType.WARNING, "Try Again!").show();
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Customer already exists or Try Again!").show();
                 }
-            }else{
-                if (
-                        bo.updateCustomer(
-                                new CustomerDto(
-                                txtEmail.getText(),txtName.getText(),
-                                txtContact.getText(),Double.parseDouble(txtSalary.getText())
-                        ))
-                ){
+            } else {
+                if (customerService.updateCustomer(customer)) {
                     new Alert(Alert.AlertType.CONFIRMATION, "Customer Updated!").show();
                     clearFields();
                     loadAllCustomers(searchText);
-                    //---------
                     txtEmail.setEditable(true);
                     btnSaveUpdate.setText("Save Customer");
-                }else{
+                } else {
                     new Alert(Alert.AlertType.WARNING, "Try Again!").show();
                 }
             }
-        }catch (SQLException | ClassNotFoundException e){
+        } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         }
-
     }
 
     private void clearFields() {
@@ -165,12 +144,12 @@ public class CustomerFormController {
         txtSalary.clear();
     }
 
-
     private void setUi(String url) throws IOException {
         Stage stage = (Stage) context.getScene().getWindow();
-        stage.setScene(
-                new Scene(FXMLLoader.load(getClass().getResource("../view/" + url + ".fxml")))
-        );
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
+        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+        stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
 

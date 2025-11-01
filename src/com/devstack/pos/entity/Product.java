@@ -1,38 +1,21 @@
 package com.devstack.pos.entity;
 
-public class Product implements SuperEntity{
-    private int code ;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "product")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "code")
+    private Integer code;
+    
+    @Column(name = "description", nullable = false, length = 200)
     private String description;
-
-    public Product() {
-    }
-
-    public Product(int code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public String toString() {
-        return "Product{" +
-                "code=" + code +
-                ", description='" + description + '\'' +
-                '}';
-    }
 }

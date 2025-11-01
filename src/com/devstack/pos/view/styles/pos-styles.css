@@ -1,0 +1,365 @@
+/* Modern POS System Stylesheet */
+
+/* Root variables for easy theming */
+.root {
+    -fx-primary-color: #2563eb;
+    -fx-secondary-color: #64748b;
+    -fx-success-color: #10b981;
+    -fx-danger-color: #ef4444;
+    -fx-warning-color: #f59e0b;
+    -fx-info-color: #3b82f6;
+    -fx-background-light: #f8fafc;
+    -fx-background-white: #ffffff;
+    -fx-text-primary: #1e293b;
+    -fx-text-secondary: #64748b;
+    -fx-border-color: #e2e8f0;
+    -fx-shadow-sm: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);
+    -fx-shadow-md: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 4);
+    -fx-shadow-lg: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0, 0, 6);
+}
+
+/* Modern Background */
+.background-modern {
+    -fx-background-color: -fx-background-light;
+    -fx-background-radius: 0;
+}
+
+/* Modern Cards */
+.card {
+    -fx-background-color: -fx-background-white;
+    -fx-background-radius: 12;
+    -fx-effect: -fx-shadow-md;
+    -fx-padding: 20;
+}
+
+.card-hover {
+    -fx-effect: -fx-shadow-lg;
+}
+
+/* Modern Buttons */
+.btn-primary {
+    -fx-background-color: -fx-primary-color;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-cursor: hand;
+    -fx-effect: -fx-shadow-sm;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #1d4ed8;
+    -fx-effect: -fx-shadow-md;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #1e40af;
+}
+
+.btn-secondary {
+    -fx-background-color: -fx-secondary-color;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #475569;
+}
+
+.btn-success {
+    -fx-background-color: -fx-success-color;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-cursor: hand;
+}
+
+.btn-success:hover {
+    -fx-background-color: #059669;
+}
+
+.btn-danger {
+    -fx-background-color: -fx-danger-color;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #dc2626;
+}
+
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-primary-color;
+    -fx-border-width: 2;
+    -fx-text-fill: -fx-primary-color;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 22;
+    -fx-cursor: hand;
+}
+
+.btn-outline:hover {
+    -fx-background-color: -fx-primary-color;
+    -fx-text-fill: white;
+}
+
+/* Modern Text Fields */
+.text-field-modern {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: -fx-border-color;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-pref-height: 44;
+}
+
+.text-field-modern:focused {
+    -fx-border-color: -fx-primary-color;
+    -fx-border-width: 2;
+    -fx-effect: -fx-shadow-sm;
+}
+
+/* Modern Labels */
+.label-title {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.label-subtitle {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 16px;
+}
+
+.label-section {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-effect: -fx-shadow-md;
+    -fx-padding: 24;
+    -fx-pref-width: 280;
+    -fx-pref-height: 180;
+    -fx-cursor: hand;
+}
+
+.dashboard-card:hover {
+    -fx-effect: -fx-shadow-lg;
+    -fx-translate-y: -4;
+}
+
+.dashboard-card-icon {
+    -fx-font-size: 48px;
+    -fx-opacity: 0.8;
+}
+
+.dashboard-card-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 8 0 4 0;
+}
+
+.dashboard-card-desc {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+/* Modern Tables */
+.table-view-modern {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: -fx-shadow-sm;
+}
+
+.table-view-modern .column-header-background {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 12 12 0 0;
+    -fx-padding: 0;
+}
+
+.table-view-modern .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-border-color;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 16;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.table-view-modern .table-row-cell {
+    -fx-border-color: -fx-border-color;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view-modern .table-row-cell:selected {
+    -fx-background-color: #eff6ff;
+}
+
+.table-view-modern .table-row-cell:hover {
+    -fx-background-color: #f8fafc;
+}
+
+.table-view-modern .table-cell {
+    -fx-padding: 16;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-text-primary;
+}
+
+/* Header Bar */
+.header-bar {
+    -fx-background-color: white;
+    -fx-effect: -fx-shadow-sm;
+    -fx-padding: 16 24;
+}
+
+.header-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+/* Form Sections */
+.form-section {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: -fx-shadow-sm;
+    -fx-padding: 24;
+    -fx-spacing: 16;
+}
+
+.form-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 0 0 8 0;
+}
+
+/* Action Buttons */
+.action-btn-group {
+    -fx-spacing: 12;
+    -fx-padding: 16 0;
+}
+
+/* Status Badges */
+.badge {
+    -fx-background-radius: 12;
+    -fx-padding: 4 12;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.badge-success {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #166534;
+}
+
+.badge-danger {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
+}
+
+.badge-warning {
+    -fx-background-color: #fef3c7;
+    -fx-text-fill: #92400e;
+}
+
+.badge-info {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e40af;
+}
+
+/* Scrollbar Styling */
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+/* Separator */
+.separator-modern {
+    -fx-background-color: -fx-border-color;
+    -fx-pref-height: 1;
+}
+
+/* Login Form Specific */
+.login-container {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #667eea 0%, #764ba2 100%);
+    -fx-padding: 40;
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-effect: -fx-shadow-lg;
+    -fx-padding: 48;
+    -fx-pref-width: 420;
+    -fx-pref-height: 520;
+}
+
+.login-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 0 0 8 0;
+}
+
+.login-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-padding: 0 0 32 0;
+}
+
+/* Product Grid */
+.product-grid {
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-padding: 16;
+}
+
+/* Cart Items */
+.cart-item {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-padding: 16;
+    -fx-effect: -fx-shadow-sm;
+    -fx-spacing: 12;
+}
+

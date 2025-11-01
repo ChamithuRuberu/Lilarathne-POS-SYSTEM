@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "order_detail")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,12 +23,13 @@ public class OrderDetail {
     @Column(name = "total_cost", nullable = false)
     private double totalCost;
     
-    @Column(name = "customer_email", length = 100)
-    private String customerEmail;
+    private String customerName;
     
     @Column(name = "discount")
     private double discount;
     
     @Column(name = "operator_email", length = 100)
     private String operatorEmail;
+
+    private String paymentType;
 }

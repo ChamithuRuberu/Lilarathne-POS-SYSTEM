@@ -13,6 +13,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 
@@ -33,7 +34,9 @@ public class LoginFormController {
         try {
             AppUser appUser = userService.findUser(txtEmail.getText());
             if (appUser != null) {
-                if (userService.checkPassword(txtPassword.getText(), appUser.getPassword())) {
+                String checked = userService.checkPassword(appUser.getEmail(), txtPassword.getText());
+                if (!ObjectUtils.isEmpty(checked)) {
+                    UserSessionData.jwtToken = checked;
                     UserSessionData.email = txtEmail.getText();
                     setUi("DashboardForm");
                 } else {

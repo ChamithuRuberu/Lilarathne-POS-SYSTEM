@@ -45,11 +45,7 @@
                </Text>
                <Region HBox.hgrow="ALWAYS" />
                <HBox spacing="12" alignment="CENTER_RIGHT">
-                  <JFXTextField fx:id="txtEmailSearch" promptText="Search by customer email..." styleClass="text-field-modern" prefWidth="300.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
+
                   <JFXButton onAction="#OderDetailsShowOnAction" text="Search" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0">
                      <font>
                         <Font name="System Bold" size="13.0" />

@@ -280,7 +280,6 @@ public class PlaceOrderFormController {
             orderDetail.setIssuedDate(LocalDateTime.now());
             orderDetail.setTotalCost(tms.stream().mapToDouble(CartTm::getTotalCost).sum());
             orderDetail.setDiscount(tms.stream().mapToDouble(CartTm::getDiscount).sum());
-            orderDetail.setCustomerEmail(txtEmail.getText());
             orderDetail.setOperatorEmail(UserSessionData.email);
 
             List<ItemDetail> itemDetails = new ArrayList<>();

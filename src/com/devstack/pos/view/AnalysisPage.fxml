@@ -14,7 +14,7 @@
       <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
          <children>
             <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text styleClass="header-title" text="Analytics & Reports">
+               <Text styleClass="header-title" text="Analytics  Reports">
                   <font>
                      <Font name="System Bold" size="24.0" />
                   </font>

@@ -18,4 +18,6 @@ public class Product {
     
     @Column(name = "description", nullable = false, length = 200)
     private String description;
+
+    private boolean status;
 }

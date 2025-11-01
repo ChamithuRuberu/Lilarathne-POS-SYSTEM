@@ -260,4 +260,16 @@ public class ProductMainPageController {
         stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
+
+    public void btnSaveProductOnAction(ActionEvent actionEvent) {
+
+    }
+
+    public void searchProduct(ActionEvent actionEvent) {
+
+    }
+
+    public void btnNewBatchOnAction(ActionEvent actionEvent) {
+
+    }
 }

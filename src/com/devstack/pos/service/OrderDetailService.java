@@ -46,7 +46,7 @@ public class OrderDetailService {
     }
     
     public List<OrderDetail> findByCustomerEmail(String email) {
-        return orderDetailRepository.findByCustomerEmail(email);
+        return orderDetailRepository.findByCustomerName(email);
     }
     
     public OrderDetail createOrder(OrderDetail orderDetail, List<ItemDetail> itemDetails) {

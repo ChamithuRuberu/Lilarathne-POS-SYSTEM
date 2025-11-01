@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Integer> {
     
-    @Query("SELECT o FROM OrderDetail o WHERE o.customerEmail = :email")
-    List<OrderDetail> findByCustomerEmail(@Param("email") String email);
+    @Query("SELECT o FROM OrderDetail o WHERE o.customerName = :email")
+    List<OrderDetail> findByCustomerName(String email);
 }
 

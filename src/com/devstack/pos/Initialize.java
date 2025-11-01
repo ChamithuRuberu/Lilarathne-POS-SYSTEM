@@ -31,14 +31,14 @@ public class Initialize extends Application {
             FXMLLoader loader = new FXMLLoader();
 
             // Try to find the FXML file
-            var fxmlUrl = getClass().getResource("/view/LoginForm.fxml");
+            var fxmlUrl = getClass().getResource("/com/devstack/pos/view/LoginForm.fxml");
 
             if (fxmlUrl == null) {
                 System.err.println("FXML file not found at: /view/LoginForm.fxml");
                 System.err.println("Trying alternative paths...");
 
                 // Try alternative path
-                fxmlUrl = getClass().getResource("/view/LoginForm.fxml");
+                fxmlUrl = getClass().getResource("/com/devstack/pos/view/LoginForm.fxml");
                 if (fxmlUrl == null) {
                     throw new IOException("Could not find LoginForm.fxml in any expected location");
                 }

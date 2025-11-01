@@ -172,7 +172,7 @@ public class PlaceOrderFormController {
 
             if (urlNewLoyalty.getText().equals("+ New Loyalty")) {
                 LoyaltyCard loyaltyCard = new LoyaltyCard();
-                loyaltyCard.setCode(new Random().nextInt(10001));
+                loyaltyCard.setCode((long) new Random().nextInt(10001));
                 loyaltyCard.setCardType(type);
                 loyaltyCard.setBarcode(Base64.getEncoder().encodeToString(arr));
                 loyaltyCard.setEmail(txtEmail.getText());
@@ -196,8 +196,8 @@ public class PlaceOrderFormController {
         try {
             // Search product detail by barcode code (code is the barcode identifier)
             ProductDetail productDetail = productDetailService.findByCodeWithProduct(txtBarcode.getText());
-            if (productDetail != null && productDetail.getProduct() != null) {
-                txtDescription.setText(productDetail.getProduct().getDescription());
+            if (productDetail != null) {
+//                txtDescription.setText(productDetail.getProduct().getDescription());
                 txtDiscount.setText(String.valueOf(250));
                 txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
                 txtShowPrice.setText(String.valueOf(productDetail.getShowPrice()));

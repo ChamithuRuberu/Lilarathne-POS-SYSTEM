@@ -15,10 +15,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, St
     
     List<ProductDetail> findByProductCode(int productCode);
     
-    @Query("SELECT pd FROM ProductDetail pd WHERE pd.productCode = :productCode")
-    List<ProductDetail> findDetailsByProductCode(@Param("productCode") int productCode);
-    
-    @Query("SELECT pd FROM ProductDetail pd JOIN FETCH pd.product WHERE pd.code = :code")
-    Optional<ProductDetail> findByCodeWithProduct(@Param("code") String code);
+
+    Optional<ProductDetail> findByProductCode(Long code);
 }
 

@@ -1,6 +1,6 @@
 package com.devstack.pos.service;
 
-import com.devstack.pos.entity.User;
+import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,14 +21,14 @@ public class UserService {
         if (userRepository.existsByEmail(email)) {
             return false;
         }
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        userRepository.save(user);
+        AppUser appUser = new AppUser();
+        appUser.setEmail(email);
+        appUser.setPassword(passwordEncoder.encode(password));
+        userRepository.save(appUser);
         return true;
     }
     
-    public User findUser(String email) {
+    public AppUser findUser(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
     
@@ -37,11 +37,11 @@ public class UserService {
     }
     
     public boolean updateUser(String email, String newPassword) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<AppUser> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.setPassword(passwordEncoder.encode(newPassword));
-            userRepository.save(user);
+            AppUser appUser = userOpt.get();
+            appUser.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(appUser);
             return true;
         }
         return false;

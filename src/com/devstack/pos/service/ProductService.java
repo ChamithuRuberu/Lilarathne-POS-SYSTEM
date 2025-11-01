@@ -21,7 +21,7 @@ public class ProductService {
     }
     
     public boolean updateProduct(Product product) {
-        if (productRepository.existsById(product.getCode())) {
+        if (productRepository.existsById(Math.toIntExact(product.getCode()))) {
             productRepository.save(product);
             return true;
         }

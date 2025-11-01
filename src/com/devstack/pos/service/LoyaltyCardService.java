@@ -21,7 +21,7 @@ public class LoyaltyCardService {
     }
     
     public boolean updateLoyaltyCard(LoyaltyCard loyaltyCard) {
-        if (loyaltyCardRepository.existsById(loyaltyCard.getCode())) {
+        if (loyaltyCardRepository.existsById(Math.toIntExact(loyaltyCard.getCode()))) {
             loyaltyCardRepository.save(loyaltyCard);
             return true;
         }

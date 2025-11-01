@@ -15,7 +15,7 @@ public class LoyaltyCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "code")
-    private Integer code;
+    private Long code;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "card_type", nullable = false)

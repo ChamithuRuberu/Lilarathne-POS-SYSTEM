@@ -21,20 +21,47 @@ public class Initialize extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         Initialize.primaryStage = primaryStage;
-        
+
         if (springContext == null) {
             throw new IllegalStateException("Spring context not initialized");
         }
-        
-        // Get Spring context
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/LoginForm.fxml"));
-        loader.setControllerFactory(springContext::getBean);
-        
-        primaryStage.setScene(new Scene(loader.load()));
-        primaryStage.setTitle("POS System");
-        primaryStage.centerOnScreen();
-        primaryStage.show();
+
+        try {
+            // Get Spring context
+            FXMLLoader loader = new FXMLLoader();
+
+            // Try to find the FXML file
+            var fxmlUrl = getClass().getResource("/view/LoginForm.fxml");
+
+            if (fxmlUrl == null) {
+                System.err.println("FXML file not found at: /view/LoginForm.fxml");
+                System.err.println("Trying alternative paths...");
+
+                // Try alternative path
+                fxmlUrl = getClass().getResource("/view/LoginForm.fxml");
+                if (fxmlUrl == null) {
+                    throw new IOException("Could not find LoginForm.fxml in any expected location");
+                }
+                System.out.println("Found FXML at: /view/LoginForm.fxml");
+            } else {
+                System.out.println("Found FXML at: /view/LoginForm.fxml");
+            }
+
+            loader.setLocation(fxmlUrl);
+            loader.setControllerFactory(springContext::getBean);
+
+            primaryStage.setScene(new Scene(loader.load()));
+            primaryStage.setTitle("POS System");
+            primaryStage.centerOnScreen();
+            primaryStage.show();
+
+            System.out.println("JavaFX application started successfully!");
+
+        } catch (Exception e) {
+            System.err.println("Error starting JavaFX application:");
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.entity.User;
+import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.service.UserService;
 import com.devstack.pos.util.UserSessionData;
 import javafx.event.ActionEvent;
@@ -31,9 +31,9 @@ public class LoginFormController {
 
     public void btnSignInOnAction(ActionEvent actionEvent) {
         try {
-            User user = userService.findUser(txtEmail.getText());
-            if (user != null) {
-                if (userService.checkPassword(txtPassword.getText(), user.getPassword())) {
+            AppUser appUser = userService.findUser(txtEmail.getText());
+            if (appUser != null) {
+                if (userService.checkPassword(txtPassword.getText(), appUser.getPassword())) {
                     UserSessionData.email = txtEmail.getText();
                     setUi("DashboardForm");
                 } else {

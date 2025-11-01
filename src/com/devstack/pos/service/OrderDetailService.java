@@ -22,7 +22,7 @@ public class OrderDetailService {
     }
     
     public boolean updateOrderDetail(OrderDetail orderDetail) {
-        if (orderDetailRepository.existsById(orderDetail.getCode())) {
+        if (orderDetailRepository.existsById(Math.toIntExact(orderDetail.getCode()))) {
             orderDetailRepository.save(orderDetail);
             return true;
         }
@@ -55,7 +55,7 @@ public class OrderDetailService {
         
         // Set order code for all item details
         for (ItemDetail itemDetail : itemDetails) {
-            itemDetail.setOrderCode(savedOrder.getCode());
+            itemDetail.setOrderCode(Math.toIntExact(savedOrder.getCode()));
         }
         
         return savedOrder;

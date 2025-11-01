@@ -36,7 +36,5 @@ public class ProductDetail {
     @Column(name = "discount_availability", nullable = false)
     private boolean discountAvailability;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_code", insertable = false, updatable = false)
-    private Product product;
+    private Long productId;
 }

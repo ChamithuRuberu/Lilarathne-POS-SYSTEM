@@ -16,7 +16,7 @@ public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "code")
-    private Integer code;
+    private Long code;
     
     @Column(name = "issued_date", nullable = false)
     private LocalDateTime issuedDate;

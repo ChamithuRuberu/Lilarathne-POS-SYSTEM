@@ -49,7 +49,7 @@ public class ProductDetailService {
     }
     
     public ProductDetail findByCodeWithProduct(String code) {
-        return productDetailRepository.findByCodeWithProduct(code).orElse(null);
+        return (ProductDetail) productDetailRepository.findByProductCode(Integer.parseInt(code));
     }
 }
 

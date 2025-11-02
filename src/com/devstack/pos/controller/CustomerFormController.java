@@ -150,6 +150,7 @@ public class CustomerFormController {
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         stage.setScene(new Scene(loader.load()));
+        stage.setMaximized(true);
         stage.centerOnScreen();
     }
 

@@ -1,89 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextArea?>
 <?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.control.Button?>
-<AnchorPane fx:id="context" prefHeight="517.0" prefWidth="991.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.ProductMainPageController">
+<?import javafx.scene.layout.Region?>
+<AnchorPane fx:id="context"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.devstack.pos.controller.ProductMainPageController"
+            stylesheets="@styles/modern-dashboard.css"
+            style="-fx-background-color: #f4f4f9;"> <padding>
+   <Insets left="20.0" right="20.0" top="20.0" bottom="20.0" />
+</padding>
+
    <children>
-      <Label layoutX="14.0" layoutY="17.0" text="Product Management" textFill="#430404">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-      <Separator layoutX="14.0" layoutY="45.0" prefHeight="2.0" prefWidth="968.0" />
-      <Button  layoutX="888.0" layoutY="14.0" onAction="#btnBackToHomeOnAction" style="-fx-background-color: #7f8c8d;" text="Back to home" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <AnchorPane layoutX="14.0" layoutY="59.0" prefHeight="444.0" prefWidth="438.0" style="-fx-background-color: #bdc3c7;">
-         <children>
-            <Button layoutX="317.0" layoutY="13.0" onAction="#btnAddNewOnAction" prefHeight="25.0" prefWidth="106.0" style="-fx-background-color: #2980b9;" text="+ New Product" textFill="WHITE">
+
+      <HBox alignment="CENTER_LEFT" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <Label text="📦 Product Management" styleClass="header-title-light">
+            <font>
+               <Font name="System Bold" size="20.0" />
+            </font>
+         </Label>
+         <Region HBox.hgrow="ALWAYS"/>
+         <JFXButton onAction="#btnBackToHomeOnAction" text="← Back to Dashboard" styleClass="btn-action-secondary-light">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+         </JFXButton>
+      </HBox>
+
+      <Separator layoutY="45.0" prefHeight="2.0" prefWidth="968.0" style="-fx-background-color: #DDDDDD;" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="45.0" />
+
+      <HBox spacing="20.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="65.0">
+
+         <VBox prefWidth="450.0" spacing="15.0" styleClass="card-compact-light">
+            <padding>
+               <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </padding>
+            <Label text="Product Details" styleClass="card-title-small-light"/>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <JFXTextField fx:id="txtProductCode" editable="false" labelFloat="true" promptText="Product Code" HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnAddNewOnAction" text="+ New Product" styleClass="btn-action-primary-light">
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+
+            <JFXTextArea fx:id="txtProductDescription" prefHeight="100.0" promptText="Description" styleClass="text-area-light" />
+
+            <JFXButton fx:id="btnSaveUpdate" onAction="#btnNewProductOnAction" prefHeight="35.0" maxWidth="Infinity" styleClass="btn-action-primary-light" text="Save Product">
                <cursor>
                   <Cursor fx:constant="HAND" />
                </cursor>
-            </Button>
-            <TextField fx:id="txtProductCode" editable="false" layoutX="14.0" layoutY="13.0" promptText="Product Code">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </TextField>
-            <TextArea fx:id="txtProductDescription" layoutX="14.0" layoutY="53.0" prefHeight="118.0" prefWidth="411.0" promptText="Description">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </TextArea>
-            <Button fx:id="btnSaveUpdate"  layoutX="282.0" layoutY="180.0" onAction="#btnNewProductOnAction" prefHeight="29.0" prefWidth="141.0" style="-fx-background-color: #2980b9;" text="Save Product" textFill="WHITE">
-               <cursor>
-                  <Cursor fx:constant="HAND" />
-               </cursor>
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </Button>
-            <TextField layoutX="14.0" layoutY="222.0" prefHeight="25.0" prefWidth="411.0" promptText="search here" />
-            <TableView fx:id="tbl" layoutX="14.0" layoutY="254.0" prefHeight="183.0" prefWidth="411.0">
-              <columns>
-                <TableColumn fx:id="colProductId" prefWidth="75.0" text="#" />
-                <TableColumn fx:id="colProductDesc" prefWidth="120.0" text="Desc" />
-                  <TableColumn fx:id="colProductShowMore" prefWidth="122.0" text="Show more" />
-                  <TableColumn fx:id="colProductDelete" prefWidth="93.0" text="Delete" />
-              </columns>
+            </JFXButton>
+
+            <Separator style="-fx-background-color: #DDDDDD;"/>
+            <JFXTextField promptText="Search Products..." HBox.hgrow="ALWAYS" styleClass="search-field"/>
+
+            <TableView fx:id="tbl" prefHeight="200.0" VBox.vgrow="ALWAYS" styleClass="table-view-light">
+               <columns>
+                  <TableColumn fx:id="colProductId" prefWidth="70.0" text="#" />
+                  <TableColumn fx:id="colProductDesc" prefWidth="180.0" text="Description" />
+                  <TableColumn fx:id="colProductShowMore" prefWidth="100.0" text="Batches" />
+                  <TableColumn fx:id="colProductDelete" prefWidth="90.0" text="Delete" />
+               </columns>
+               <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
             </TableView>
-         </children>
-      </AnchorPane>
-      <Separator layoutX="463.0" layoutY="59.0" orientation="VERTICAL" prefHeight="444.0" prefWidth="9.0" />
-      <TableView fx:id="tblDetail" layoutX="472.0" layoutY="226.0" prefHeight="275.0" prefWidth="507.0">
-         <columns>
-            <TableColumn fx:id="colPDId" prefWidth="49.0" text="#" />
-            <TableColumn fx:id="colPDQty" prefWidth="74.0" text="QTY" />
-            <TableColumn fx:id="colPDSellingPrice" prefWidth="78.0" text="Selling Price" />
-            <TableColumn fx:id="colPDBuyingPrice" prefWidth="102.0" text="Buying Price" />
-            <TableColumn fx:id="colPDDAvailability" prefWidth="60.0" text="D:Av" />
-            <TableColumn fx:id="colPDShowPrice" prefWidth="73.0" text="Show Price" />
-            <TableColumn fx:id="colPDDelete" prefWidth="69.0" text="Delete" />
-         </columns>
-      </TableView>
-      <TextField fx:id="txtSelectedProdId" editable="false" layoutX="472.0" layoutY="59.0" prefHeight="25.0" prefWidth="148.0" promptText="Selected Product Code" />
-      <TextArea fx:id="txtSelectedProdDescription" editable="false" layoutX="472.0" layoutY="91.0" prefHeight="126.0" prefWidth="507.0" promptText="Description">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </TextArea>
-      <Button fx:id="btnNewBatch"  disable="true" layoutX="860.0" layoutY="59.0" onAction="#newBatchOnAction" prefHeight="25.0" prefWidth="117.0" style="-fx-background-color: #2980b9;" text="+ New Batch" textFill="WHITE">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
+         </VBox>
+
+         <VBox HBox.hgrow="ALWAYS" spacing="15.0" styleClass="card-compact-light">
+            <padding>
+               <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </padding>
+            <Label text="Batch  Pricing Details" styleClass="card-title-small-light"/>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <JFXTextField fx:id="txtSelectedProdId" editable="false" labelFloat="true" promptText="Selected Product Code" prefWidth="150.0" />
+               <JFXTextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Selected Product Description" HBox.hgrow="ALWAYS" prefHeight="40.0" styleClass="text-area-light"/>
+               <JFXButton fx:id="btnNewBatch" onAction="#newBatchOnAction" text="+ New Batch" styleClass="btn-action-primary-light" disable="true">
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+
+            <TableView fx:id="tblDetail" VBox.vgrow="ALWAYS" styleClass="table-view-light">
+               <columns>
+                  <TableColumn fx:id="colPDId" prefWidth="60.0" text="Batch #" />
+                  <TableColumn fx:id="colPDQty" prefWidth="70.0" text="Qty" />
+                  <TableColumn fx:id="colPDSellingPrice" prefWidth="110.0" text="Selling Price" />
+                  <TableColumn fx:id="colPDBuyingPrice" prefWidth="110.0" text="Buying Price" />
+                  <TableColumn fx:id="colPDDAvailability" prefWidth="80.0" text="D: Avail." />
+                  <TableColumn fx:id="colPDShowPrice" prefWidth="90.0" text="Show Price" />
+                  <TableColumn fx:id="colPDDelete" prefWidth="70.0" text="Delete" />
+               </columns>
+               <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+            </TableView>
+         </VBox>
+      </HBox>
    </children>
 </AnchorPane>

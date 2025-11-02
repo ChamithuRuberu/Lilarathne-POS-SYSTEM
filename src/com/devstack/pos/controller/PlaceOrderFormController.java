@@ -117,10 +117,14 @@ public class PlaceOrderFormController {
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.show();
+            stage.setMaximized(true);
+
         } else {
             Stage stage = (Stage) context.getScene().getWindow();
             stage.setScene(scene);
             stage.centerOnScreen();
+            stage.setMaximized(true);
+
         }
     }
 

@@ -5,100 +5,124 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.chart.PieChart.Data?>
 
 <AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.devstack.pos.controller.DashboardFormController"
             stylesheets="@styles/modern-dashboard.css"
-            style="-fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2a2a2a);">
+            style="-fx-background-color: linear-gradient(to bottom right, #f4f4f9, #ffffff);">
    <children>
 
-      <VBox prefWidth="250" spacing="25" styleClass="sidebar"
+      <VBox prefWidth="250" spacing="25" styleClass="sidebar-light"
             AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
          <padding>
             <Insets top="30" right="15" bottom="30" left="15" />
          </padding>
          <children>
-            <Text text="Kumara Haradware" styleClass="sidebar-title" />
-
-            <Separator style="-fx-max-width: 180; -fx-background-color: #555555;"/>
-
-            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-active" />
-            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn" />
-            <JFXButton text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn" />
-            <JFXButton text="🛒 Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn" />
-            <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn" />
-
+            <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
+            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
+            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-active-light" />
+            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn-light" />
+            <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn-light" />
             <VBox VBox.vgrow="ALWAYS" />
-            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn" /> </children>
+            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
+         </children>
       </VBox>
 
-      <VBox spacing="30" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
+      <VBox spacing="25" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
             AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
          <children>
 
-            <HBox alignment="CENTER_LEFT" spacing="10">
-               <Text text="Dashboard Overview" styleClass="header-title"/>
+            <HBox alignment="CENTER_LEFT" spacing="20">
+               <Text text="Executive Dashboard" styleClass="header-title-light"/>
                <Region HBox.hgrow="ALWAYS"/>
-               <Text text="Welcome, John Doe (Manager)" styleClass="card-desc"/> </HBox>
+               <Text text="Welcome back, John Doe (Manager) | Shift: 08:00 - 17:00" styleClass="welcome-text-light"/>
+            </HBox>
 
-            <GridPane hgap="30" vgap="30">
+            <GridPane hgap="20">
                <columnConstraints>
                   <ColumnConstraints hgrow="ALWAYS"/>
                   <ColumnConstraints hgrow="ALWAYS"/>
                   <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
                </columnConstraints>
-
-               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="0">
-                  <Text text="👥" styleClass="card-icon"/>
-                  <Text text="Customer Management" styleClass="card-title"/>
-                  <Text text="Manage customer loyalty and contact details." styleClass="card-desc"/>
-                  <Region VBox.vgrow="ALWAYS"/>
-                  <JFXButton text="GO TO CUSTOMERS →" onAction="#btnCustomerOnAction" styleClass="btn-glass"/>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="0">
+                  <Text text="Today's Revenue" styleClass="kpi-label-light"/>
+                  <Text text="LKR 2,500,000" styleClass="kpi-value-primary"/>
+                  <Text text="▲ 12.5% vs Yesterday" styleClass="kpi-change-positive"/>
                </VBox>
-
-               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="1">
-                  <Text text="📦" styleClass="card-icon"/>
-                  <Text text="Product Management" styleClass="card-title"/>
-                  <Text text="Add, edit, or track product inventory and categories." styleClass="card-desc"/>
-                  <Region VBox.vgrow="ALWAYS"/>
-                  <JFXButton text="GO TO PRODUCTS →" onAction="#btnProductOnActions" styleClass="btn-glass"/>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="1">
+                  <Text text="Gross Profit" styleClass="kpi-label-light"/>
+                  <Text text="LKR 550,000" styleClass="kpi-value-light"/>
+                  <Text text="▼ 3.1% vs Last Week" styleClass="kpi-change-negative"/>
                </VBox>
-
-               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="2">
-                  <Text text="🛒" styleClass="card-icon"/>
-                  <Text text="New Order / POS" styleClass="card-title"/>
-                  <Text text="Instantly process sales and manage transactions." styleClass="card-desc"/>
-                  <Region VBox.vgrow="ALWAYS"/>
-                  <JFXButton text="START ORDER →" onAction="#btnPlaceOrderOnAction" styleClass="btn-glass"/>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
+                  <Text text="Active Invoices" styleClass="kpi-label-light"/>
+                  <Text text="45" styleClass="kpi-value-light"/>
+                  <Text text="New Customers: 5" styleClass="kpi-secondary-light"/>
                </VBox>
-
-               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                  <Text text="📋" styleClass="card-icon"/>
-                  <Text text="Order History" styleClass="card-title"/>
-                  <Text text="View detailed transaction logs and history." styleClass="card-desc"/>
-                  <Region VBox.vgrow="ALWAYS"/>
-                  <JFXButton text="VIEW HISTORY →" onAction="#btnOrderDetailsOnAction" styleClass="btn-glass"/>
+               <VBox styleClass="kpi-card-alert-light" GridPane.columnIndex="3">
+                  <Text text="⚠️ Critical Stock" styleClass="kpi-label-alert-light"/>
+                  <Text text="18 Items" styleClass="kpi-value-alert"/>
+                  <Text text="Need to Reorder: 12" styleClass="kpi-secondary-light"/>
                </VBox>
-
-               <VBox styleClass="glass-card" spacing="15" alignment="TOP_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                  <Text text="📊" styleClass="card-icon"/>
-                  <Text text="Income Reports" styleClass="card-title"/>
-                  <Text text="Analyze revenue, profits, and sales trends." styleClass="card-desc"/>
-                  <Region VBox.vgrow="ALWAYS"/>
-                  <JFXButton text="ANALYZE REPORTS →" onAction="#btnIncomeReportOnAction" styleClass="btn-glass"/>
-               </VBox>
-
-               <VBox styleClass="glass-card" spacing="10" alignment="TOP_LEFT" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                  <Text text="Today's Sales" styleClass="card-title"/>
-                  <Text text="Rs. 2,500,000 /=" styleClass="card-icon"/> <Region VBox.vgrow="ALWAYS"/>
-                  <HBox alignment="CENTER_LEFT" spacing="15">
-                     <Text text="Active Users: 5" styleClass="card-desc"/>
-                     <Text text="Invoices: 45" styleClass="card-desc"/>
-                  </HBox>
-               </VBox>
-
             </GridPane>
+
+            <HBox spacing="25" VBox.vgrow="ALWAYS">
+
+               <VBox styleClass="chart-container-light" HBox.hgrow="ALWAYS">
+                  <Text text="Sales Distribution by Category (Last 30 Days)" styleClass="chart-title-light"/>
+                  <PieChart animated="true" VBox.vgrow="ALWAYS" styleClass="animated-pie-chart-light">
+                     <data>
+<!--                        <FXCollections fx:factory="observableArrayList">-->
+<!--                        <PieChart.Data name="Construction Materials" pieValue="45.0"/>-->
+<!--                        <PieChart.Data name="Paints & Chemicals" pieValue="25.0"/>-->
+<!--                        <PieChart.Data name="Tools & Machinery" pieValue="18.0"/>-->
+<!--                        <PieChart.Data name="Electrical & Plumbing" pieValue="12.0"/>-->
+<!--                     </FXCollections>-->
+                     </data>
+                  </PieChart>
+               </VBox>
+
+               <VBox prefWidth="350" spacing="20">
+                  <VBox styleClass="card-compact-light">
+                     <Text text="Top Selling Product" styleClass="card-title-small-light"/>
+                     <Text text="Wall Paint (White - 10L)" styleClass="card-desc-bold-light"/>
+                     <Text text="Units Sold: 250 (3.5% of total sales)" styleClass="card-desc-light"/>
+                  </VBox>
+
+                  <VBox styleClass="card-compact-light">
+                     <Text text="📋 Pending Tasks" styleClass="card-title-small-light"/>
+                     <VBox spacing="10">
+                        <HBox alignment="CENTER_LEFT">
+                           <Text text="GRN Pending Approval" styleClass="task-item-light"/>
+                           <Region HBox.hgrow="ALWAYS"/>
+                           <Text text="2" styleClass="task-count-alert"/>
+                        </HBox>
+                        <Separator style="-fx-background-color: #DDDDDD;"/>
+                        <HBox alignment="CENTER_LEFT">
+                           <Text text="Customer Due Payments" styleClass="task-item-light"/>
+                           <Region HBox.hgrow="ALWAYS"/>
+                           <Text text="LKR 50,000" styleClass="task-count-primary"/>
+                        </HBox>
+                     </VBox>
+                  </VBox>
+
+                  <VBox spacing="10">
+                     <JFXButton text="PROCESS PURCHASE RETURN" onAction="#btnPurchaseReturnOnAction" styleClass="btn-action-primary-light"/>
+                     <JFXButton text="ANALYZE STOCK VALUATION" onAction="#btnStockValuationOnAction" styleClass="btn-action-secondary-light"/>
+                  </VBox>
+
+               </VBox>
+            </HBox>
+
          </children>
       </VBox>
    </children>

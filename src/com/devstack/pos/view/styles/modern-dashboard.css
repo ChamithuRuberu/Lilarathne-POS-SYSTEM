@@ -1,100 +1,196 @@
+/* Define Global Colors for Consistency */
 .root {
     -fx-font-family: "Segoe UI", "Roboto", sans-serif;
-}
-
-.sidebar {
-    -fx-background-color: rgba(25, 25, 25, 0.95);
-    -fx-padding: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.2, 0, 0);
-}
-
-.sidebar-title {
-    -fx-fill: #00ffd0;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-}
-
-.sidebar-btn, .sidebar-btn-active { /* 🎯 Combined for consistency */
-    -fx-background-color: transparent;
-    -fx-text-fill: #eaeaea;
-    -fx-font-size: 15px;
-    -fx-cursor: hand;
-    -fx-background-radius: 10;
-}
-.sidebar-btn:hover {
-    -fx-background-color: rgba(255,255,255,0.1);
-    -fx-text-fill: #00ffd0;
-}
-.sidebar-btn-active { /* Specific style for active button */
-    -fx-background-color: rgba(0, 255, 208, 0.1);
-    -fx-text-fill: #00ffd0;
-}
-
-.header-title {
-    -fx-fill: #eaeaea; /* 🎯 FIX: Changed to light color for dark background */
-    -fx-font-size: 28px;
-    -fx-font-weight: bold;
-}
-
-.glass-card {
-    -fx-background-color: rgba(255, 255, 255, 0.08);
-    -fx-background-radius: 20;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0.2, 0, 5);
-    -fx-transition: all 0.3s ease;
-}
-.glass-card:hover {
-    -fx-background-color: rgba(0, 255, 200, 0.1);
-    -fx-scale-x: 1.03;
-    -fx-scale-y: 1.03;
-}
-
-.card-icon {
-    -fx-fill: #00ffd0;
-    -fx-font-size: 42px;
-}
-.card-title {
-    -fx-fill: #eaeaea; /* 🎯 FIX: Light color for dark background */
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-}
-.card-desc, .welcome-text { /* 🎯 Added welcome-text here for color consistency */
-    -fx-fill: #bbb;
-    -fx-font-size: 13px;
-}
-
-.btn-glass {
-    -fx-background-color: linear-gradient(to right, #00ffd0, #00b4ff);
-    -fx-text-fill: #000;
-    -fx-font-weight: bold;
-    -fx-background-radius: 12;
-    -fx-cursor: hand;
-}
-.btn-glass:hover {
-    -fx-background-color: linear-gradient(to right, #00b4ff, #00ffd0);
+    -fx-primary-color: #007BFF; /* Standard Blue Accent */
+    -fx-secondary-color: #495057; /* Dark Grey Text */
+    -fx-light-background: #FFFFFF;
+    -fx-light-card-background: #FAFAFB;
+    -fx-alert-color: #DC3545; /* Red */
+    -fx-success-color: #28A745; /* Green */
 }
 
 /* ============================
-   CHART SECTION STYLING (Kept for completeness)
+   SIDEBAR (Light Theme)
 ============================ */
-.charts-container {
-    -fx-padding: 20 0 0 0;
+.sidebar-light {
+    -fx-background-color: -fx-light-background;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0.05, 0, 0);
 }
 
-.chart-box {
-    -fx-background-color: rgba(255,255,255,0.08);
-    -fx-background-radius: 20;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.2, 0, 5);
+.sidebar-title-light {
+    -fx-fill: -fx-secondary-color;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
 }
 
-.chart-title {
-    -fx-fill: #00ffd0;
-    -fx-font-size: 18px;
+.sidebar-btn-light, .sidebar-btn-active-light {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-secondary-color;
+    -fx-font-size: 15px;
+    -fx-cursor: hand;
+    -fx-background-radius: 8;
+    -fx-padding: 10 15;
+}
+.sidebar-btn-light:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+    -fx-text-fill: -fx-primary-color;
+}
+.sidebar-btn-active-light {
+    -fx-background-color: rgba(0, 123, 255, 0.2);
+    -fx-text-fill: -fx-primary-color;
+    -fx-font-weight: bold;
+}
+
+/* ============================
+   HEADER & GENERAL TEXT (Light Theme)
+============================ */
+.header-title-light {
+    -fx-fill: -fx-secondary-color;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.welcome-text-light, .card-desc-light, .task-item-light {
+    -fx-fill: #6C757D; /* Medium Gray */
+    -fx-font-size: 14px;
+}
+
+/* ============================
+   KPI CARDS (Light Theme)
+============================ */
+.kpi-card-light {
+    -fx-background-color: -fx-light-card-background;
+    -fx-background-radius: 15;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.1, 0, 2);
+}
+
+.kpi-card-alert-light {
+    -fx-background-color: rgba(220, 53, 69, 0.1); /* Light red background */
+    -fx-background-radius: 15;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(220, 53, 69, 0.2), 10, 0.2, 0, 3);
+}
+
+.kpi-label-light {
+    -fx-fill: #6C757D;
+    -fx-font-size: 13px;
+}
+
+.kpi-label-alert-light {
+    -fx-fill: -fx-alert-color;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.kpi-value-light {
+    -fx-fill: -fx-secondary-color;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0;
+}
+
+.kpi-value-primary, .task-count-primary {
+    -fx-fill: -fx-primary-color; /* Accent color for main revenue/count */
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0;
+}
+
+.kpi-value-alert, .task-count-alert {
+    -fx-fill: -fx-alert-color;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0;
+}
+
+.kpi-change-positive {
+    -fx-fill: -fx-success-color;
+    -fx-font-size: 12px;
+}
+
+.kpi-change-negative {
+    -fx-fill: -fx-alert-color;
+    -fx-font-size: 12px;
+}
+
+.kpi-secondary-light {
+    -fx-fill: #ADB5BD;
+    -fx-font-size: 12px;
+}
+
+/* ============================
+   CHART & COMPACT CARDS (Light Theme)
+============================ */
+.chart-container-light, .card-compact-light {
+    -fx-background-color: -fx-light-background;
+    -fx-background-radius: 15;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0.1, 0, 2);
+}
+
+.chart-title-light, .card-title-small-light {
+    -fx-fill: -fx-primary-color;
+    -fx-font-size: 17px;
     -fx-font-weight: bold;
     -fx-padding: 0 0 10 0;
 }
 
+.card-desc-bold-light {
+    -fx-fill: -fx-secondary-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-padding: 5 0 0 0;
+}
+
+/* ============================
+   ACTION BUTTONS (Light Theme)
+============================ */
+.btn-action-primary-light, .btn-action-secondary-light {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-padding: 12 15;
+}
+
+.btn-action-primary-light {
+    -fx-background-color: -fx-primary-color;
+    -fx-text-fill: -fx-light-background;
+}
+.btn-action-primary-light:hover {
+    -fx-background-color: #0056B3;
+}
+
+.btn-action-secondary-light {
+    -fx-background-color: #E9ECEF; /* Very light gray */
+    -fx-text-fill: -fx-secondary-color;
+}
+.btn-action-secondary-light:hover {
+    -fx-background-color: #CED4DA;
+}
+
+/* ============================
+   PIE CHART CUSTOMIZATION
+============================ */
+.animated-pie-chart-light {
+    /* Ensures the chart itself has a readable color scheme */
+    -fx-pie-label-visible: true;
+}
+
+/* Legend for Chart */
 .chart-legend {
-    -fx-text-fill: #ddd;
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-secondary-color;
+}
+.chart-legend-item-text {
+    -fx-fill: -fx-secondary-color;
+}
+
+/* Ensure pie chart labels are dark for readability on light slices */
+.chart-pie-label {
+    -fx-fill: -fx-secondary-color;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
 }

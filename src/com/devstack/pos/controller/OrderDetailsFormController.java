@@ -38,5 +38,7 @@ public class OrderDetailsFormController {
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
+        stage.setMaximized(true);
+
     }
 }

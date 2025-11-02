@@ -38,6 +38,7 @@ public class DashboardFormController {
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         stage.setScene(new Scene(loader.load()));
+        stage.setMaximized(true);
         stage.centerOnScreen();
     }
 
@@ -50,5 +51,14 @@ public class DashboardFormController {
     }
 
     public void btnLogoutOnAction(ActionEvent actionEvent) {
+    }
+
+    public void btnPurchaseReturnOnAction(ActionEvent actionEvent) {
+    }
+
+    public void btnStockValuationOnAction(ActionEvent actionEvent) {
+    }
+
+    public void btnPurchaseOnAction(ActionEvent actionEvent) {
     }
 }

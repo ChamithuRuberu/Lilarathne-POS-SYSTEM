@@ -1,10 +1,12 @@
 package com.devstack.pos.util;
 
+import javafx.animation.FadeTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 
@@ -17,6 +19,9 @@ public class StageManager {
     // Login and Signup window size
     private static final double AUTH_WINDOW_WIDTH = 600;
     private static final double AUTH_WINDOW_HEIGHT = 700;
+    
+    // Smooth transition flag
+    private static boolean enableTransitions = true;
     
     /**
      * Set scene to full screen (for main application screens)
@@ -57,12 +62,30 @@ public class StageManager {
     }
     
     /**
-     * Load scene with full screen
+     * Load scene with full screen (optimized for fast navigation)
      */
     public static void loadFullScreenScene(Stage stage, Parent root) {
+        // Create scene and set it immediately for fast rendering
         Scene scene = new Scene(root);
         loadCSS(scene);
-        setFullScreen(stage, scene);
+        
+        // Set scene before other operations to minimize flicker
+        stage.setScene(scene);
+        
+        // Then apply full screen settings
+        Screen screen = Screen.getPrimary();
+        double width = screen.getVisualBounds().getWidth();
+        double height = screen.getVisualBounds().getHeight();
+        
+        stage.setMaximized(true);
+        stage.setWidth(width);
+        stage.setHeight(height);
+        stage.setX(0);
+        stage.setY(0);
+        
+        if (stage.getTitle() == null || stage.getTitle().isEmpty()) {
+            stage.setTitle("Lilarathne POS System");
+        }
     }
     
     /**

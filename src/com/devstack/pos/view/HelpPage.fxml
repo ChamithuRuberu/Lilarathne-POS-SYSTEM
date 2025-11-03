@@ -32,7 +32,7 @@
             <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="📊 Reports" onAction="#btnReportsOnAction" styleClass="sidebar-btn-light" />
             
-            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD; "/>
+            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
             
             <JFXButton text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-active-light" />
             <JFXButton text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
@@ -45,13 +45,6 @@
     <VBox spacing="25" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
           AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
         <children>
-            <!-- Header -->
-            <HBox alignment="CENTER_LEFT" spacing="20">
-                <Text text="❓ Help &amp; User Manual" styleClass="header-title-light"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Text fx:id="txtUserEmail" text="Welcome back, User" styleClass="welcome-text-light"/>
-            </HBox>
-            
             <!-- Scrollable Content -->
             <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" 
                         style="-fx-background: transparent; -fx-background-color: transparent;"

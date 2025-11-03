@@ -69,13 +69,13 @@
             </JFXButton>
 
             <HBox alignment="CENTER" spacing="12" style="-fx-padding: 24 0;">
-<!--               <Separator prefWidth="120.0" />-->
+               <!--               <Separator prefWidth="120.0" />-->
                <Text text="OR" style="-fx-font-size: 12px; -fx-fill: #94a3b8;">
                   <font>
                      <Font size="12.0" />
                   </font>
                </Text>
-<!--               <Separator prefWidth="120.0" />-->
+               <!--               <Separator prefWidth="120.0" />-->
             </HBox>
 
             <JFXButton onAction="#btnCreateAnAccountOnAction" text="Create New Account" buttonType="RAISED" styleClass="btn-outline" prefWidth="320.0" prefHeight="48.0" style="-fx-font-size: 16px; -fx-font-weight: bold;">

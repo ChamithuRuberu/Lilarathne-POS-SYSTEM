@@ -61,4 +61,8 @@ public class DashboardFormController {
 
     public void btnPurchaseOnAction(ActionEvent actionEvent) {
     }
+
+    public void btnReturnsOrderOnAction(ActionEvent actionEvent) {
+
+    }
 }

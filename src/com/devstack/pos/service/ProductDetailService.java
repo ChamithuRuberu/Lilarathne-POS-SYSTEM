@@ -49,7 +49,12 @@ public class ProductDetailService {
     }
     
     public ProductDetail findByCodeWithProduct(String code) {
-        return (ProductDetail) productDetailRepository.findByProductCode(Integer.parseInt(code));
+        // Search by code or barcode
+        return productDetailRepository.findByCodeOrBarcode(code).orElse(null);
+    }
+    
+    public ProductDetail findByBarcode(String barcode) {
+        return productDetailRepository.findByBarcode(barcode).orElse(null);
     }
 }
 

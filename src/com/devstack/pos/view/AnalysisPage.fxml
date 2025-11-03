@@ -14,28 +14,324 @@
       <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
          <children>
             <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text styleClass="header-title" text="Analytics  Reports">
+               <JFXButton onAction="#btnBackToDashboard" text="← Back" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+               <Text styleClass="header-title" text="📊 Advanced Reports &amp; Analytics">
                   <font>
                      <Font name="System Bold" size="24.0" />
                   </font>
                </Text>
                <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#refreshAll" text="🔄 Refresh All" buttonType="RAISED" styleClass="btn-primary">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
             </HBox>
          </children>
       </VBox>
       
-      <!-- Main Content -->
-      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32" alignment="CENTER">
-         <Text text="Analytics Dashboard" styleClass="label-title" textAlignment="CENTER">
-            <font>
-               <Font name="System Bold" size="32.0" />
-            </font>
-         </Text>
-         <Text text="Sales reports and analytics will be displayed here" styleClass="label-subtitle" textAlignment="CENTER">
-            <font>
-               <Font size="16.0" />
-            </font>
-         </Text>
-      </VBox>
+      <!-- Main Content with ScrollPane -->
+      <ScrollPane fitToWidth="true" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+         <VBox spacing="24" style="-fx-padding: 32;">
+            
+            <!-- Date Range Filter -->
+            <HBox spacing="16" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+               <Text text="📅 Filter By Date Range" style="-fx-font-size: 16; -fx-font-weight: bold;">
+                  <font>
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <VBox spacing="4" alignment="CENTER_LEFT">
+                  <Text text="From:" style="-fx-font-size: 12;">
+                     <font>
+                        <Font name="System" size="12.0" />
+                     </font>
+                  </Text>
+                  <DatePicker fx:id="dateFrom" prefWidth="150" />
+               </VBox>
+               <VBox spacing="4" alignment="CENTER_LEFT">
+                  <Text text="To:" style="-fx-font-size: 12;">
+                     <font>
+                        <Font name="System" size="12.0" />
+                     </font>
+                  </Text>
+                  <DatePicker fx:id="dateTo" prefWidth="150" />
+               </VBox>
+               <JFXButton onAction="#applyDateFilter" text="Apply Filter" buttonType="RAISED" styleClass="btn-success">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+            
+            <!-- Statistics Cards -->
+            <GridPane hgap="20" vgap="20">
+               <columnConstraints>
+                  <ColumnConstraints percentWidth="25" />
+                  <ColumnConstraints percentWidth="25" />
+                  <ColumnConstraints percentWidth="25" />
+                  <ColumnConstraints percentWidth="25" />
+               </columnConstraints>
+               
+               <!-- Total Revenue Card -->
+               <VBox GridPane.columnIndex="0" styleClass="stat-card" spacing="8" style="-fx-background-color: #4CAF50; -fx-background-radius: 10; -fx-padding: 20;">
+                  <Text text="💰 Total Revenue" style="-fx-fill: white; -fx-font-size: 14;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblTotalRevenue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Text>
+               </VBox>
+               
+               <!-- Total Orders Card -->
+               <VBox GridPane.columnIndex="1" styleClass="stat-card" spacing="8" style="-fx-background-color: #2196F3; -fx-background-radius: 10; -fx-padding: 20;">
+                  <Text text="🛒 Total Orders" style="-fx-fill: white; -fx-font-size: 14;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblTotalOrders" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Text>
+               </VBox>
+               
+               <!-- Total Profit Card -->
+               <VBox GridPane.columnIndex="2" styleClass="stat-card" spacing="8" style="-fx-background-color: #FF9800; -fx-background-radius: 10; -fx-padding: 20;">
+                  <Text text="📈 Total Profit" style="-fx-fill: white; -fx-font-size: 14;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblTotalProfit" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Text>
+               </VBox>
+               
+               <!-- Average Order Value Card -->
+               <VBox GridPane.columnIndex="3" styleClass="stat-card" spacing="8" style="-fx-background-color: #9C27B0; -fx-background-radius: 10; -fx-padding: 20;">
+                  <Text text="💵 Avg Order Value" style="-fx-fill: white; -fx-font-size: 14;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblAvgOrderValue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                     <font>
+                        <Font name="System Bold" size="24.0" />
+                     </font>
+                  </Text>
+               </VBox>
+            </GridPane>
+            
+            <!-- Report Tabs -->
+            <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white; -fx-background-radius: 10;">
+               
+               <!-- Tab 1: Sales Reports -->
+               <Tab text="📊 Sales Reports">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <JFXButton onAction="#loadWeeklySales" text="Week" buttonType="RAISED" styleClass="btn-primary" prefWidth="100">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </JFXButton>
+                        <JFXButton onAction="#loadMonthlySales" text="Month" buttonType="RAISED" styleClass="btn-primary" prefWidth="100">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </JFXButton>
+                        <JFXButton onAction="#loadYearlySales" text="Year" buttonType="RAISED" styleClass="btn-primary" prefWidth="100">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </JFXButton>
+                     </HBox>
+                     <TableView fx:id="tblSalesReports" prefHeight="300.0">
+                        <columns>
+                           <TableColumn fx:id="colSalesPeriod" prefWidth="200.0" text="Period" />
+                           <TableColumn fx:id="colSalesOrders" prefWidth="150.0" text="Orders" />
+                           <TableColumn fx:id="colSalesRevenue" prefWidth="200.0" text="Revenue" />
+                           <TableColumn fx:id="colSalesProfit" prefWidth="200.0" text="Profit" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 2: Top Selling Products -->
+               <Tab text="🏆 Top Selling Products">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <TableView fx:id="tblTopProducts" prefHeight="300.0">
+                        <columns>
+                           <TableColumn fx:id="colProductRank" prefWidth="80.0" text="Rank" />
+                           <TableColumn fx:id="colProductName" prefWidth="300.0" text="Product" />
+                           <TableColumn fx:id="colProductQtySold" prefWidth="150.0" text="Qty Sold" />
+                           <TableColumn fx:id="colProductRevenue" prefWidth="200.0" text="Revenue" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 3: Sales by Category -->
+               <Tab text="📦 Sales by Category">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <TableView fx:id="tblSalesByCategory" prefHeight="300.0">
+                        <columns>
+                           <TableColumn fx:id="colCategoryName" prefWidth="300.0" text="Product Category" />
+                           <TableColumn fx:id="colCategoryOrders" prefWidth="150.0" text="Orders" />
+                           <TableColumn fx:id="colCategoryRevenue" prefWidth="200.0" text="Revenue" />
+                           <TableColumn fx:id="colCategoryProfit" prefWidth="200.0" text="Profit" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 4: Sales by Cashier -->
+               <Tab text="👤 Sales by Cashier/User">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <TableView fx:id="tblSalesByCashier" prefHeight="300.0">
+                        <columns>
+                           <TableColumn fx:id="colCashierRank" prefWidth="80.0" text="Rank" />
+                           <TableColumn fx:id="colCashierName" prefWidth="250.0" text="Cashier" />
+                           <TableColumn fx:id="colCashierOrders" prefWidth="150.0" text="Orders" />
+                           <TableColumn fx:id="colCashierRevenue" prefWidth="200.0" text="Revenue" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 5: Profit & Loss -->
+               <Tab text="💹 Profit &amp; Loss Report">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <GridPane hgap="20" vgap="16">
+                        <columnConstraints>
+                           <ColumnConstraints percentWidth="50" />
+                           <ColumnConstraints percentWidth="50" />
+                        </columnConstraints>
+                        
+                        <VBox GridPane.columnIndex="0" spacing="12" style="-fx-background-color: #e8f5e9; -fx-padding: 20; -fx-background-radius: 8;">
+                           <Text text="Revenue Breakdown" style="-fx-font-size: 16; -fx-font-weight: bold;">
+                              <font>
+                                 <Font name="System Bold" size="16.0" />
+                              </font>
+                           </Text>
+                           <HBox>
+                              <Text text="Total Sales: " style="-fx-font-size: 14;" />
+                              <Text fx:id="lblPLTotalSales" text="0.00 /=" style="-fx-font-size: 14; -fx-font-weight: bold;" />
+                           </HBox>
+                           <HBox>
+                              <Text text="Cost of Goods: " style="-fx-font-size: 14;" />
+                              <Text fx:id="lblPLCostOfGoods" text="0.00 /=" style="-fx-font-size: 14; -fx-font-weight: bold;" />
+                           </HBox>
+                        </VBox>
+                        
+                        <VBox GridPane.columnIndex="1" spacing="12" style="-fx-background-color: #fff3e0; -fx-padding: 20; -fx-background-radius: 8;">
+                           <Text text="Profit Summary" style="-fx-font-size: 16; -fx-font-weight: bold;">
+                              <font>
+                                 <Font name="System Bold" size="16.0" />
+                              </font>
+                           </Text>
+                           <HBox>
+                              <Text text="Gross Profit: " style="-fx-font-size: 14;" />
+                              <Text fx:id="lblPLGrossProfit" text="0.00 /=" style="-fx-font-size: 14; -fx-font-weight: bold;" />
+                           </HBox>
+                           <HBox>
+                              <Text text="Profit Margin: " style="-fx-font-size: 14;" />
+                              <Text fx:id="lblPLProfitMargin" text="0.00%" style="-fx-font-size: 14; -fx-font-weight: bold;" />
+                           </HBox>
+                        </VBox>
+                     </GridPane>
+                     
+                     <TableView fx:id="tblProfitLoss" prefHeight="250.0">
+                        <columns>
+                           <TableColumn fx:id="colPLProduct" prefWidth="300.0" text="Product" />
+                           <TableColumn fx:id="colPLQtySold" prefWidth="120.0" text="Qty Sold" />
+                           <TableColumn fx:id="colPLCost" prefWidth="150.0" text="Cost" />
+                           <TableColumn fx:id="colPLRevenue" prefWidth="150.0" text="Revenue" />
+                           <TableColumn fx:id="colPLProfit" prefWidth="150.0" text="Profit" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 6: Tax Summary -->
+               <Tab text="📄 Tax Summary Report">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="20" alignment="CENTER">
+                        <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #e3f2fd; -fx-padding: 20; -fx-background-radius: 8;">
+                           <Text text="Total Taxable Amount" style="-fx-font-size: 14;">
+                              <font>
+                                 <Font name="System" size="14.0" />
+                              </font>
+                           </Text>
+                           <Text fx:id="lblTaxableAmount" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
+                              <font>
+                                 <Font name="System Bold" size="22.0" />
+                              </font>
+                           </Text>
+                        </VBox>
+                        <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #fff3e0; -fx-padding: 20; -fx-background-radius: 8;">
+                           <Text text="Estimated Tax (15%)" style="-fx-font-size: 14;">
+                              <font>
+                                 <Font name="System" size="14.0" />
+                              </font>
+                           </Text>
+                           <Text fx:id="lblEstimatedTax" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
+                              <font>
+                                 <Font name="System Bold" size="22.0" />
+                              </font>
+                           </Text>
+                        </VBox>
+                     </HBox>
+                     
+                     <TableView fx:id="tblTaxSummary" prefHeight="250.0">
+                        <columns>
+                           <TableColumn fx:id="colTaxPeriod" prefWidth="200.0" text="Period" />
+                           <TableColumn fx:id="colTaxOrders" prefWidth="120.0" text="Orders" />
+                           <TableColumn fx:id="colTaxGrossSales" prefWidth="200.0" text="Gross Sales" />
+                           <TableColumn fx:id="colTaxAmount" prefWidth="200.0" text="Tax Amount (15%)" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+               <!-- Tab 7: Top Customers -->
+               <Tab text="⭐ Top Customers">
+                  <VBox spacing="16" style="-fx-padding: 20;">
+                     <TableView fx:id="tblTopCustomers" prefHeight="300.0">
+                        <columns>
+                           <TableColumn fx:id="colCustomerRank" prefWidth="80.0" text="Rank" />
+                           <TableColumn fx:id="colCustomerEmail" prefWidth="300.0" text="Customer Email" />
+                           <TableColumn fx:id="colCustomerOrders" prefWidth="150.0" text="Orders" />
+                           <TableColumn fx:id="colCustomerRevenue" prefWidth="200.0" text="Total Revenue" />
+                        </columns>
+                     </TableView>
+                  </VBox>
+               </Tab>
+               
+            </TabPane>
+            
+         </VBox>
+      </ScrollPane>
    </children>
 </AnchorPane>

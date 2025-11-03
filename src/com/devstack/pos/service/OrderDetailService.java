@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +47,7 @@ public class OrderDetailService {
     }
     
     public List<OrderDetail> findByCustomerEmail(String email) {
-        return orderDetailRepository.findByCustomerName(email);
+        return orderDetailRepository.findByCustomerEmail(email);
     }
     
     public OrderDetail createOrder(OrderDetail orderDetail, List<ItemDetail> itemDetails) {
@@ -59,6 +60,72 @@ public class OrderDetailService {
         }
         
         return savedOrder;
+    }
+    
+    // Analytics methods
+    @Transactional(readOnly = true)
+    public Double getTotalRevenue() {
+        Double revenue = orderDetailRepository.getTotalRevenue();
+        return revenue != null ? revenue : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getAverageOrderValue() {
+        Double avg = orderDetailRepository.getAverageOrderValue();
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getTotalOrderCount() {
+        return orderDetailRepository.getTotalOrderCount();
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getRevenueByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        Double revenue = orderDetailRepository.getRevenueByDateRange(startDate, endDate);
+        return revenue != null ? revenue : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopCustomersByRevenue() {
+        return orderDetailRepository.getTopCustomersByRevenue();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<OrderDetail> findOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.findOrdersByDateRange(startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCashier() {
+        return orderDetailRepository.getSalesByCashier();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCashierByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getSalesByCashierByDateRange(startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopCustomersWithOrderCount() {
+        return orderDetailRepository.getTopCustomersWithOrderCount();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopCustomersWithOrderCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getTopCustomersWithOrderCountByDateRange(startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public Long countOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        Long count = orderDetailRepository.countOrdersByDateRange(startDate, endDate);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getAverageOrderValueByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        Double avg = orderDetailRepository.getAverageOrderValueByDateRange(startDate, endDate);
+        return avg != null ? avg : 0.0;
     }
 }
 

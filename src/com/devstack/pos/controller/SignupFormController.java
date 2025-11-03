@@ -17,7 +17,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class SignupFormController {
-    public VBox context;  // Changed from AnchorPane to VBox
+    public VBox context;
     public TextField txtEmail;
     public PasswordField textPassword;
 
@@ -51,20 +51,7 @@ public class SignupFormController {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-
-        Scene scene = new Scene(loader.load());
-
-        // Load CSS stylesheet
-        try {
-            var cssUrl = getClass().getResource("/com/devstack/pos/view/styles/pos-styles.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to load CSS: " + e.getMessage());
-        }
-
-        stage.setScene(scene);
+        stage.setScene(new Scene(loader.load()));
         stage.centerOnScreen();
     }
 }

@@ -4,6 +4,7 @@ import com.devstack.pos.entity.Customer;
 import com.devstack.pos.entity.ItemDetail;
 import com.devstack.pos.entity.LoyaltyCard;
 import com.devstack.pos.entity.OrderDetail;
+import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.enums.CardType;
 import com.devstack.pos.service.CustomerService;
@@ -11,6 +12,7 @@ import com.devstack.pos.service.ItemDetailService;
 import com.devstack.pos.service.LoyaltyCardService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.ProductDetailService;
+import com.devstack.pos.service.ProductService;
 import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.CartTm;
@@ -22,12 +24,12 @@ import com.google.zxing.oned.Code128Writer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -44,43 +46,42 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 public class PlaceOrderFormController {
-
-    @FXML
-    private AnchorPane context;
-
-    @FXML
-    private TextField txtEmail, txtName, txtContact, txtSalary, txtBarcode, txtDescription,
-            txtSellingPrice, txtDiscount, txtShowPrice, txtQtyOnHand, txtBuyingPrice, txtQty;
-
-    @FXML
-    private Hyperlink urlNewLoyalty;
-
-    @FXML
-    private Label lblLoyaltyType, txtTotal, lblDiscountAvl;
-
-    @FXML
-    private TableView<CartTm> tblCart;
-
-    @FXML
-    private TableColumn<CartTm, String> colCode, colDesc;
-    @FXML
-    private TableColumn<CartTm, Double> colSelPrice, colSelDisc, colSelShPrice, colSelTotal;
-    @FXML
-    private TableColumn<CartTm, Integer> colSelQty;
-    @FXML
-    private TableColumn<CartTm, Button> colSelOperation;
+    public AnchorPane context;
+    public TextField txtEmail;
+    public TextField txtName;
+    public Hyperlink urlNewLoyalty;
+    public Label lblLoyaltyType;
+    public TextField txtContact;
+    public TextField txtSalary;
+    public TextField txtBarcode;
+    public TextField txtDescription;
+    public TextField txtSellingPrice;
+    public TextField txtDiscount;
+    public TextField txtShowPrice;
+    public TextField txtQtyOnHand;
+    public Label lblDiscountAvl;
+    public TextField txtBuyingPrice;
+    public TextField txtQty;
+    public TableView<CartTm> tblCart;
+    public TableColumn colCode;
+    public TableColumn colDesc;
+    public TableColumn colSelPrice;
+    public TableColumn colSelDisc;
+    public TableColumn colSelShPrice;
+    public TableColumn colSelQty;
+    public TableColumn colSelTotal;
+    public TableColumn colSelOperation;
+    public Text txtTotal;
 
     private final CustomerService customerService;
     private final ProductDetailService productDetailService;
+    private final ProductService productService;
     private final LoyaltyCardService loyaltyCardService;
     private final OrderDetailService orderDetailService;
     private final ItemDetailService itemDetailService;
 
-    private final ObservableList<CartTm> tms = FXCollections.observableArrayList();
 
-    @FXML
     public void initialize() {
-        // Table columns
         colCode.setCellValueFactory(new PropertyValueFactory<>("code"));
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         colSelPrice.setCellValueFactory(new PropertyValueFactory<>("sellingPrice"));
@@ -89,47 +90,39 @@ public class PlaceOrderFormController {
         colSelQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colSelTotal.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
         colSelOperation.setCellValueFactory(new PropertyValueFactory<>("btn"));
-
-        tblCart.setItems(tms);
     }
 
-    @FXML
-    void btnBackToHomeOnAction(ActionEvent event) throws IOException {
+    public void btnBackToHomeOnAction(ActionEvent actionEvent) throws IOException {
         setUi("DashboardForm", false);
     }
 
-    @FXML
-    void btnAddNewCustomerOnAction(ActionEvent event) throws IOException {
+    public void btnAddNewCustomerOnAction(ActionEvent actionEvent) throws IOException {
         setUi("CustomerForm", true);
     }
 
-    @FXML
-    void btnAddNewProductOnAction(ActionEvent event) throws IOException {
+    public void btnAddNewProductOnAction(ActionEvent actionEvent) throws IOException {
         setUi("ProductMainForm", true);
     }
 
-    private void setUi(String url, boolean newStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
+    private void setUi(String url, boolean state) throws IOException {
+        Stage stage = null;
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         Scene scene = new Scene(loader.load());
 
-        if (newStage) {
-            Stage stage = new Stage();
+        if (state) {
+            stage = new Stage();
             stage.setScene(scene);
             stage.show();
-            stage.setMaximized(true);
-
         } else {
-            Stage stage = (Stage) context.getScene().getWindow();
+            stage = (Stage) context.getScene().getWindow();
             stage.setScene(scene);
             stage.centerOnScreen();
-            stage.setMaximized(true);
-
         }
     }
 
-    @FXML
-    void searchCustomer(ActionEvent event) {
+    public void searchCustomer(ActionEvent actionEvent) {
         try {
             Customer customer = customerService.findCustomer(txtEmail.getText());
             if (customer != null) {
@@ -138,12 +131,10 @@ public class PlaceOrderFormController {
                 txtContact.setText(customer.getContact());
                 fetchLoyaltyCardData(txtEmail.getText());
             } else {
-                clearCustomerFields();
-                new Alert(Alert.AlertType.WARNING, "Customer not found!").show();
+                new Alert(Alert.AlertType.WARNING, "Can't Find the Customer!").show();
             }
         } catch (Exception e) {
-            clearCustomerFields();
-            new Alert(Alert.AlertType.ERROR, "Error fetching customer data!").show();
+            new Alert(Alert.AlertType.WARNING, "Can't Find the Customer!").show();
             e.printStackTrace();
         }
     }
@@ -153,102 +144,126 @@ public class PlaceOrderFormController {
         urlNewLoyalty.setVisible(true);
     }
 
-    @FXML
-    void newLoyaltyOnAction(ActionEvent event) {
+    public void newLoyaltyOnAction(ActionEvent actionEvent) {
         try {
             double salary = Double.parseDouble(txtSalary.getText());
-            CardType type;
-            if (salary >= 100_000) type = CardType.PLATINUM;
-            else if (salary >= 50_000) type = CardType.GOLD;
-            else type = CardType.SILVER;
 
+            CardType type = null;
+            if (salary >= 100000) {
+                type = CardType.PLATINUM;
+            } else if (salary >= 50000) {
+                type = CardType.GOLD;
+            } else {
+                type = CardType.SILVER;
+            }
+
+            // Generate unique numeric barcode for loyalty card
             String uniqueData = BarcodeGenerator.generateNumeric(12);
-
+            
+            // Generate CODE 128 barcode (standard POS barcode format)
             Code128Writer barcodeWriter = new Code128Writer();
-            BitMatrix bitMatrix = barcodeWriter.encode(uniqueData, BarcodeFormat.CODE_128, 300, 80);
+            BitMatrix bitMatrix = barcodeWriter.encode(
+                    uniqueData,
+                    BarcodeFormat.CODE_128,
+                    300,  // width
+                    80    // height (barcode height)
+            );
+            
             BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             javax.imageio.ImageIO.write(bufferedImage, "png", baos);
+            byte[] arr = baos.toByteArray();
 
             if (urlNewLoyalty.getText().equals("+ New Loyalty")) {
                 LoyaltyCard loyaltyCard = new LoyaltyCard();
                 loyaltyCard.setCode((long) new Random().nextInt(10001));
                 loyaltyCard.setCardType(type);
-                loyaltyCard.setBarcode(Base64.getEncoder().encodeToString(baos.toByteArray()));
+                loyaltyCard.setBarcode(Base64.getEncoder().encodeToString(arr));
                 loyaltyCard.setEmail(txtEmail.getText());
+                
                 loyaltyCardService.saveLoyaltyCard(loyaltyCard);
-                new Alert(Alert.AlertType.CONFIRMATION, "Loyalty card saved successfully!").show();
+                new Alert(Alert.AlertType.CONFIRMATION, "Saved").show();
                 urlNewLoyalty.setText("Show Loyalty Card Info");
+            } else {
+                // view data
             }
         } catch ( IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Error generating barcode!").show();
+            new Alert(Alert.AlertType.ERROR, "Error generating barcode: " + e.getMessage()).show();
+            e.printStackTrace();
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.WARNING, "Try Again Shortly!").show();
             e.printStackTrace();
         }
     }
 
-    @FXML
-    void loadProduct(ActionEvent event) {
+    public void loadProduct(ActionEvent actionEvent) {
         try {
+            // Search product detail by barcode code (code is the barcode identifier)
             ProductDetail productDetail = productDetailService.findByCodeWithProduct(txtBarcode.getText());
             if (productDetail != null) {
-//                txtDescription.setText(productDetail.getProduct().getDescription());
-                txtDiscount.setText("250");
+                // Load product description using product code
+                Product product = productService.findProduct(productDetail.getProductCode());
+                if (product != null) {
+                    txtDescription.setText(product.getDescription());
+                }
+                txtDiscount.setText(String.valueOf(250));
                 txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
                 txtShowPrice.setText(String.valueOf(productDetail.getShowPrice()));
                 txtQtyOnHand.setText(String.valueOf(productDetail.getQtyOnHand()));
                 txtBuyingPrice.setText(String.valueOf(productDetail.getBuyingPrice()));
                 txtQty.requestFocus();
             } else {
-                new Alert(Alert.AlertType.WARNING, "Product not found!").show();
+                new Alert(Alert.AlertType.WARNING, "Can't Find the Product!").show();
             }
         } catch (Exception e) {
-            new Alert(Alert.AlertType.ERROR, "Error fetching product!").show();
+            new Alert(Alert.AlertType.WARNING, "Can't Find the Product!").show();
             e.printStackTrace();
         }
     }
 
-    @FXML
-    void addToCart(ActionEvent event) {
-        try {
-            int qty = Integer.parseInt(txtQty.getText());
-            double discount = Double.parseDouble(txtDiscount.getText());
-            double sellingPrice = Double.parseDouble(txtSellingPrice.getText()) - discount;
-            double totalCost = qty * sellingPrice;
+    ObservableList<CartTm> tms = FXCollections.observableArrayList();
 
-            CartTm existing = tms.stream().filter(tm -> tm.getCode().equals(txtBarcode.getText())).findFirst().orElse(null);
+    public void addToCart(ActionEvent actionEvent) {
+        int qty = Integer.parseInt(txtQty.getText());
+        /*if (customer.cardType.equals(CardType.GOLD.name())){
+            //
+        }*/
+        double discount = 250;//=>
 
-            if (existing != null) {
-                existing.setQty(existing.getQty() + qty);
-                existing.setTotalCost(existing.getTotalCost() + totalCost);
+        double sellingPrice = (Double.parseDouble(txtSellingPrice.getText())-discount);
+        double totalCost = qty * sellingPrice;
+
+
+        CartTm selectedCartTm = isExists(txtBarcode.getText());
+        if (selectedCartTm != null) {
+            selectedCartTm.setQty(qty + selectedCartTm.getQty());
+            selectedCartTm.setTotalCost(totalCost + selectedCartTm.getTotalCost());
+            tblCart.refresh();
+        } else {
+            Button btn = new Button("Remove");
+            CartTm tm = new CartTm(txtBarcode.getText(),
+                    txtDescription.getText(),
+                    Double.parseDouble(txtDiscount.getText()),
+                    sellingPrice,
+                    Double.parseDouble(txtShowPrice.getText()),
+                    qty,
+                    totalCost,
+                    btn);
+
+            btn.setOnAction((e) -> {
+                tms.remove(tm);
                 tblCart.refresh();
-            } else {
-                Button btn = new Button("Remove");
-                CartTm tm = new CartTm(txtBarcode.getText(),
-                        txtDescription.getText(),
-                        discount,
-                        sellingPrice,
-                        Double.parseDouble(txtShowPrice.getText()),
-                        qty,
-                        totalCost,
-                        btn);
+                setTotal();
+            });
 
-                btn.setOnAction(e -> {
-                    tms.remove(tm);
-                    tblCart.refresh();
-                    setTotal();
-                });
-
-                tms.add(tm);
-                clearProductFields();
-                tblCart.refresh();
-            }
+            tms.add(tm);
+            clear();
+            tblCart.setItems(tms);
             setTotal();
-        } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.WARNING, "Invalid quantity!").show();
         }
     }
 
-    private void clearProductFields() {
+    private void clear() {
         txtDescription.clear();
         txtSellingPrice.clear();
         txtDiscount.clear();
@@ -260,60 +275,84 @@ public class PlaceOrderFormController {
         txtBarcode.requestFocus();
     }
 
-    private void clearCustomerFields() {
-        txtName.clear();
-        txtSalary.clear();
-        txtContact.clear();
-        urlNewLoyalty.setVisible(false);
+    private CartTm isExists(String code) {
+        for (CartTm tm : tms
+        ) {
+            if (tm.getCode().equals(code)) {
+                return tm;
+            }
+        }
+        return null;
     }
 
     private void setTotal() {
-        double total = tms.stream().mapToDouble(CartTm::getTotalCost).sum();
+        double total = 0;
+        for (CartTm tm : tms
+        ) {
+            total += tm.getTotalCost();
+        }
         txtTotal.setText(total + " /=");
     }
 
-    @FXML
-    void btnCompleteOrder(ActionEvent event) {
+    public void btnCompleteOrder(ActionEvent actionEvent) {
         try {
             if (tms.isEmpty()) {
                 new Alert(Alert.AlertType.WARNING, "Cart is empty!").show();
                 return;
             }
-
+            
+            // Calculate total discount
+            double totalDiscount = tms.stream()
+                    .mapToDouble(CartTm::getDiscount)
+                    .sum();
+            
+            // Create order detail
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setIssuedDate(LocalDateTime.now());
-            orderDetail.setTotalCost(tms.stream().mapToDouble(CartTm::getTotalCost).sum());
-            orderDetail.setDiscount(tms.stream().mapToDouble(CartTm::getDiscount).sum());
+            orderDetail.setTotalCost(Double.parseDouble(txtTotal.getText().split(" /=")[0]));
+            orderDetail.setCustomerEmail(txtEmail.getText());
+            orderDetail.setDiscount(totalDiscount);
             orderDetail.setOperatorEmail(UserSessionData.email);
-
+            
+            // Create item details from cart
             List<ItemDetail> itemDetails = new ArrayList<>();
             for (CartTm tm : tms) {
-                ItemDetail item = new ItemDetail();
-                item.setDetailCode(tm.getCode());
-                item.setQty(tm.getQty());
-                item.setDiscount(tm.getDiscount());
-                item.setAmount(tm.getTotalCost());
-                itemDetails.add(item);
+                ItemDetail itemDetail = new ItemDetail();
+                itemDetail.setDetailCode(tm.getCode());
+                itemDetail.setQty(tm.getQty());
+                itemDetail.setDiscount(tm.getDiscount());
+                itemDetail.setAmount(tm.getTotalCost());
+                itemDetails.add(itemDetail);
             }
-
+            
+            // Save order with items
             orderDetailService.createOrder(orderDetail, itemDetails);
-
-            new Alert(Alert.AlertType.CONFIRMATION, "Order completed successfully!").show();
-
-            tms.clear();
-            tblCart.refresh();
+            itemDetailService.saveItemDetails(itemDetails);
+            
+            new Alert(Alert.AlertType.CONFIRMATION, "Order Completed Successfully!").show();
             clearFields();
+            tms.clear();
+            tblCart.setItems(tms);
             setTotal();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error completing order!").show();
+            new Alert(Alert.AlertType.WARNING, "Error completing order: " + e.getMessage()).show();
         }
     }
-
+    
     private void clearFields() {
         txtEmail.clear();
-        clearCustomerFields();
-        clearProductFields();
+        txtName.clear();
+        txtContact.clear();
+        txtSalary.clear();
+        txtBarcode.clear();
+        txtDescription.clear();
+        txtSellingPrice.clear();
+        txtDiscount.clear();
+        txtShowPrice.clear();
+        txtQtyOnHand.clear();
+        txtBuyingPrice.clear();
+        txtQty.clear();
         urlNewLoyalty.setText("+ New Loyalty");
         urlNewLoyalty.setVisible(false);
     }

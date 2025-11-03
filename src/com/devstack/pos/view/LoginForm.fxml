@@ -9,14 +9,11 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.effect.DropShadow?>
-<?import java.lang.String?>
 
-<AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.LoginFormController">
-   <styleClass>
-      <String fx:value="login-container"/>
-   </styleClass>
+<?import javafx.scene.control.Separator?>
+<VBox fx:id="context" alignment="CENTER" spacing="0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.LoginFormController" stylesheets="@styles/pos-styles.css" styleClass="login-container">
    <children>
-      <VBox alignment="CENTER" spacing="0" styleClass="login-card" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+      <VBox alignment="CENTER" spacing="0" styleClass="login-card">
          <VBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 0 0 40 0;">
             <Text styleClass="login-title" text="Welcome Back">
                <font>
@@ -29,7 +26,7 @@
                </font>
             </Text>
          </VBox>
-
+         
          <VBox spacing="20" style="-fx-padding: 0;">
             <VBox spacing="8">
                <Text text="Email" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;">
@@ -43,21 +40,21 @@
                   </font>
                </JFXTextField>
             </VBox>
-
+            
             <VBox spacing="8">
                <Text text="Password" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;">
                   <font>
                      <Font name="System Bold" size="14.0" />
                   </font>
                </Text>
-               <JFXPasswordField fx:id="txtPassword" promptText="Enter your password" styleClass="text-field-modern" text="1234" prefWidth="320.0" prefHeight="44.0">
+               <JFXPasswordField fx:id="txtPassword" promptText="Enter your password" styleClass="text-field-modern" text="ADMIN" prefWidth="320.0" prefHeight="44.0">
                   <font>
                      <Font name="System" size="14.0" />
                   </font>
                </JFXPasswordField>
             </VBox>
          </VBox>
-
+         
          <VBox spacing="16" style="-fx-padding: 32 0 24 0;" alignment="CENTER">
             <JFXButton onAction="#btnSignInOnAction" text="Sign In" buttonType="RAISED" styleClass="btn-primary" prefWidth="320.0" prefHeight="48.0" style="-fx-font-size: 16px; -fx-font-weight: bold;">
                <font>
@@ -67,17 +64,17 @@
                   <Cursor fx:constant="HAND" />
                </cursor>
             </JFXButton>
-
+            
             <HBox alignment="CENTER" spacing="12" style="-fx-padding: 24 0;">
-               <!--               <Separator prefWidth="120.0" />-->
+               <Separator prefWidth="120.0" />
                <Text text="OR" style="-fx-font-size: 12px; -fx-fill: #94a3b8;">
                   <font>
                      <Font size="12.0" />
                   </font>
                </Text>
-               <!--               <Separator prefWidth="120.0" />-->
+               <Separator prefWidth="120.0" />
             </HBox>
-
+            
             <JFXButton onAction="#btnCreateAnAccountOnAction" text="Create New Account" buttonType="RAISED" styleClass="btn-outline" prefWidth="320.0" prefHeight="48.0" style="-fx-font-size: 16px; -fx-font-weight: bold;">
                <font>
                   <Font name="System Bold" size="16.0" />
@@ -89,4 +86,4 @@
          </VBox>
       </VBox>
    </children>
-</AnchorPane>
+</VBox>

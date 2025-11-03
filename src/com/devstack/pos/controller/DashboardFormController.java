@@ -29,7 +29,8 @@ public class DashboardFormController {
         setUi("OrderDetailsForm");
     }
 
-    public void btnIncomeReportOnAction(ActionEvent actionEvent) {
+    public void btnIncomeReportOnAction(ActionEvent actionEvent) throws IOException {
+        setUi("AnalysisPage");
     }
 
     private void setUi(String url) throws IOException {
@@ -38,16 +39,18 @@ public class DashboardFormController {
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         stage.setScene(new Scene(loader.load()));
-        stage.setMaximized(true);
         stage.centerOnScreen();
     }
 
-    public void btnSettingsOnAction(ActionEvent actionEvent) {
-
+    public void btnDashboardOnAction(ActionEvent actionEvent) {
     }
 
-    public void btnDashboardOnAction(ActionEvent actionEvent) {
+    public void btnReturnsOrderOnAction(ActionEvent actionEvent) throws IOException {
+        setUi("ReturnOrdersForm");
+    }
 
+    public void btnPurchaseOnAction(ActionEvent actionEvent) throws IOException {
+        setUi("PurchaseOrdersForm");
     }
 
     public void btnLogoutOnAction(ActionEvent actionEvent) {
@@ -57,12 +60,5 @@ public class DashboardFormController {
     }
 
     public void btnStockValuationOnAction(ActionEvent actionEvent) {
-    }
-
-    public void btnPurchaseOnAction(ActionEvent actionEvent) {
-    }
-
-    public void btnReturnsOrderOnAction(ActionEvent actionEvent) {
-
     }
 }

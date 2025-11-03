@@ -4,142 +4,172 @@
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/20.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.devstack.pos.controller.CustomerFormController"
-            stylesheets="@styles/customer-onboard.css"
-            styleClass="background-modern">
-
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.CustomerFormController" stylesheets="@styles/pos-styles.css">
    <children>
-      <!-- Header -->
-      <VBox styleClass="header-bar"
-            AnchorPane.topAnchor="0"
-            AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0">
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
          <children>
             <HBox alignment="CENTER_LEFT" spacing="12">
-               <padding>
-                  <Insets top="20" right="20" bottom="20" left="20"/>
-               </padding>
-               <Text text="Customer Dashboard" styleClass="header-title"/>
-               <Region HBox.hgrow="ALWAYS"/>
-               <JFXButton text="Back to Home"
-                          onAction="#btnBackToHomeOnAction"
-                          buttonType="RAISED"
-                          styleClass="btn-secondary"
-                          prefWidth="140">
-                  <cursor><Cursor fx:constant="HAND"/></cursor>
+               <Text styleClass="header-title" text="Customer Management">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnBackToHomeOnAction" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
                </JFXButton>
             </HBox>
          </children>
       </VBox>
-
-      <!-- Content -->
-      <VBox spacing="24"
-            AnchorPane.topAnchor="80"
-            AnchorPane.leftAnchor="32"
-            AnchorPane.rightAnchor="32"
-            AnchorPane.bottomAnchor="32">
-
-         <!-- Customer Information -->
-         <VBox spacing="20">
-            <Text text="Customer Information" styleClass="label-section"/>
+      
+      <!-- Main Content -->
+      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
+         <!-- Form Section -->
+         <VBox styleClass="form-section" spacing="20">
+            <Text text="Customer Information" styleClass="label-section">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Text>
+            
             <GridPane hgap="20" vgap="20">
                <columnConstraints>
-                  <ColumnConstraints prefWidth="300" hgrow="SOMETIMES"/>
-                  <ColumnConstraints prefWidth="300" hgrow="SOMETIMES"/>
-                  <ColumnConstraints prefWidth="300" hgrow="SOMETIMES"/>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="280.0" prefWidth="300.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="280.0" prefWidth="300.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="280.0" prefWidth="300.0" />
                </columnConstraints>
-
-               <VBox spacing="8" GridPane.columnIndex="0">
-                  <Text text="Email" styleClass="form-label"/>
-                  <JFXTextField fx:id="txtEmail" promptText="Enter email" styleClass="text-field-modern"/>
+               <rowConstraints>
+                  <RowConstraints minHeight="60.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="60.0" vgrow="NEVER" />
+               </rowConstraints>
+               
+               <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                  <Text text="Email" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtEmail" promptText="Enter email address" styleClass="text-field-modern" prefWidth="300.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                </VBox>
-
-               <VBox spacing="8" GridPane.columnIndex="1">
-                  <Text text="Name" styleClass="form-label"/>
-                  <JFXTextField fx:id="txtName" promptText="Enter name" styleClass="text-field-modern"/>
+               
+               <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                  <Text text="Name" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtName" promptText="Enter customer name" styleClass="text-field-modern" prefWidth="300.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                </VBox>
-
-               <VBox spacing="8" GridPane.columnIndex="2">
-                  <Text text="Contact" styleClass="form-label"/>
-                  <JFXTextField fx:id="txtContact" promptText="Enter contact" styleClass="text-field-modern"/>
+               
+               <VBox spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                  <Text text="Contact" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtContact" promptText="Enter contact number" styleClass="text-field-modern" prefWidth="300.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                </VBox>
-
+               
                <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                  <Text text="Salary" styleClass="form-label"/>
-                  <JFXTextField fx:id="txtSalary" promptText="Enter salary" styleClass="text-field-modern"/>
+                  <Text text="Salary" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtSalary" promptText="Enter salary" styleClass="text-field-modern" prefWidth="300.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                </VBox>
-
-               <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.columnSpan="2">
-                  <Text text="Search Customer" styleClass="form-label"/>
+               
+               <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
                   <HBox spacing="12" alignment="CENTER_LEFT">
-                     <JFXTextField fx:id="txtSearch"
-                                   promptText="Search by name or email"
-                                   styleClass="text-field-modern"
-                                   onAction="#searchCustomer"
-                                   HBox.hgrow="ALWAYS"/>
-                     <JFXButton text="Save Customer"
-                                onAction="#btnSaveUpdateOnAction"
-                                styleClass="btn-success"
-                                prefWidth="160"/>
-                     <JFXButton text="New Customer"
-                                onAction="#btnNewCustomerOnAction"
-                                styleClass="btn-primary"
-                                prefWidth="140"/>
+                     <JFXButton onAction="#btnSaveUpdateOnAction" fx:id="btnSaveUpdate" text="Save Customer" buttonType="RAISED" styleClass="btn-success" prefWidth="160.0">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                     <JFXButton onAction="#btnNewCustomerOnAction" text="New Customer" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
                   </HBox>
+               </VBox>
+               <VBox spacing="8" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                  <Text text="🔍 Search Customer" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtSearch" promptText="Search by email or name..." styleClass="text-field-modern" onAction="#searchCustomer">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                </VBox>
             </GridPane>
          </VBox>
-
-         <!-- Customer Table -->
+         
+         <!-- Table Section -->
          <VBox spacing="16">
             <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text text="Customer List" styleClass="label-section"/>
-               <Region HBox.hgrow="ALWAYS"/>
-               <JFXButton text="Manage Loyalty Cards"
-                          styleClass="btn-outline"
-                          prefWidth="180"/>
+               <Text text="Customer List" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton text="Manage Loyalty Cards" buttonType="RAISED" styleClass="btn-outline" prefWidth="180.0">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
             </HBox>
-            <TableView fx:id="tbl"
-                       styleClass="table-view-modern"
-                       prefHeight="320">
+            
+            <TableView fx:id="tbl" styleClass="table-view-modern" prefHeight="400.0">
                <columns>
-                  <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
-                  <TableColumn fx:id="colEmail" text="Email" prefWidth="250"/>
-                  <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
-                  <TableColumn fx:id="colContact" text="Contact" prefWidth="180"/>
-                  <TableColumn fx:id="colSalary" text="Salary" prefWidth="150"/>
-                  <TableColumn fx:id="colOperate" text="Actions" prefWidth="200"/>
+                  <TableColumn fx:id="colId" prefWidth="80.0" text="ID" />
+                  <TableColumn fx:id="colEmail" prefWidth="280.0" text="Email" />
+                  <TableColumn fx:id="colName" prefWidth="200.0" text="Name" />
+                  <TableColumn fx:id="colContact" prefWidth="180.0" text="Contact" />
+                  <TableColumn fx:id="colSalary" prefWidth="150.0" text="Salary" />
+                  <TableColumn fx:id="colOperate" prefWidth="250.0" text="Actions" />
                </columns>
             </TableView>
-         </VBox>
-
-         <!-- Chart Section -->
-         <VBox spacing="16" styleClass="chart-section">
-            <padding>
-               <Insets top="16" right="16" bottom="16" left="16"/>
-            </padding>
-            <Text text="Customer Insights" styleClass="label-section"/>
-            <HBox spacing="32" alignment="CENTER">
-               <PieChart fx:id="pieChart" prefWidth="400" prefHeight="300"/>
-               <BarChart fx:id="barChart" prefWidth="500" prefHeight="300">
-                  <xAxis>
-                     <CategoryAxis label="Customer Groups"/>
-                  </xAxis>
-                  <yAxis>
-                     <NumberAxis label="Total Sales (LKR)"/>
-                  </yAxis>
-               </BarChart>
-            </HBox>
          </VBox>
       </VBox>
    </children>

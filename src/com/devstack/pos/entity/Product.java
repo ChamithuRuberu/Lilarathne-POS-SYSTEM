@@ -1,5 +1,6 @@
 package com.devstack.pos.entity;
 
+import com.devstack.pos.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,13 @@ public class Product {
     
     @Column(name = "description", nullable = false, length = 200)
     private String description;
-
-    private boolean status;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status = Status.ACTIVE;
+    
+    public Product(String description) {
+        this.description = description;
+        this.status = Status.ACTIVE;
+    }
 }

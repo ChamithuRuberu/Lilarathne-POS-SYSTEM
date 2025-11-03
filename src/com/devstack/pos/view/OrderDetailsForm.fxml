@@ -45,7 +45,11 @@
                </Text>
                <Region HBox.hgrow="ALWAYS" />
                <HBox spacing="12" alignment="CENTER_RIGHT">
-
+                  <JFXTextField fx:id="txtEmailSearch" promptText="Search by customer email..." styleClass="text-field-modern" prefWidth="300.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </JFXTextField>
                   <JFXButton onAction="#OderDetailsShowOnAction" text="Search" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0">
                      <font>
                         <Font name="System Bold" size="13.0" />
@@ -68,36 +72,12 @@
             
             <TableView fx:id="tblOrders" styleClass="table-view-modern" prefHeight="600.0">
                <columns>
-                  <TableColumn fx:id="colId" prefWidth="100.0" text="Order Code">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
-                  <TableColumn fx:id="colCustomerEmail" prefWidth="280.0" text="Customer Email">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
-                  <TableColumn fx:id="colDate" prefWidth="180.0" text="Issued Date">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
-                  <TableColumn fx:id="colDiscount" prefWidth="150.0" text="Discount">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
-                  <TableColumn fx:id="colUserEmail" prefWidth="200.0" text="Operator">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
-                  <TableColumn fx:id="colTotal" prefWidth="180.0" text="Total Price">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </TableColumn>
+                  <TableColumn fx:id="colId" prefWidth="100.0" text="Order Code" />
+                  <TableColumn fx:id="colCustomerEmail" prefWidth="280.0" text="Customer Email" />
+                  <TableColumn fx:id="colDate" prefWidth="180.0" text="Issued Date" />
+                  <TableColumn fx:id="colDiscount" prefWidth="150.0" text="Discount" />
+                  <TableColumn fx:id="colUserEmail" prefWidth="200.0" text="Operator" />
+                  <TableColumn fx:id="colTotal" prefWidth="180.0" text="Total Price" />
                </columns>
             </TableView>
          </VBox>

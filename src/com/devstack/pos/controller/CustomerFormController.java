@@ -72,6 +72,11 @@ public class CustomerFormController {
         txtContact.setText(newValue.getContact());
     }
 
+    public void searchCustomer(ActionEvent actionEvent) {
+        searchText = txtSearch.getText();
+        loadAllCustomers(searchText);
+    }
+
     private void loadAllCustomers(String searchText) {
         ObservableList<CustomerTm> observableList = FXCollections.observableArrayList();
         int counter = 1;
@@ -150,7 +155,6 @@ public class CustomerFormController {
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
         stage.setScene(new Scene(loader.load()));
-        stage.setMaximized(true);
         stage.centerOnScreen();
     }
 
@@ -162,9 +166,5 @@ public class CustomerFormController {
         txtEmail.setEditable(true);
         btnSaveUpdate.setText("Save Customer");
         clearFields();
-    }
-
-    public void searchCustomer(ActionEvent actionEvent) {
-
     }
 }

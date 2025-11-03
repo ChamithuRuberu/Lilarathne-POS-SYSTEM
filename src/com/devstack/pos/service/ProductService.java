@@ -1,6 +1,7 @@
 package com.devstack.pos.service;
 
 import com.devstack.pos.entity.Product;
+import com.devstack.pos.enums.Status;
 import com.devstack.pos.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     
     public Product saveProduct(Product product) {
+        if (product.getStatus() == null) {
+            product.setStatus(Status.ACTIVE);
+        }
         return productRepository.save(product);
     }
     

@@ -16,6 +16,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class NewBatchFormController {
 
+    public AnchorPane context;
     public ImageView barcodeImage;
     public TextField txtQty;
     public TextField txtSellingPrice;
@@ -41,7 +43,6 @@ public class NewBatchFormController {
     public TextArea txtSelectedProdDescription;
     public RadioButton rBtnYes;
     String uniqueData = null;
-    BufferedImage bufferedImage = null;
     Stage stage = null;
 
     private final ProductDetailService productDetailService;
@@ -56,15 +57,12 @@ public class NewBatchFormController {
         // Generate CODE 128 barcode (standard POS barcode format)
         Code128Writer barcodeWriter = new Code128Writer();
         BitMatrix bitMatrix = barcodeWriter.encode(
-                uniqueData,
+                                uniqueData,
                 BarcodeFormat.CODE_128,
                 300,  // width
                 80    // height (barcode height)
-        );
+                );
         
-        bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-        barcodeImage.setImage(image);
     }
 
     public void setDetails(int code, String description, Stage stage,
@@ -111,9 +109,8 @@ public class NewBatchFormController {
     @Transactional
     public void saveBatch(ActionEvent actionEvent) throws IOException {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            javax.imageio.ImageIO.write(bufferedImage, "png", baos);
-            byte[] arr = baos.toByteArray();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] arr = baos.toByteArray();
 
             ProductDetail productDetail = new ProductDetail();
             productDetail.setCode(uniqueData);
@@ -127,9 +124,9 @@ public class NewBatchFormController {
 
             productDetailService.saveProductDetail(productDetail);
             
-            new Alert(Alert.AlertType.CONFIRMATION, "Batch Saved!").show();
-            Thread.sleep(3000);
-            this.stage.close();
+                new Alert(Alert.AlertType.CONFIRMATION, "Batch Saved!").show();
+                Thread.sleep(3000);
+                this.stage.close();
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error saving batch: " + e.getMessage()).show();

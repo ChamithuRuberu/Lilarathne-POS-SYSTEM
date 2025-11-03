@@ -10,8 +10,12 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.ToggleGroup?>
 
 <AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.NewBatchFormController" stylesheets="@styles/pos-styles.css">
+   <fx:define>
+      <ToggleGroup fx:id="deiscount"/>
+   </fx:define>
    <children>
       <!-- Header Bar -->
       <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">

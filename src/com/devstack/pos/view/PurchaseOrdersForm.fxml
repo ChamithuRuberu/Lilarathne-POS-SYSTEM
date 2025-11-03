@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.PurchaseOrdersFormController" stylesheets="@styles/pos-styles.css">
+   <children>
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+               <JFXButton onAction="#btnBackToDashboard" text="← Back" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+               <Text styleClass="header-title" text="📦 Purchase Orders Management">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnRefresh" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+         </children>
+      </VBox>
+      
+      <!-- Main Content -->
+      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
+         
+         <!-- Search and Filter Section -->
+         <HBox spacing="16" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+               <Text text="Search" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                  <font>
+                     <Font name="System" size="12.0" />
+                  </font>
+               </Text>
+               <JFXTextField fx:id="txtSearch" promptText="Search by PO Number or Supplier..." prefWidth="300" styleClass="modern-text-field">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </JFXTextField>
+            </VBox>
+            
+               <VBox spacing="4">
+                  <Text text="Status" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                     <font>
+                        <Font name="System" size="12.0" />
+                     </font>
+                  </Text>
+                  <ComboBox fx:id="cmbStatus" prefWidth="150" promptText="All Status" />
+               </VBox>
+            
+            <VBox spacing="4">
+               <Text text="From Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                  <font>
+                     <Font name="System" size="12.0" />
+                  </font>
+               </Text>
+               <DatePicker fx:id="dateFrom" prefWidth="150" />
+            </VBox>
+            
+            <VBox spacing="4">
+               <Text text="To Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                  <font>
+                     <Font name="System" size="12.0" />
+                  </font>
+               </Text>
+               <DatePicker fx:id="dateTo" prefWidth="150" />
+            </VBox>
+            
+            <VBox spacing="4" alignment="BOTTOM_CENTER">
+               <JFXButton onAction="#btnSearch" text="Search" buttonType="RAISED" styleClass="btn-success" prefWidth="120">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </VBox>
+         </HBox>
+         
+         <!-- Statistics Cards -->
+         <HBox spacing="20" alignment="CENTER_LEFT">
+            <!-- Total Purchase Orders Card -->
+            <VBox styleClass="stat-card" spacing="8" style="-fx-background-color: #3B82F6; -fx-background-radius: 10; -fx-padding: 20;" prefWidth="200">
+               <Text text="Total POs" style="-fx-fill: white; -fx-font-size: 14;">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblTotalPO" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
+            
+            <!-- Pending POs Card -->
+            <VBox styleClass="stat-card" spacing="8" style="-fx-background-color: #F59E0B; -fx-background-radius: 10; -fx-padding: 20;" prefWidth="200">
+               <Text text="Pending" style="-fx-fill: white; -fx-font-size: 14;">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblPendingPO" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
+            
+            <!-- Approved POs Card -->
+            <VBox styleClass="stat-card" spacing="8" style="-fx-background-color: #10B981; -fx-background-radius: 10; -fx-padding: 20;" prefWidth="200">
+               <Text text="Approved" style="-fx-fill: white; -fx-font-size: 14;">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblApprovedPO" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
+            
+            <!-- Total Value Card -->
+            <VBox styleClass="stat-card" spacing="8" style="-fx-background-color: #8B5CF6; -fx-background-radius: 10; -fx-padding: 20;" prefWidth="250">
+               <Text text="Total Value" style="-fx-fill: white; -fx-font-size: 14;">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblTotalValue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
+         </HBox>
+         
+         <!-- Purchase Orders Table -->
+         <VBox spacing="12" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT">
+               <Text text="Purchase Orders List" style="-fx-font-size: 18; -fx-font-weight: bold;">
+                  <font>
+                     <Font name="System Bold" size="18.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnCreatePO" text="+ Create New PO" buttonType="RAISED" styleClass="btn-primary">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+            
+            <TableView fx:id="tblPurchaseOrders" styleClass="table-view-modern" prefHeight="400.0">
+               <columns>
+                  <TableColumn fx:id="colPONumber" prefWidth="120.0" text="PO Number" />
+                  <TableColumn fx:id="colSupplier" prefWidth="200.0" text="Supplier" />
+                  <TableColumn fx:id="colOrderDate" prefWidth="150.0" text="Order Date" />
+                  <TableColumn fx:id="colExpectedDate" prefWidth="150.0" text="Expected Date" />
+                  <TableColumn fx:id="colItems" prefWidth="100.0" text="Items" />
+                  <TableColumn fx:id="colTotalAmount" prefWidth="150.0" text="Total Amount" />
+                  <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
+                  <TableColumn fx:id="colAction" prefWidth="200.0" text="Action" />
+               </columns>
+            </TableView>
+         </VBox>
+         
+      </VBox>
+   </children>
+</AnchorPane>
+

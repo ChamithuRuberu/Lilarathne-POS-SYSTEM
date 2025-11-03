@@ -81,6 +81,6 @@ public class LoginFormController {
             StageManager.loadAuthScene(stage, root);
         } else {
             StageManager.loadFullScreenScene(stage, root);
-        }
     }
+}
 }

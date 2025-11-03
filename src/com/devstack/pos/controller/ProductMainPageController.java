@@ -25,7 +25,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class ProductMainPageController {
+public class ProductMainPageController extends BaseController {
     public TextArea txtProductDescription;
     public Button btnSaveUpdate;
     public TextField txtProductCode;
@@ -45,7 +45,6 @@ public class ProductMainPageController {
     public TableColumn colPDDAvailability;
     public TableColumn colPDShowPrice;
     public TableColumn colPDDelete;
-    public AnchorPane context;
 
     private final ProductService productService;
     private final ProductDetailService productDetailService;
@@ -53,6 +52,8 @@ public class ProductMainPageController {
     private String searchText = "";
 
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
         colProductId.setCellValueFactory(new PropertyValueFactory<>("code"));
         colProductDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         colProductShowMore.setCellValueFactory(new PropertyValueFactory<>("showMore"));
@@ -90,6 +91,11 @@ public class ProductMainPageController {
                     }
                 });
     }
+    
+    @Override
+    protected String getCurrentPageName() {
+        return "Products";
+    }
 
     private void setData(ProductTm newValue) {
         txtSelectedProdId.setText(String.valueOf(newValue.getCode()));
@@ -111,8 +117,8 @@ public class ProductMainPageController {
         }
     }
 
-    public void btnBackToHomeOnAction(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    public void btnBackToHomeOnAction(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
 
     public void btnNewProductOnAction(ActionEvent actionEvent) {
@@ -252,14 +258,7 @@ public class ProductMainPageController {
         }
     }
 
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
-    }
+    // Navigation methods inherited from BaseController
 
     public void btnSaveProductOnAction(ActionEvent actionEvent) {
     }

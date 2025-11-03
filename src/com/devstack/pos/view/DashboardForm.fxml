@@ -17,10 +17,10 @@
             style="-fx-background-color: linear-gradient(to bottom right, #f4f4f9, #ffffff);">
    <children>
 
-      <VBox prefWidth="250" spacing="25" styleClass="sidebar-light"
+      <VBox prefWidth="250" spacing="20" styleClass="sidebar-light"
             AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
          <padding>
-            <Insets top="30" right="15" bottom="30" left="15" />
+            <Insets top="25" right="15" bottom="30" left="15" />
          </padding>
          <children>
             <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
@@ -32,6 +32,12 @@
             <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn-light" />
+            
+            <Separator style="-fx-max-width: 190; -fx-background-color: #DDDDDD;"/>
+            
+            <JFXButton text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
+            
             <VBox VBox.vgrow="ALWAYS" />
             <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
          </children>

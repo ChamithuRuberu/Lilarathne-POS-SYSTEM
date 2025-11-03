@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.devstack.pos.controller.AboutUsPageController"
+            stylesheets="@styles/modern-dashboard.css"
+            style="-fx-background-color: linear-gradient(to bottom right, #f4f4f9, #ffffff);">
+    
+    <!-- SIDEBAR -->
+    <VBox prefWidth="250" spacing="20" styleClass="sidebar-light"
+          AnchorPane.leftAnchor="0" 
+          AnchorPane.topAnchor="0" 
+          AnchorPane.bottomAnchor="0">
+        <padding>
+            <Insets top="30" right="15" bottom="30" left="15" />
+        </padding>
+        <children>
+            <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
+            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
+            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📦 Products" onAction="#btnProductOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📊 Reports" onAction="#btnReportsOnAction" styleClass="sidebar-btn-light" />
+            
+            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
+            
+            <JFXButton text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-active-light" />
+            <VBox VBox.vgrow="ALWAYS" />
+            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
+        </children>
+    </VBox>
+    
+    <!-- MAIN CONTENT -->
+    <VBox spacing="25" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
+          AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
+        <children>
+          
+            
+            <!-- Scrollable Content -->
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" 
+                        style="-fx-background: transparent; -fx-background-color: transparent;"
+                        styleClass="custom-scroll-pane">
+                <VBox spacing="25" style="-fx-padding: 0 20 0 0;">
+                
+                <!-- Company Overview -->
+                <VBox spacing="15" styleClass="card-modern" style="-fx-background-color: linear-gradient(to bottom right, #0ea5e9, #06b6d4); -fx-padding: 30;">
+                    <Text text="💚 Green Code Solution" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-fill: white;"/>
+                    <Text text="Innovating the Future of Software" style="-fx-font-size: 18px; -fx-fill: #f0f9ff;"/>
+                    <Separator style="-fx-background-color: rgba(255,255,255,0.3); -fx-padding: 10 0;"/>
+                    <Text text="We create powerful software solutions using Next.js, Spring Boot, and cloud technologies to help your business thrive in the digital age." 
+                          style="-fx-font-size: 16px; -fx-fill: white;" wrappingWidth="800"/>
+                </VBox>
+                
+                <!-- Mission Statement -->
+                <VBox spacing="15" styleClass="card-modern">
+                    <Text text="🎯 Our Mission" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <Separator style="-fx-background-color: #e2e8f0;"/>
+                    <Text text="Building Digital Excellence with Modern Technology" 
+                          style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                    <Text text="We transform ideas into powerful digital experiences through innovative software solutions. Our team is dedicated to delivering enterprise-grade applications that are scalable, maintainable, and efficient." 
+                          style="-fx-font-size: 15px; -fx-fill: #64748b;" wrappingWidth="800"/>
+                </VBox>
+                
+                <!-- Key Achievements -->
+                <GridPane hgap="20" vgap="20">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                    </columnConstraints>
+                    
+                    <VBox GridPane.columnIndex="0" styleClass="card-modern" style="-fx-background-color: #f0f9ff; -fx-alignment: center;" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Text text="10+" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: #0ea5e9;"/>
+                        <Text text="Projects Completed" style="-fx-font-size: 14px; -fx-fill: #0c4a6e; -fx-text-alignment: center;" wrappingWidth="150"/>
+                    </VBox>
+                    
+                    <VBox GridPane.columnIndex="1" styleClass="card-modern" style="-fx-background-color: #f0fdf4; -fx-alignment: center;" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Text text="5+" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: #10b981;"/>
+                        <Text text="Enterprise Clients" style="-fx-font-size: 14px; -fx-fill: #064e3b; -fx-text-alignment: center;" wrappingWidth="150"/>
+                    </VBox>
+                    
+                    <VBox GridPane.columnIndex="2" styleClass="card-modern" style="-fx-background-color: #fef3c7; -fx-alignment: center;" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Text text="99.9%" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: #f59e0b;"/>
+                        <Text text="Uptime" style="-fx-font-size: 14px; -fx-fill: #78350f; -fx-text-alignment: center;" wrappingWidth="150"/>
+                    </VBox>
+                    
+                    <VBox GridPane.columnIndex="3" styleClass="card-modern" style="-fx-background-color: #fce7f3; -fx-alignment: center;" spacing="10">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        <Text text="24/7" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: #ec4899;"/>
+                        <Text text="Support" style="-fx-font-size: 14px; -fx-fill: #831843; -fx-text-alignment: center;" wrappingWidth="150"/>
+                    </VBox>
+                </GridPane>
+                
+                <!-- Services Overview -->
+                <VBox spacing="15" styleClass="card-modern">
+                    <Text text="🚀 Our Services" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <Separator style="-fx-background-color: #e2e8f0;"/>
+                    
+                    <GridPane hgap="20" vgap="15">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                        
+                        <!-- Software Development -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="8">
+                            <Text text="💻 Software Development" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• Custom Software Solutions" style="-fx-fill: #64748b;"/>
+                            <Text text="• Enterprise Applications" style="-fx-fill: #64748b;"/>
+                            <Text text="• Microservices Architecture" style="-fx-fill: #64748b;"/>
+                            <Text text="• API Development" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                        
+                        <!-- Web Development -->
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="8">
+                            <Text text="🌐 Web Development" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• Next.js &amp; Spring Boot Applications" style="-fx-fill: #64748b;"/>
+                            <Text text="• Full-stack Development" style="-fx-fill: #64748b;"/>
+                            <Text text="• RESTful APIs" style="-fx-fill: #64748b;"/>
+                            <Text text="• Real-time Applications" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                        
+                        <!-- Cloud Services -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="8">
+                            <Text text="☁️ Cloud Services" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• Cloud Migration" style="-fx-fill: #64748b;"/>
+                            <Text text="• Container Orchestration" style="-fx-fill: #64748b;"/>
+                            <Text text="• Serverless Architecture" style="-fx-fill: #64748b;"/>
+                            <Text text="• DevOps &amp; CI/CD" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                        
+                        <!-- UI/UX Design -->
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="8">
+                            <Text text="🎨 UI/UX Design" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• User Interface Design" style="-fx-fill: #64748b;"/>
+                            <Text text="• User Experience Design" style="-fx-fill: #64748b;"/>
+                            <Text text="• Wireframing &amp; Prototyping" style="-fx-fill: #64748b;"/>
+                            <Text text="• Design Systems" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                        
+                        <!-- Security -->
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" spacing="8">
+                            <Text text="🔒 Security &amp; Compliance" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• Security Audits" style="-fx-fill: #64748b;"/>
+                            <Text text="• Penetration Testing" style="-fx-fill: #64748b;"/>
+                            <Text text="• Compliance Management" style="-fx-fill: #64748b;"/>
+                            <Text text="• Data Protection" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                        
+                        <!-- Backend Solutions -->
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="2" spacing="8">
+                            <Text text="⚙️ Backend Solutions" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
+                            <Text text="• Spring Boot Development" style="-fx-fill: #64748b;"/>
+                            <Text text="• Database Design" style="-fx-fill: #64748b;"/>
+                            <Text text="• Performance Optimization" style="-fx-fill: #64748b;"/>
+                            <Text text="• Scalable Architectures" style="-fx-fill: #64748b;"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+                
+                <!-- Client Testimonials -->
+                
+                <!-- Technology Stack -->
+                
+                
+                <!-- Contact Information -->
+                <VBox spacing="15" styleClass="card-modern" style="-fx-background-color: linear-gradient(to right, #0ea5e9, #06b6d4); -fx-padding: 30;">
+                    <Text text="📞 Get In Touch" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: white;"/>
+                    <Separator style="-fx-background-color: rgba(255,255,255,0.3);"/>
+                    
+                    <GridPane hgap="40" vgap="15">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+                        
+                        <VBox GridPane.columnIndex="0" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Text text="📧" style="-fx-font-size: 20px;"/>
+                                <VBox>
+                                    <Text text="Email" style="-fx-font-size: 12px; -fx-fill: #e0f2fe; -fx-font-weight: bold;"/>
+                                    <Text text="greencodesolution@gmail.com" style="-fx-font-size: 14px; -fx-fill: white;"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Text text="📞" style="-fx-font-size: 20px;"/>
+                                <VBox>
+                                    <Text text="Phone" style="-fx-font-size: 12px; -fx-fill: #e0f2fe; -fx-font-weight: bold;"/>
+                                    <Text text="+94 78 150 82 52" style="-fx-font-size: 14px; -fx-fill: white;"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        
+                        <VBox GridPane.columnIndex="1" spacing="12">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Text text="🌐" style="-fx-font-size: 20px;"/>
+                                <VBox>
+                                    <Text text="Website" style="-fx-font-size: 12px; -fx-fill: #e0f2fe; -fx-font-weight: bold;"/>
+                                    <Text text="greencodesolution.web.lk" style="-fx-font-size: 14px; -fx-fill: white;"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Text text="📍" style="-fx-font-size: 20px;"/>
+                                <VBox>
+                                    <Text text="Location" style="-fx-font-size: 12px; -fx-fill: #e0f2fe; -fx-font-weight: bold;"/>
+                                    <Text text="Wewala, Piliyandala, Colombo" style="-fx-font-size: 14px; -fx-fill: white;"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </GridPane>
+                    
+                    <Separator style="-fx-background-color: rgba(255,255,255,0.3); -fx-padding: 10 0;"/>
+                    
+                    <Text text="Ready to build your digital solution? Let's discuss how our software development expertise can help achieve your goals." 
+                          style="-fx-font-size: 15px; -fx-fill: white; -fx-font-style: italic;" wrappingWidth="800"/>
+                </VBox>
+                
+                </VBox>
+            </ScrollPane>
+        </children>
+    </VBox>
+</AnchorPane>
+

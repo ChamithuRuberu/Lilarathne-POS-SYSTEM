@@ -46,8 +46,7 @@ import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
-public class PlaceOrderFormController {
-    public AnchorPane context;
+public class PlaceOrderFormController extends BaseController {
     public TextField txtEmail;
     public TextField txtName;
     public Hyperlink urlNewLoyalty;
@@ -83,17 +82,17 @@ public class PlaceOrderFormController {
 
 
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
         // Authorization check: POS Orders accessible by ADMIN and CASHIER
         if (!AuthorizationUtil.canAccessPOSOrders()) {
             AuthorizationUtil.showUnauthorizedAlert();
-            try {
-                btnBackToHomeOnAction(null);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            btnBackToHomeOnAction(null);
             return;
         }
         
+        // Initialize table columns
         colCode.setCellValueFactory(new PropertyValueFactory<>("code"));
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         colSelPrice.setCellValueFactory(new PropertyValueFactory<>("sellingPrice"));
@@ -103,9 +102,14 @@ public class PlaceOrderFormController {
         colSelTotal.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
         colSelOperation.setCellValueFactory(new PropertyValueFactory<>("btn"));
     }
+    
+    @Override
+    protected String getCurrentPageName() {
+        return "Place Order";
+    }
 
-    public void btnBackToHomeOnAction(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm", false);
+    public void btnBackToHomeOnAction(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
 
     public void btnAddNewCustomerOnAction(ActionEvent actionEvent) throws IOException {

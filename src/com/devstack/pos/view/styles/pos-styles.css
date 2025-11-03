@@ -1,12 +1,106 @@
-/* Modern POS System Stylesheet - NO CUSTOM VARIABLES */
+/* Modern POS System Stylesheet */
 
 .root {
     -fx-background-color: #f8fafc;
+    -fx-font-family: "Segoe UI", "San Francisco", "Helvetica Neue", Arial, sans-serif;
 }
 
 .background-modern {
     -fx-background-color: #f8fafc;
     -fx-background-radius: 0;
+}
+
+/* ===== SIDEBAR NAVIGATION ===== */
+.sidebar-modern {
+    -fx-background-color: #1e293b;
+    -fx-effect: dropshadow(gaussian, #00000033, 15, 0, 2, 0);
+}
+
+.sidebar-brand {
+    -fx-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.sidebar-subtitle {
+    -fx-fill: #94a3b8;
+    -fx-font-size: 12px;
+}
+
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cbd5e1;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.sidebar-btn:hover {
+    -fx-background-color: #334155;
+    -fx-text-fill: white;
+}
+
+.sidebar-btn-active {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.sidebar-btn-logout {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.sidebar-btn-logout:hover {
+    -fx-background-color: #b91c1c;
+}
+
+.user-card {
+    -fx-background-color: #334155;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+}
+
+.user-email {
+    -fx-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.user-role {
+    -fx-fill: #94a3b8;
+    -fx-font-size: 11px;
+}
+
+/* ===== MAIN CONTENT AREA ===== */
+.main-content {
+    -fx-background-color: #f8fafc;
+    -fx-padding: 32;
+}
+
+.content-header {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20 24;
+    -fx-effect: dropshadow(gaussian, #00000019, 8, 0, 0, 2);
+}
+
+.page-title {
+    -fx-fill: #1e293b;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.page-subtitle {
+    -fx-fill: #64748b;
+    -fx-font-size: 14px;
 }
 
 /* Modern Cards */

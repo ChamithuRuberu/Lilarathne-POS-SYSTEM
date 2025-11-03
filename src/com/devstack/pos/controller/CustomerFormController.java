@@ -21,9 +21,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class CustomerFormController {
-
-    public AnchorPane context;
+public class CustomerFormController extends BaseController {
     public TextField txtEmail;
     public TextField txtName;
     public TextField txtContact;
@@ -42,6 +40,10 @@ public class CustomerFormController {
     private final CustomerService customerService;
 
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
+        // Initialize table columns
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -49,8 +51,10 @@ public class CustomerFormController {
         colSalary.setCellValueFactory(new PropertyValueFactory<>("salary"));
         colOperate.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
 
+        // Load customers
         loadAllCustomers(searchText);
 
+        // Table selection listener
         tbl.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((observable, oldValue, newValue) -> {
@@ -58,10 +62,17 @@ public class CustomerFormController {
                         setData(newValue);
                     }
                 });
+                
+        // Search listener
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
             searchText = newValue;
             loadAllCustomers(searchText);
         });
+    }
+    
+    @Override
+    protected String getCurrentPageName() {
+        return "Customers";
     }
 
     private void setData(CustomerTm newValue) {
@@ -150,18 +161,10 @@ public class CustomerFormController {
         txtSalary.clear();
     }
 
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        
-        Parent root = loader.load();
-        StageManager.loadFullScreenScene(stage, root);
-    }
+    // Navigation methods are inherited from BaseController
 
-    public void btnBackToHomeOnAction(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    public void btnBackToHomeOnAction(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
 
     public void btnNewCustomerOnAction(ActionEvent actionEvent) {

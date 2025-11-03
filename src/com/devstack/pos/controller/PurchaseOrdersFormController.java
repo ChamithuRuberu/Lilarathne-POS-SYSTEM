@@ -32,9 +32,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PurchaseOrdersFormController {
-    
-    public AnchorPane context;
+public class PurchaseOrdersFormController extends BaseController {
     
     private final PurchaseOrderService purchaseOrderService;
     
@@ -91,14 +89,13 @@ public class PurchaseOrdersFormController {
     
     @FXML
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
         // Authorization check: Purchase Orders accessible by ADMIN only
         if (!AuthorizationUtil.canAccessPurchaseOrders()) {
             AuthorizationUtil.showAdminOnlyAlert();
-            try {
-                btnBackToDashboard(null);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            btnBackToDashboard(null);
             return;
         }
         
@@ -126,9 +123,14 @@ public class PurchaseOrdersFormController {
         loadStatistics();
     }
     
+    @Override
+    protected String getCurrentPageName() {
+        return "Purchase Orders";
+    }
+    
     @FXML
-    public void btnBackToDashboard(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    public void btnBackToDashboard(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
     
     @FXML
@@ -293,14 +295,7 @@ public class PurchaseOrdersFormController {
         }
     }
     
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
-    }
+    // Navigation methods inherited from BaseController
     
     // Table Model Class
     public static class PurchaseOrderTm {

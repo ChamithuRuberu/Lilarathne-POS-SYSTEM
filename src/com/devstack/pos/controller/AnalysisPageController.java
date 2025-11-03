@@ -32,9 +32,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class AnalysisPageController {
-    
-    public AnchorPane context;
+public class AnalysisPageController extends BaseController {
     
     // Date filters
     @FXML
@@ -199,6 +197,9 @@ public class AnalysisPageController {
     
     @FXML
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
         // Initialize date pickers
         dateFrom.setValue(LocalDate.now().minusMonths(1));
         dateTo.setValue(LocalDate.now());
@@ -256,18 +257,16 @@ public class AnalysisPageController {
     }
 
 
-    public void btnBackToDashboard(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    @Override
+    protected String getCurrentPageName() {
+        return "Reports & Analytics";
+    }
+    
+    public void btnBackToDashboard(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
 
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
-    }
+    // Navigation methods inherited from BaseController
 
     @FXML
     public void applyDateFilter(ActionEvent event) {

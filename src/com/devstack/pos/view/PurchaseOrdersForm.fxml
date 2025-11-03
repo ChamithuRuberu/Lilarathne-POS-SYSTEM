@@ -15,14 +15,7 @@
       <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
          <children>
             <HBox alignment="CENTER_LEFT" spacing="12">
-               <JFXButton onAction="#btnBackToDashboard" text="← Back" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
+
                <Text styleClass="header-title" text="📦 Purchase Orders Management">
                   <font>
                      <Font name="System Bold" size="24.0" />
@@ -30,6 +23,14 @@
                </Text>
                <Region HBox.hgrow="ALWAYS" />
                <JFXButton onAction="#btnRefresh" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+               <JFXButton onAction="#btnBackToDashboard" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
                   <font>
                      <Font name="System Bold" size="13.0" />
                   </font>

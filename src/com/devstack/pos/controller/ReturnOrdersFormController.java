@@ -31,9 +31,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ReturnOrdersFormController {
-    
-    public AnchorPane context;
+public class ReturnOrdersFormController extends BaseController {
     
     private final ReturnOrderService returnOrderService;
     
@@ -84,14 +82,13 @@ public class ReturnOrdersFormController {
     
     @FXML
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
         // Authorization check: Return Orders accessible by ADMIN and CASHIER
         if (!AuthorizationUtil.canAccessReturnOrders()) {
             AuthorizationUtil.showUnauthorizedAlert();
-            try {
-                btnBackToDashboard(null);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            btnBackToDashboard(null);
             return;
         }
         
@@ -114,9 +111,14 @@ public class ReturnOrdersFormController {
         loadStatistics();
     }
     
+    @Override
+    protected String getCurrentPageName() {
+        return "Return Orders";
+    }
+    
     @FXML
-    public void btnBackToDashboard(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    public void btnBackToDashboard(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
     
     @FXML
@@ -244,14 +246,7 @@ public class ReturnOrdersFormController {
         }
     }
     
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
-    }
+    // Navigation methods inherited from BaseController
     
     // Table Model Class
     public static class ReturnOrderTm {

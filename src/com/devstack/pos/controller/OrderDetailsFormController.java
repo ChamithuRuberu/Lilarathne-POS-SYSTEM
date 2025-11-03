@@ -23,8 +23,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderDetailsFormController {
-    public AnchorPane context;
+public class OrderDetailsFormController extends BaseController {
     public TableColumn colId;
     public TableColumn colCustomerEmail;
     public TableColumn colDate;
@@ -38,6 +37,9 @@ public class OrderDetailsFormController {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void initialize() {
+        // Initialize sidebar
+        initializeSidebar();
+        
         // Configure table columns
         colId.setCellValueFactory(new PropertyValueFactory<>("code"));
         colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerEmail"));
@@ -95,8 +97,13 @@ public class OrderDetailsFormController {
         });
     }
 
-    public void BackToHomeOnAction(ActionEvent actionEvent) throws IOException {
-        setUi("DashboardForm");
+    @Override
+    protected String getCurrentPageName() {
+        return "Order Details";
+    }
+    
+    public void BackToHomeOnAction(ActionEvent actionEvent) {
+        btnDashboardOnAction(actionEvent);
     }
 
     public void OderDetailsShowOnAction(ActionEvent actionEvent) {
@@ -145,12 +152,5 @@ public class OrderDetailsFormController {
         tblOrders.setItems(observableList);
     }
     
-    private void setUi(String url) throws IOException {
-        Stage stage = (Stage) context.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
-        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
-    }
+    // Navigation methods inherited from BaseController
 }

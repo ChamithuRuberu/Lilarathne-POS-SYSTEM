@@ -3,10 +3,11 @@ package com.devstack.pos.controller;
 import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.service.UserService;
 import com.devstack.pos.util.JwtUtil;
+import com.devstack.pos.util.StageManager;
 import com.devstack.pos.util.UserSessionData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -72,20 +73,14 @@ public class LoginFormController {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-
-        Scene scene = new Scene(loader.load());
-
-        // Load CSS stylesheet
-        try {
-            var cssUrl = getClass().getResource("/com/devstack/pos/view/styles/pos-styles.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to load CSS: " + e.getMessage());
+        
+        Parent root = loader.load();
+        
+        // Use auth screen size for SignupForm, full screen for DashboardForm
+        if ("SignupForm".equals(url)) {
+            StageManager.loadAuthScene(stage, root);
+        } else {
+            StageManager.loadFullScreenScene(stage, root);
         }
-
-        stage.setScene(scene);
-        stage.centerOnScreen();
     }
 }

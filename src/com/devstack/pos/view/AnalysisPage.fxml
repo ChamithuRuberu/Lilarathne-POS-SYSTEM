@@ -96,24 +96,24 @@
                   </Text>
                   <Text fx:id="lblTotalRevenue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
                      <font>
-                        <Font name="System Bold" size="24.0" />
-                     </font>
-                  </Text>
-               </VBox>
-               
-               <!-- Total Orders Card -->
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
+            
+            <!-- Total Orders Card -->
                <VBox GridPane.columnIndex="1" styleClass="stat-card" spacing="8" style="-fx-background-color: #2196F3; -fx-background-radius: 10; -fx-padding: 20;">
                   <Text text="🛒 Total Orders" style="-fx-fill: white; -fx-font-size: 14;">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </Text>
-                  <Text fx:id="lblTotalOrders" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
-                     <font>
-                        <Font name="System Bold" size="24.0" />
-                     </font>
-                  </Text>
-               </VBox>
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblTotalOrders" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
                
                <!-- Total Profit Card -->
                <VBox GridPane.columnIndex="2" styleClass="stat-card" spacing="8" style="-fx-background-color: #FF9800; -fx-background-radius: 10; -fx-padding: 20;">
@@ -128,20 +128,20 @@
                      </font>
                   </Text>
                </VBox>
-               
-               <!-- Average Order Value Card -->
+            
+            <!-- Average Order Value Card -->
                <VBox GridPane.columnIndex="3" styleClass="stat-card" spacing="8" style="-fx-background-color: #9C27B0; -fx-background-radius: 10; -fx-padding: 20;">
                   <Text text="💵 Avg Order Value" style="-fx-fill: white; -fx-font-size: 14;">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </Text>
-                  <Text fx:id="lblAvgOrderValue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
-                     <font>
-                        <Font name="System Bold" size="24.0" />
-                     </font>
-                  </Text>
-               </VBox>
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </Text>
+               <Text fx:id="lblAvgOrderValue" text="0.00 /=" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 24;">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+            </VBox>
             </GridPane>
             
             <!-- Report Tabs -->
@@ -242,15 +242,15 @@
                            <HBox>
                               <Text text="Cost of Goods: " style="-fx-font-size: 14;" />
                               <Text fx:id="lblPLCostOfGoods" text="0.00 /=" style="-fx-font-size: 14; -fx-font-weight: bold;" />
-                           </HBox>
+         </HBox>
                         </VBox>
-                        
+         
                         <VBox GridPane.columnIndex="1" spacing="12" style="-fx-background-color: #fff3e0; -fx-padding: 20; -fx-background-radius: 8;">
                            <Text text="Profit Summary" style="-fx-font-size: 16; -fx-font-weight: bold;">
-                              <font>
+               <font>
                                  <Font name="System Bold" size="16.0" />
-                              </font>
-                           </Text>
+               </font>
+            </Text>
                            <HBox>
                               <Text text="Gross Profit: " style="-fx-font-size: 14;" />
                               <Text fx:id="lblPLGrossProfit" text="0.00 /=" style="-fx-font-size: 14; -fx-font-weight: bold;" />
@@ -263,7 +263,7 @@
                      </GridPane>
                      
                      <TableView fx:id="tblProfitLoss" prefHeight="250.0">
-                        <columns>
+               <columns>
                            <TableColumn fx:id="colPLProduct" prefWidth="300.0" text="Product" />
                            <TableColumn fx:id="colPLQtySold" prefWidth="120.0" text="Qty Sold" />
                            <TableColumn fx:id="colPLCost" prefWidth="150.0" text="Cost" />
@@ -285,21 +285,21 @@
                               </font>
                            </Text>
                            <Text fx:id="lblTaxableAmount" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
-                              <font>
+                     <font>
                                  <Font name="System Bold" size="22.0" />
-                              </font>
+                     </font>
                            </Text>
                         </VBox>
                         <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #fff3e0; -fx-padding: 20; -fx-background-radius: 8;">
                            <Text text="Estimated Tax (15%)" style="-fx-font-size: 14;">
-                              <font>
+                     <font>
                                  <Font name="System" size="14.0" />
-                              </font>
+                     </font>
                            </Text>
                            <Text fx:id="lblEstimatedTax" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
-                              <font>
+                     <font>
                                  <Font name="System Bold" size="22.0" />
-                              </font>
+                     </font>
                            </Text>
                         </VBox>
                      </HBox>
@@ -324,14 +324,14 @@
                            <TableColumn fx:id="colCustomerEmail" prefWidth="300.0" text="Customer Email" />
                            <TableColumn fx:id="colCustomerOrders" prefWidth="150.0" text="Orders" />
                            <TableColumn fx:id="colCustomerRevenue" prefWidth="200.0" text="Total Revenue" />
-                        </columns>
-                     </TableView>
-                  </VBox>
+               </columns>
+            </TableView>
+         </VBox>
                </Tab>
                
             </TabPane>
             
-         </VBox>
+      </VBox>
       </ScrollPane>
    </children>
 </AnchorPane>

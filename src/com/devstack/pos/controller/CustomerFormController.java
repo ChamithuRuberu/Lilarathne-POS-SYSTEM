@@ -5,9 +5,10 @@ import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.view.tm.CustomerTm;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import com.devstack.pos.util.StageManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
@@ -154,8 +155,9 @@ public class CustomerFormController {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + url + ".fxml"));
         loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-        stage.setScene(new Scene(loader.load()));
-        stage.centerOnScreen();
+        
+        Parent root = loader.load();
+        StageManager.loadFullScreenScene(stage, root);
     }
 
     public void btnBackToHomeOnAction(ActionEvent actionEvent) throws IOException {

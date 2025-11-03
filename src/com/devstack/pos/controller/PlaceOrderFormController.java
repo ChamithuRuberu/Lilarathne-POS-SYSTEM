@@ -13,6 +13,7 @@ import com.devstack.pos.service.LoyaltyCardService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
+import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.CartTm;
@@ -82,6 +83,17 @@ public class PlaceOrderFormController {
 
 
     public void initialize() {
+        // Authorization check: POS Orders accessible by ADMIN and CASHIER
+        if (!AuthorizationUtil.canAccessPOSOrders()) {
+            AuthorizationUtil.showUnauthorizedAlert();
+            try {
+                btnBackToHomeOnAction(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        
         colCode.setCellValueFactory(new PropertyValueFactory<>("code"));
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         colSelPrice.setCellValueFactory(new PropertyValueFactory<>("sellingPrice"));

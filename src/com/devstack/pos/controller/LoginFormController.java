@@ -2,6 +2,7 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.service.UserService;
+import com.devstack.pos.util.JwtUtil;
 import com.devstack.pos.util.UserSessionData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -25,6 +26,7 @@ public class LoginFormController {
     public PasswordField txtPassword;
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");
@@ -34,10 +36,24 @@ public class LoginFormController {
         try {
             AppUser appUser = userService.findUser(txtEmail.getText());
             if (appUser != null) {
-                String checked = userService.checkPassword(appUser.getEmail(), txtPassword.getText());
-                if (!ObjectUtils.isEmpty(checked)) {
-                    UserSessionData.jwtToken = checked;
+                String jwtToken = userService.checkPassword(appUser.getEmail(), txtPassword.getText());
+                if (!ObjectUtils.isEmpty(jwtToken)) {
+                    // Store JWT token
+                    UserSessionData.jwtToken = jwtToken;
                     UserSessionData.email = txtEmail.getText();
+                    
+                    // Extract and store user role from JWT token
+                    String role = jwtUtil.getRoleFromToken(jwtToken);
+                    UserSessionData.userRole = role != null ? role : "ROLE_CASHIER";
+                    
+                    System.out.println("=== LOGIN SUCCESSFUL ===");
+                    System.out.println("User: " + txtEmail.getText());
+                    System.out.println("Role from JWT: " + role);
+                    System.out.println("Stored Role: " + UserSessionData.userRole);
+                    System.out.println("Is Admin: " + UserSessionData.isAdmin());
+                    System.out.println("Is Cashier: " + UserSessionData.isCashier());
+                    System.out.println("========================");
+                    
                     setUi("DashboardForm");
                 } else {
                     new Alert(Alert.AlertType.WARNING, "check your password and try again!").show();

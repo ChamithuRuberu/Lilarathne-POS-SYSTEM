@@ -49,17 +49,28 @@ public class UserService {
             // Load user details
             AppUser user = findUser(email);
             if (user == null) {
-                System.out.println("User not found"+email);
+                System.out.println("User not found: " + email);
                 throw new RuntimeException("User not found");
-
             }
 
+            // Debug: Print user roles
+            System.out.println("=== USER ROLES DEBUG ===");
+            System.out.println("User email: " + user.getEmail());
+            System.out.println("Number of roles: " + user.getRoles().size());
+            user.getRoles().forEach(role -> System.out.println("Role: " + role.getName()));
+            System.out.println("========================");
+
             // Generate JWT
+            String roleName = user.getRoles().stream()
+                    .findFirst() // Get the first role available
+                    .map(Role::getName) // Extract the role name
+                    .orElseThrow(() -> new RuntimeException("No roles found for the user"));
+            
+            System.out.println("Creating JWT with role: " + roleName);
+            
             TokenRequest tokenRequest = TokenRequest.builder()
-                    .role(user.getRoles().stream()
-                            .findFirst() // Get the first role available
-                            .map(Role::getName) // Extract the role name
-                            .orElseThrow(() -> new RuntimeException("No roles found for the user"))).username(user.getEmail())
+                    .role(roleName)
+                    .username(user.getEmail())
                     .now(LocalDateTime.now())
                     .build();
             return jwtUtil.createJwtToken(tokenRequest);

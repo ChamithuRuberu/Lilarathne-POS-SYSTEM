@@ -4,6 +4,7 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import com.devstack.pos.entity.ReturnOrder;
 import com.devstack.pos.service.ReturnOrderService;
+import com.devstack.pos.util.AuthorizationUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -83,6 +84,17 @@ public class ReturnOrdersFormController {
     
     @FXML
     public void initialize() {
+        // Authorization check: Return Orders accessible by ADMIN and CASHIER
+        if (!AuthorizationUtil.canAccessReturnOrders()) {
+            AuthorizationUtil.showUnauthorizedAlert();
+            try {
+                btnBackToDashboard(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        
         // Initialize date pickers
         dateFrom.setValue(LocalDate.now().minusMonths(1));
         dateTo.setValue(LocalDate.now());

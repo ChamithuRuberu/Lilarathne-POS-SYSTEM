@@ -4,6 +4,7 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import com.devstack.pos.entity.PurchaseOrder;
 import com.devstack.pos.service.PurchaseOrderService;
+import com.devstack.pos.util.AuthorizationUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -90,6 +91,17 @@ public class PurchaseOrdersFormController {
     
     @FXML
     public void initialize() {
+        // Authorization check: Purchase Orders accessible by ADMIN only
+        if (!AuthorizationUtil.canAccessPurchaseOrders()) {
+            AuthorizationUtil.showAdminOnlyAlert();
+            try {
+                btnBackToDashboard(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        
         // Initialize date pickers
         dateFrom.setValue(LocalDate.now().minusMonths(1));
         dateTo.setValue(LocalDate.now());

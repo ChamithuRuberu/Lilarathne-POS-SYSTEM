@@ -1,7 +1,9 @@
 package com.devstack.pos.util;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.devstack.pos.view.tm.TokenRequest;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +25,16 @@ public class JwtUtil {
     private int jwtValidity;
 
     public String createJwtToken(TokenRequest tokenRequest) {
-        return JWT.create()
+        log.info("Creating JWT token for user: {} with role: {}", tokenRequest.getUsername(), tokenRequest.getRole());
+        String token = JWT.create()
                 .withSubject(tokenRequest.getUsername())
                 .withClaim("role", tokenRequest.getRole())
                 .withIssuedAt(Date.from(tokenRequest.getNow().atZone(ZoneId.systemDefault()).toInstant()))
                 .withIssuer("GreenCodeSolution")
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtValidity * 1000L))
                 .sign(Algorithm.HMAC512(jwtSecret.getBytes()));
+        log.info("JWT token created successfully");
+        return token;
     }
 
 
@@ -51,5 +56,35 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public String getRoleFromToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC512(jwtSecret.getBytes());
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("GreenCodeSolution")
+                    .build();
+            DecodedJWT decodedJWT = verifier.verify(token);
+            String role = decodedJWT.getClaim("role").asString();
+            log.info("Extracted role from JWT: {}", role);
+            return role;
+        } catch (Exception e) {
+            log.error("Failed to extract role from token: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    public boolean validateToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC512(jwtSecret.getBytes());
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("GreenCodeSolution")
+                    .build();
+            verifier.verify(token);
+            return true;
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            return false;
+        }
     }
 }

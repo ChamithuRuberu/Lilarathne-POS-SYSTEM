@@ -144,7 +144,7 @@
                </VBox>
                
         <!-- Right Panel - Product List and Selected Product Summary -->
-        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" vbarPolicy="NEVER" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
            <content>
               <VBox spacing="24" styleClass="form-section" style="-fx-padding: 0 8 24 8;">
                  <!-- Product List Section -->
@@ -219,17 +219,17 @@
                   </VBox>
                
                  <!-- Batch Details Table -->
-                 <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 18; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);">
+                 <VBox spacing="24" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);">
                     <Text text="Batch Details" styleClass="label-section" style="-fx-font-size: 18px; -fx-fill: #34495e;">
                      <font>
                         <Font name="System Bold" size="18.0" />
                      </font>
                   </Text>
-                    <ScrollPane fx:id="scrollPaneBatchDetails" fitToWidth="true" prefHeight="300.0" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+                    <ScrollPane fx:id="scrollPaneBatchDetails" fitToWidth="true" prefHeight="300.0" vbarPolicy="NEVER" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
                        <content>
-                          <TableView fx:id="tblDetail" styleClass="table-view-modern" prefHeight="280.0">
+                          <TableView fx:id="tblDetail" styleClass="table-view-modern" prefHeight="300.0">
                      <columns>
-                                <TableColumn fx:id="colPDId" prefWidth="100.0" text="Batch Code" />
+                                <TableColumn fx:id="colPDId" prefWidth="140.0" text="Batch Code" />
                                 <TableColumn fx:id="colPDQty" prefWidth="80.0" text="Quantity" />
                                 <TableColumn fx:id="colPDBuyingPrice" prefWidth="100.0" text="Buying Price" />
                                 <TableColumn fx:id="colPDSellingPrice" prefWidth="100.0" text="Selling Price" />

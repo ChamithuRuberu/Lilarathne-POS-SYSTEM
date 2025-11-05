@@ -310,6 +310,124 @@
     -fx-text-fill: #1e293b;
 }
 
+/* Hide scrollbars in ALL tables but keep scrolling functional */
+.table-view-modern .scroll-bar:vertical,
+TableView .scroll-bar:vertical,
+.table-view .scroll-bar:vertical {
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+    -fx-max-width: 0;
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+.table-view-modern .scroll-bar:horizontal,
+TableView .scroll-bar:horizontal,
+.table-view .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+.table-view-modern .scroll-bar:vertical .track,
+.table-view-modern .scroll-bar:horizontal .track,
+TableView .scroll-bar:vertical .track,
+TableView .scroll-bar:horizontal .track,
+.table-view .scroll-bar:vertical .track,
+.table-view .scroll-bar:horizontal .track {
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.table-view-modern .scroll-bar:vertical .thumb,
+.table-view-modern .scroll-bar:horizontal .thumb,
+TableView .scroll-bar:vertical .thumb,
+TableView .scroll-bar:horizontal .thumb,
+.table-view .scroll-bar:vertical .thumb,
+.table-view .scroll-bar:horizontal .thumb {
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.table-view-modern .scroll-bar:vertical .increment-button,
+.table-view-modern .scroll-bar:vertical .decrement-button,
+.table-view-modern .scroll-bar:horizontal .increment-button,
+.table-view-modern .scroll-bar:horizontal .decrement-button,
+TableView .scroll-bar:vertical .increment-button,
+TableView .scroll-bar:vertical .decrement-button,
+TableView .scroll-bar:horizontal .increment-button,
+TableView .scroll-bar:horizontal .decrement-button,
+.table-view .scroll-bar:vertical .increment-button,
+.table-view .scroll-bar:vertical .decrement-button,
+.table-view .scroll-bar:horizontal .increment-button,
+.table-view .scroll-bar:horizontal .decrement-button {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
+.table-view-modern .scroll-bar:vertical .increment-arrow,
+.table-view-modern .scroll-bar:vertical .decrement-arrow,
+.table-view-modern .scroll-bar:horizontal .increment-arrow,
+.table-view-modern .scroll-bar:horizontal .decrement-arrow,
+TableView .scroll-bar:vertical .increment-arrow,
+TableView .scroll-bar:vertical .decrement-arrow,
+TableView .scroll-bar:horizontal .increment-arrow,
+TableView .scroll-bar:horizontal .decrement-arrow {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-shape: "";
+}
+
+/* Hide scrollbars in VirtualFlow (used by TableView internally) */
+.table-view-modern .virtual-flow .scroll-bar:vertical,
+TableView .virtual-flow .scroll-bar:vertical,
+.table-view .virtual-flow .scroll-bar:vertical {
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+    -fx-max-width: 0;
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.table-view-modern .virtual-flow .scroll-bar:horizontal,
+TableView .virtual-flow .scroll-bar:horizontal,
+.table-view .virtual-flow .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Hide scrollbars in VirtualScrollBar (JavaFX internal) */
+.table-view-modern .virtual-scroll-bar,
+TableView .virtual-scroll-bar,
+.table-view .virtual-scroll-bar {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-background-color: transparent;
+}
+
 /* Header Bar */
 .header-bar {
     -fx-background-color: white;
@@ -373,7 +491,7 @@
     -fx-text-fill: #1e40af;
 }
 
-/* Scrollbar Styling */
+/* Scrollbar Styling - Hide all scrollbars in tables */
 .scroll-bar {
     -fx-background-color: transparent;
 }
@@ -390,6 +508,35 @@
 
 .scroll-bar .thumb:hover {
     -fx-background-color: #94a3b8;
+}
+
+/* Override scrollbar styling for tables - hide them completely */
+TableView .scroll-bar,
+.table-view-modern .scroll-bar,
+.table-view .scroll-bar {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
+    -fx-pref-width: 0 !important;
+    -fx-pref-height: 0 !important;
+    -fx-min-width: 0 !important;
+    -fx-min-height: 0 !important;
+    -fx-max-width: 0 !important;
+    -fx-max-height: 0 !important;
+    -fx-padding: 0 !important;
+}
+
+TableView .scroll-bar .track,
+.table-view-modern .scroll-bar .track,
+.table-view .scroll-bar .track {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
+}
+
+TableView .scroll-bar .thumb,
+.table-view-modern .scroll-bar .thumb,
+.table-view .scroll-bar .thumb {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
 }
 
 /* Separator */
@@ -461,7 +608,7 @@
     -fx-text-fill: #64748b;
 }
 
-/* Enhanced ScrollPane */
+/* Enhanced ScrollPane - Hide scrollbars */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-width: 0;
@@ -469,6 +616,32 @@
 
 .scroll-pane > .viewport {
     -fx-background-color: transparent;
+}
+
+/* Hide scrollbars in ScrollPane */
+.scroll-pane .scroll-bar:vertical,
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
+    -fx-pref-width: 0 !important;
+    -fx-pref-height: 0 !important;
+    -fx-min-width: 0 !important;
+    -fx-min-height: 0 !important;
+    -fx-max-width: 0 !important;
+    -fx-max-height: 0 !important;
+    -fx-padding: 0 !important;
+}
+
+.scroll-pane .scroll-bar:vertical .track,
+.scroll-pane .scroll-bar:horizontal .track {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb,
+.scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
 }
 
 /* Radio Button Styling */

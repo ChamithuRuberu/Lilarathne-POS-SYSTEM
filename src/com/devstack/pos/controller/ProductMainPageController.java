@@ -80,9 +80,9 @@ public class ProductMainPageController extends BaseController {
             tblDetail.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         }
 
-        // Batch details scroll pane settings
+        // Batch details scroll pane settings - hide scrollbars
         if (scrollPaneBatchDetails != null) {
-            scrollPaneBatchDetails.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            scrollPaneBatchDetails.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             scrollPaneBatchDetails.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             scrollPaneBatchDetails.setStyle("-fx-background-color: transparent;");
         }
@@ -148,6 +148,167 @@ public class ProductMainPageController extends BaseController {
                         e.printStackTrace();
                     }
                 });
+        }
+
+        // Hide scrollbars in tables programmatically
+        javafx.application.Platform.runLater(() -> {
+            hideTableScrollBars(tbl);
+            if (tblDetail != null) {
+                hideTableScrollBars(tblDetail);
+            }
+            // Also hide scrollbars in ScrollPanes
+            if (scrollPaneBatchDetails != null) {
+                hideScrollPaneScrollBars(scrollPaneBatchDetails);
+            }
+        });
+    }
+
+    /**
+     * Hides scrollbars in a ScrollPane
+     */
+    private void hideScrollPaneScrollBars(ScrollPane scrollPane) {
+        if (scrollPane == null) return;
+        
+        // Set policies to NEVER
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        
+        // Find and hide scrollbars using lookup
+        scrollPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                javafx.application.Platform.runLater(() -> {
+                    hideScrollBarsInScrollPane(scrollPane);
+                    newScene.addPostLayoutPulseListener(() -> {
+                        hideScrollBarsInScrollPane(scrollPane);
+                    });
+                });
+            }
+        });
+        
+        if (scrollPane.getScene() != null) {
+            javafx.application.Platform.runLater(() -> {
+                hideScrollBarsInScrollPane(scrollPane);
+            });
+        }
+    }
+
+    /**
+     * Hides scrollbars in a ScrollPane using lookup
+     */
+    private void hideScrollBarsInScrollPane(ScrollPane scrollPane) {
+        if (scrollPane == null || scrollPane.getScene() == null) return;
+        
+        javafx.scene.control.ScrollBar vScrollBar = (javafx.scene.control.ScrollBar) 
+            scrollPane.lookup(".scroll-bar:vertical");
+        javafx.scene.control.ScrollBar hScrollBar = (javafx.scene.control.ScrollBar) 
+            scrollPane.lookup(".scroll-bar:horizontal");
+        
+        if (vScrollBar != null) {
+            vScrollBar.setVisible(false);
+            vScrollBar.setManaged(false);
+            vScrollBar.setPrefWidth(0);
+            vScrollBar.setMinWidth(0);
+            vScrollBar.setMaxWidth(0);
+            vScrollBar.setStyle("-fx-opacity: 0; -fx-pref-width: 0; -fx-min-width: 0; -fx-max-width: 0;");
+        }
+        
+        if (hScrollBar != null) {
+            hScrollBar.setVisible(false);
+            hScrollBar.setManaged(false);
+            hScrollBar.setPrefHeight(0);
+            hScrollBar.setMinHeight(0);
+            hScrollBar.setMaxHeight(0);
+            hScrollBar.setStyle("-fx-opacity: 0; -fx-pref-height: 0; -fx-min-height: 0; -fx-max-height: 0;");
+        }
+        
+        // Recursively search for any scrollbars
+        hideScrollBarsRecursive(scrollPane);
+    }
+
+    /**
+     * Recursively hides all scrollbars in a TableView
+     */
+    private void hideTableScrollBars(TableView<?> tableView) {
+        if (tableView == null) return;
+        
+        // Find and hide scrollbars using lookup (more reliable)
+        tableView.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                // Use multiple attempts to catch scrollbars as they're created
+                javafx.application.Platform.runLater(() -> {
+                    hideScrollBarsInTable(tableView);
+                    // Also set up a listener for layout pulses to catch dynamically created scrollbars
+                    newScene.addPostLayoutPulseListener(() -> {
+                        hideScrollBarsInTable(tableView);
+                    });
+                });
+            }
+        });
+        
+        // Also hide immediately if scene is already set
+        if (tableView.getScene() != null) {
+            javafx.application.Platform.runLater(() -> {
+                hideScrollBarsInTable(tableView);
+            });
+        }
+    }
+
+    /**
+     * Hides scrollbars in a TableView using lookup
+     */
+    private void hideScrollBarsInTable(TableView<?> tableView) {
+        if (tableView == null || tableView.getScene() == null) return;
+        
+        // Lookup scrollbars using JavaFX's lookup mechanism
+        javafx.scene.control.ScrollBar vScrollBar = (javafx.scene.control.ScrollBar) 
+            tableView.lookup(".scroll-bar:vertical");
+        javafx.scene.control.ScrollBar hScrollBar = (javafx.scene.control.ScrollBar) 
+            tableView.lookup(".scroll-bar:horizontal");
+        
+        if (vScrollBar != null) {
+            vScrollBar.setVisible(false);
+            vScrollBar.setManaged(false);
+            vScrollBar.setPrefWidth(0);
+            vScrollBar.setMinWidth(0);
+            vScrollBar.setMaxWidth(0);
+            vScrollBar.setStyle("-fx-opacity: 0; -fx-pref-width: 0; -fx-min-width: 0; -fx-max-width: 0;");
+        }
+        
+        if (hScrollBar != null) {
+            hScrollBar.setVisible(false);
+            hScrollBar.setManaged(false);
+            hScrollBar.setPrefHeight(0);
+            hScrollBar.setMinHeight(0);
+            hScrollBar.setMaxHeight(0);
+            hScrollBar.setStyle("-fx-opacity: 0; -fx-pref-height: 0; -fx-min-height: 0; -fx-max-height: 0;");
+        }
+        
+        // Also recursively search for any scrollbars
+        hideScrollBarsRecursive(tableView);
+    }
+
+    /**
+     * Recursively finds and hides all ScrollBar nodes
+     */
+    private void hideScrollBarsRecursive(javafx.scene.Node node) {
+        if (node instanceof javafx.scene.control.ScrollBar) {
+            javafx.scene.control.ScrollBar scrollBar = (javafx.scene.control.ScrollBar) node;
+            scrollBar.setVisible(false);
+            scrollBar.setManaged(false);
+            scrollBar.setPrefWidth(0);
+            scrollBar.setPrefHeight(0);
+            scrollBar.setMinWidth(0);
+            scrollBar.setMinHeight(0);
+            scrollBar.setMaxWidth(0);
+            scrollBar.setMaxHeight(0);
+            scrollBar.setStyle("-fx-opacity: 0; -fx-pref-width: 0; -fx-pref-height: 0;");
+        }
+        
+        if (node instanceof javafx.scene.Parent) {
+            javafx.scene.Parent parent = (javafx.scene.Parent) node;
+            for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+                hideScrollBarsRecursive(child);
+            }
         }
     }
 

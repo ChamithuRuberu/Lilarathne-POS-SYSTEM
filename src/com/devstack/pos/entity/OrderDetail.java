@@ -24,12 +24,18 @@ public class OrderDetail {
     @Column(name = "total_cost", nullable = false)
     private double totalCost;
     
-    @Column(name = "customer_email", length = 100)
-    private String customerEmail;
+    @Column(name = "customer_id")
+    private Long customerId;
+    
+    @Column(name = "customer_name", length = 100)
+    private String customerName;
     
     @Column(name = "discount")
     private double discount;
     
     @Column(name = "operator_email", length = 100)
     private String operatorEmail;
+    
+    // Note: We use customerId instead of @ManyToOne relationship to avoid lazy loading issues
+    // and to support guest orders (where customerId can be null)
 }

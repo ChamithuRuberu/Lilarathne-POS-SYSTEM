@@ -12,8 +12,15 @@ import java.util.List;
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Integer> {
     
-    @Query("SELECT o FROM OrderDetail o WHERE o.customerEmail = :email")
-    List<OrderDetail> findByCustomerEmail(@Param("email") String email);
+    @Query("SELECT o FROM OrderDetail o WHERE o.customerId = :customerId ORDER BY o.issuedDate DESC")
+    List<OrderDetail> findByCustomerId(@Param("customerId") Long customerId);
+    
+    // Get total amount spent by a customer
+    @Query("SELECT COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.customerId = :customerId")
+    Double getTotalSpentByCustomerId(@Param("customerId") Long customerId);
+    
+    @Query("SELECT o FROM OrderDetail o WHERE o.customerName LIKE %:search% ORDER BY o.issuedDate DESC")
+    List<OrderDetail> findByCustomerNameContaining(@Param("search") String search);
     
     @Query("SELECT SUM(o.totalCost) FROM OrderDetail o")
     Double getTotalRevenue();
@@ -27,7 +34,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Intege
     @Query("SELECT SUM(o.totalCost) FROM OrderDetail o WHERE o.issuedDate BETWEEN :startDate AND :endDate")
     Double getRevenueByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
-    @Query("SELECT o.customerEmail, SUM(o.totalCost) as total FROM OrderDetail o GROUP BY o.customerEmail ORDER BY total DESC")
+    @Query("SELECT o.customerName, SUM(o.totalCost) as total FROM OrderDetail o WHERE o.customerName IS NOT NULL GROUP BY o.customerName ORDER BY total DESC")
     List<Object[]> getTopCustomersByRevenue();
     
     @Query("SELECT o FROM OrderDetail o WHERE o.issuedDate BETWEEN :startDate AND :endDate")
@@ -41,10 +48,10 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Intege
     List<Object[]> getSalesByCashierByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     // Top customers with order count
-    @Query("SELECT o.customerEmail, COUNT(o), SUM(o.totalCost) FROM OrderDetail o GROUP BY o.customerEmail ORDER BY SUM(o.totalCost) DESC")
+    @Query("SELECT o.customerName, COUNT(o), SUM(o.totalCost) FROM OrderDetail o WHERE o.customerName IS NOT NULL GROUP BY o.customerName ORDER BY SUM(o.totalCost) DESC")
     List<Object[]> getTopCustomersWithOrderCount();
     
-    @Query("SELECT o.customerEmail, COUNT(o), SUM(o.totalCost) FROM OrderDetail o WHERE o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.customerEmail ORDER BY SUM(o.totalCost) DESC")
+    @Query("SELECT o.customerName, COUNT(o), SUM(o.totalCost) FROM OrderDetail o WHERE o.issuedDate BETWEEN :startDate AND :endDate AND o.customerName IS NOT NULL GROUP BY o.customerName ORDER BY SUM(o.totalCost) DESC")
     List<Object[]> getTopCustomersWithOrderCountByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     // Count orders by date range

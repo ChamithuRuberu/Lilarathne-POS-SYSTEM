@@ -12,8 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Customer {
     @Id
-    @Column(name = "email", length = 100)
-    private String email;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
     
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -21,6 +22,9 @@ public class Customer {
     @Column(name = "contact", length = 50)
     private String contact;
     
-    @Column(name = "salary", nullable = false)
-    private double salary;
+    // Constructor without ID for creating new customers
+    public Customer(String name, String contact) {
+        this.name = name;
+        this.contact = contact;
+    }
 }

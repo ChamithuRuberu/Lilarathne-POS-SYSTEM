@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, String> {
-    Optional<Customer> findByEmail(String email);
-    
-    @Query("SELECT c FROM Customer c WHERE c.email LIKE %:search% OR c.name LIKE %:search% OR c.contact LIKE %:search%")
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
+    @Query("SELECT c FROM Customer c WHERE c.name LIKE %:search% OR c.contact LIKE %:search% ORDER BY c.id ASC")
     List<Customer> searchCustomers(@Param("search") String search);
+    
+    @Query("SELECT c FROM Customer c ORDER BY c.id ASC")
+    List<Customer> findAll();
 }
 

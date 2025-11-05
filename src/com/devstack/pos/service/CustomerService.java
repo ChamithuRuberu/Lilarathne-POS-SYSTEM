@@ -17,31 +17,32 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     
     public boolean saveCustomer(Customer customer) {
-        if (customerRepository.existsById(customer.getEmail())) {
+        try {
+            customerRepository.save(customer);
+            return true;
+        } catch (Exception e) {
             return false;
         }
-        customerRepository.save(customer);
-        return true;
     }
     
     public boolean updateCustomer(Customer customer) {
-        if (customerRepository.existsById(customer.getEmail())) {
+        if (customer.getId() != null && customerRepository.existsById(customer.getId())) {
             customerRepository.save(customer);
             return true;
         }
         return false;
     }
     
-    public boolean deleteCustomer(String email) {
-        if (customerRepository.existsById(email)) {
-            customerRepository.deleteById(email);
+    public boolean deleteCustomer(Long id) {
+        if (customerRepository.existsById(id)) {
+            customerRepository.deleteById(id);
             return true;
         }
         return false;
     }
     
-    public Customer findCustomer(String email) {
-        return customerRepository.findByEmail(email).orElse(null);
+    public Customer findCustomer(Long id) {
+        return customerRepository.findById(id).orElse(null);
     }
     
     public List<Customer> findAllCustomers() {
@@ -53,6 +54,14 @@ public class CustomerService {
             return findAllCustomers();
         }
         return customerRepository.searchCustomers(search.trim());
+    }
+    
+    public Customer findByContact(String contact) {
+        if (contact == null || contact.trim().isEmpty()) {
+            return null;
+        }
+        List<Customer> customers = customerRepository.searchCustomers(contact.trim());
+        return customers.isEmpty() ? null : customers.get(0);
     }
 }
 

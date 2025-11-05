@@ -47,19 +47,14 @@ import java.util.Random;
 @Component
 @RequiredArgsConstructor
 public class PlaceOrderFormController extends BaseController {
-    public TextField txtEmail;
-    public TextField txtName;
-    public Hyperlink urlNewLoyalty;
-    public Label lblLoyaltyType;
     public TextField txtContact;
-    public TextField txtSalary;
+    public TextField txtName;
     public TextField txtBarcode;
     public TextField txtDescription;
     public TextField txtSellingPrice;
     public TextField txtDiscount;
     public TextField txtShowPrice;
     public TextField txtQtyOnHand;
-    public Label lblDiscountAvl;
     public TextField txtBuyingPrice;
     public TextField txtQty;
     public TableView<CartTm> tblCart;
@@ -73,10 +68,10 @@ public class PlaceOrderFormController extends BaseController {
     public TableColumn colSelOperation;
     public Text txtTotal;
 
+    private Long selectedCustomerId = null;
     private final CustomerService customerService;
     private final ProductDetailService productDetailService;
     private final ProductService productService;
-    private final LoyaltyCardService loyaltyCardService;
     private final OrderDetailService orderDetailService;
     private final ItemDetailService itemDetailService;
 
@@ -140,74 +135,24 @@ public class PlaceOrderFormController extends BaseController {
 
     public void searchCustomer(ActionEvent actionEvent) {
         try {
-            Customer customer = customerService.findCustomer(txtEmail.getText());
+            String contact = txtContact.getText().trim();
+            if (contact.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter a contact number!").show();
+                return;
+            }
+            
+            Customer customer = customerService.findByContact(contact);
             if (customer != null) {
+                selectedCustomerId = customer.getId();
                 txtName.setText(customer.getName());
-                txtSalary.setText(String.valueOf(customer.getSalary()));
-                txtContact.setText(customer.getContact());
-                fetchLoyaltyCardData(txtEmail.getText());
+                new Alert(Alert.AlertType.INFORMATION, "Customer found: " + customer.getName()).show();
             } else {
-                new Alert(Alert.AlertType.WARNING, "Can't Find the Customer!").show();
+                selectedCustomerId = null;
+                txtName.clear();
+                new Alert(Alert.AlertType.WARNING, "Customer not found! You can proceed with guest checkout or add a new customer.").show();
             }
         } catch (Exception e) {
-            new Alert(Alert.AlertType.WARNING, "Can't Find the Customer!").show();
-            e.printStackTrace();
-        }
-    }
-
-    private void fetchLoyaltyCardData(String email) {
-        urlNewLoyalty.setText("+ New Loyalty");
-        urlNewLoyalty.setVisible(true);
-    }
-
-    public void newLoyaltyOnAction(ActionEvent actionEvent) {
-        try {
-            double salary = Double.parseDouble(txtSalary.getText());
-
-            CardType type = null;
-            if (salary >= 100000) {
-                type = CardType.PLATINUM;
-            } else if (salary >= 50000) {
-                type = CardType.GOLD;
-            } else {
-                type = CardType.SILVER;
-            }
-
-            // Generate unique numeric barcode for loyalty card
-            String uniqueData = BarcodeGenerator.generateNumeric(12);
-            
-            // Generate CODE 128 barcode (standard POS barcode format)
-            Code128Writer barcodeWriter = new Code128Writer();
-            BitMatrix bitMatrix = barcodeWriter.encode(
-                    uniqueData,
-                    BarcodeFormat.CODE_128,
-                    300,  // width
-                    80    // height (barcode height)
-            );
-            
-            BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            javax.imageio.ImageIO.write(bufferedImage, "png", baos);
-            byte[] arr = baos.toByteArray();
-
-            if (urlNewLoyalty.getText().equals("+ New Loyalty")) {
-                LoyaltyCard loyaltyCard = new LoyaltyCard();
-                loyaltyCard.setCode((long) new Random().nextInt(10001));
-                loyaltyCard.setCardType(type);
-                loyaltyCard.setBarcode(Base64.getEncoder().encodeToString(arr));
-                loyaltyCard.setEmail(txtEmail.getText());
-                
-                loyaltyCardService.saveLoyaltyCard(loyaltyCard);
-                new Alert(Alert.AlertType.CONFIRMATION, "Saved").show();
-                urlNewLoyalty.setText("Show Loyalty Card Info");
-            } else {
-                // view data
-            }
-        } catch ( IOException e) {
-            new Alert(Alert.AlertType.ERROR, "Error generating barcode: " + e.getMessage()).show();
-            e.printStackTrace();
-        } catch (Exception e) {
-            new Alert(Alert.AlertType.WARNING, "Try Again Shortly!").show();
+            new Alert(Alert.AlertType.ERROR, "Error searching customer: " + e.getMessage()).show();
             e.printStackTrace();
         }
     }
@@ -326,7 +271,8 @@ public class PlaceOrderFormController extends BaseController {
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setIssuedDate(LocalDateTime.now());
             orderDetail.setTotalCost(Double.parseDouble(txtTotal.getText().split(" /=")[0]));
-            orderDetail.setCustomerEmail(txtEmail.getText());
+            orderDetail.setCustomerId(selectedCustomerId);
+            orderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
             orderDetail.setDiscount(totalDiscount);
             orderDetail.setOperatorEmail(UserSessionData.email);
             
@@ -357,10 +303,8 @@ public class PlaceOrderFormController extends BaseController {
     }
     
     private void clearFields() {
-        txtEmail.clear();
-        txtName.clear();
         txtContact.clear();
-        txtSalary.clear();
+        txtName.clear();
         txtBarcode.clear();
         txtDescription.clear();
         txtSellingPrice.clear();
@@ -369,7 +313,6 @@ public class PlaceOrderFormController extends BaseController {
         txtQtyOnHand.clear();
         txtBuyingPrice.clear();
         txtQty.clear();
-        urlNewLoyalty.setText("+ New Loyalty");
-        urlNewLoyalty.setVisible(false);
+        selectedCustomerId = null;
     }
 }

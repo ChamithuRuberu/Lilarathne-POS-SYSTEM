@@ -46,8 +46,21 @@ public class OrderDetailService {
         return orderDetailRepository.findAll();
     }
     
-    public List<OrderDetail> findByCustomerEmail(String email) {
-        return orderDetailRepository.findByCustomerEmail(email);
+    public List<OrderDetail> findByCustomerId(Long customerId) {
+        return orderDetailRepository.findByCustomerId(customerId);
+    }
+    
+    public List<OrderDetail> findByCustomerName(String customerName) {
+        return orderDetailRepository.findByCustomerNameContaining(customerName);
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getTotalSpentByCustomerId(Long customerId) {
+        if (customerId == null) {
+            return 0.0;
+        }
+        Double total = orderDetailRepository.getTotalSpentByCustomerId(customerId);
+        return total != null ? total : 0.0;
     }
     
     public OrderDetail createOrder(OrderDetail orderDetail, List<ItemDetail> itemDetails) {

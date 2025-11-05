@@ -25,12 +25,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderDetailsFormController extends BaseController {
     public TableColumn colId;
-    public TableColumn colCustomerEmail;
+    public TableColumn colCustomerName;
     public TableColumn colDate;
     public TableColumn colDiscount;
     public TableColumn colUserEmail;
     public TableColumn colTotal;
-    public TextField txtEmailSearch;
+    public TextField txtCustomerSearch;
     public TableView<OrderTm> tblOrders;
 
     private final OrderDetailService orderDetailService;
@@ -42,7 +42,7 @@ public class OrderDetailsFormController extends BaseController {
         
         // Configure table columns
         colId.setCellValueFactory(new PropertyValueFactory<>("code"));
-        colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerEmail"));
+        colCustomerName.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("issuedDate"));
         colDiscount.setCellValueFactory(new PropertyValueFactory<>("discount"));
         colUserEmail.setCellValueFactory(new PropertyValueFactory<>("operatorEmail"));
@@ -90,7 +90,7 @@ public class OrderDetailsFormController extends BaseController {
         loadAllOrders();
         
         // Add search functionality - load orders when text changes
-        txtEmailSearch.textProperty().addListener((observable, oldValue, newValue) -> {
+        txtCustomerSearch.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.trim().isEmpty()) {
                 loadAllOrders();
             }
@@ -107,12 +107,12 @@ public class OrderDetailsFormController extends BaseController {
     }
 
     public void OderDetailsShowOnAction(ActionEvent actionEvent) {
-        String searchEmail = txtEmailSearch.getText().trim();
+        String searchName = txtCustomerSearch.getText().trim();
         
-        if (searchEmail.isEmpty()) {
+        if (searchName.isEmpty()) {
             loadAllOrders();
         } else {
-            loadOrdersByCustomerEmail(searchEmail);
+            loadOrdersByCustomerName(searchName);
         }
     }
     
@@ -121,14 +121,14 @@ public class OrderDetailsFormController extends BaseController {
         displayOrders(orderDetails);
     }
     
-    private void loadOrdersByCustomerEmail(String email) {
-        List<OrderDetail> orderDetails = orderDetailService.findByCustomerEmail(email);
+    private void loadOrdersByCustomerName(String customerName) {
+        List<OrderDetail> orderDetails = orderDetailService.findByCustomerName(customerName);
         displayOrders(orderDetails);
         
         if (orderDetails.isEmpty()) {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.INFORMATION,
-                    "No orders found for customer: " + email
+                    "No orders found for customer: " + customerName
             );
             alert.show();
         }
@@ -140,7 +140,7 @@ public class OrderDetailsFormController extends BaseController {
         for (OrderDetail orderDetail : orderDetails) {
             OrderTm tm = new OrderTm(
                     orderDetail.getCode(),
-                    orderDetail.getCustomerEmail(),
+                    orderDetail.getCustomerName() != null ? orderDetail.getCustomerName() : "Guest",
                     orderDetail.getIssuedDate(),
                     orderDetail.getDiscount(),
                     orderDetail.getOperatorEmail(),

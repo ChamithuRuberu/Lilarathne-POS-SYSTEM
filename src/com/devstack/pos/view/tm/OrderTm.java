@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class OrderTm {
     private Long code;
-    private String customerEmail;
+    private String customerName;
     private LocalDateTime issuedDate;
     private double discount;
     private String operatorEmail;

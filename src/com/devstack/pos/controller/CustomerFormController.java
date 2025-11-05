@@ -2,6 +2,7 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.Customer;
 import com.devstack.pos.service.CustomerService;
+import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.view.tm.CustomerTm;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,22 +23,21 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class CustomerFormController extends BaseController {
-    public TextField txtEmail;
     public TextField txtName;
     public TextField txtContact;
-    public TextField txtSalary;
     public Button btnSaveUpdate;
     public TextField txtSearch;
     public TableView<CustomerTm> tbl;
     public TableColumn colId;
-    public TableColumn colEmail;
     public TableColumn colName;
     public TableColumn colContact;
-    public TableColumn colSalary;
+    public TableColumn colTotalSpent;
     public TableColumn colOperate;
 
     private String searchText = "";
+    private Long selectedCustomerId = null;
     private final CustomerService customerService;
+    private final OrderDetailService orderDetailService;
 
     public void initialize() {
         // Initialize sidebar
@@ -45,11 +45,23 @@ public class CustomerFormController extends BaseController {
         
         // Initialize table columns
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
-        colSalary.setCellValueFactory(new PropertyValueFactory<>("salary"));
+        colTotalSpent.setCellValueFactory(new PropertyValueFactory<>("totalSpent"));
         colOperate.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
+        
+        // Format total spent column to show currency
+        colTotalSpent.setCellFactory(column -> new javafx.scene.control.TableCell<CustomerTm, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("Rs. %.2f", item));
+                }
+            }
+        });
 
         // Load customers
         loadAllCustomers(searchText);
@@ -76,11 +88,9 @@ public class CustomerFormController extends BaseController {
     }
 
     private void setData(CustomerTm newValue) {
-        txtEmail.setEditable(false);
+        selectedCustomerId = newValue.getId();
         btnSaveUpdate.setText("Update Customer");
-        txtEmail.setText(newValue.getEmail());
         txtName.setText(newValue.getName());
-        txtSalary.setText(String.valueOf(newValue.getSalary()));
         txtContact.setText(newValue.getContact());
     }
 
@@ -91,24 +101,24 @@ public class CustomerFormController extends BaseController {
 
     private void loadAllCustomers(String searchText) {
         ObservableList<CustomerTm> observableList = FXCollections.observableArrayList();
-        int counter = 1;
         for (Customer customer : (searchText.length() > 0 ? customerService.searchCustomers(searchText) : customerService.findAllCustomers())) {
+            // Get total spent by this customer using optimized query
+            double totalSpent = orderDetailService.getTotalSpentByCustomerId(customer.getId());
+            
             Button btn = new Button("Delete");
             CustomerTm tm = new CustomerTm(
-                    counter, customer.getEmail(), customer.getName(), customer.getContact(), customer.getSalary(),
-                    btn
+                    customer.getId(), customer.getName(), customer.getContact(), totalSpent, btn
             );
             observableList.add(tm);
-            counter++;
 
             btn.setOnAction((e) -> {
                 try {
                     Alert alert = new
                             Alert(Alert.AlertType.CONFIRMATION,
-                            "Are you sure?", ButtonType.YES, ButtonType.NO);
+                            "Are you sure you want to delete this customer?", ButtonType.YES, ButtonType.NO);
                     Optional<ButtonType> selectedButtonType = alert.showAndWait();
                     if (selectedButtonType.isPresent() && selectedButtonType.get().equals(ButtonType.YES)) {
-                        if (customerService.deleteCustomer(customer.getEmail())) {
+                        if (customerService.deleteCustomer(customer.getId())) {
                             new Alert(Alert.AlertType.CONFIRMATION, "Customer Deleted!").show();
                             loadAllCustomers(searchText);
                         } else {
@@ -126,39 +136,52 @@ public class CustomerFormController extends BaseController {
 
     public void btnSaveUpdateOnAction(ActionEvent actionEvent) {
         try {
-            Customer customer = new Customer(txtEmail.getText(), txtName.getText(),
-                    txtContact.getText(), Double.parseDouble(txtSalary.getText()));
+            // Validate inputs
+            if (txtName.getText().trim().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter customer name!").show();
+                return;
+            }
+            
+            if (txtContact.getText().trim().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter contact number!").show();
+                return;
+            }
 
             if (btnSaveUpdate.getText().equals("Save Customer")) {
+                Customer customer = new Customer(txtName.getText().trim(), txtContact.getText().trim());
                 if (customerService.saveCustomer(customer)) {
-                    new Alert(Alert.AlertType.CONFIRMATION, "Customer Saved!").show();
+                    new Alert(Alert.AlertType.CONFIRMATION, "Customer Saved Successfully!").show();
                     clearFields();
                     loadAllCustomers(searchText);
                 } else {
-                    new Alert(Alert.AlertType.WARNING, "Customer already exists or Try Again!").show();
+                    new Alert(Alert.AlertType.WARNING, "Failed to save customer. Please try again!").show();
                 }
             } else {
-                if (customerService.updateCustomer(customer)) {
-                    new Alert(Alert.AlertType.CONFIRMATION, "Customer Updated!").show();
-                    clearFields();
-                    loadAllCustomers(searchText);
-                    txtEmail.setEditable(true);
-                    btnSaveUpdate.setText("Save Customer");
+                if (selectedCustomerId != null) {
+                    Customer customer = new Customer(selectedCustomerId, txtName.getText().trim(), txtContact.getText().trim());
+                    if (customerService.updateCustomer(customer)) {
+                        new Alert(Alert.AlertType.CONFIRMATION, "Customer Updated Successfully!").show();
+                        clearFields();
+                        loadAllCustomers(searchText);
+                        selectedCustomerId = null;
+                        btnSaveUpdate.setText("Save Customer");
+                    } else {
+                        new Alert(Alert.AlertType.WARNING, "Failed to update customer. Please try again!").show();
+                    }
                 } else {
-                    new Alert(Alert.AlertType.WARNING, "Try Again!").show();
+                    new Alert(Alert.AlertType.WARNING, "No customer selected for update!").show();
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).show();
         }
     }
 
     private void clearFields() {
-        txtEmail.clear();
         txtName.clear();
         txtContact.clear();
-        txtSalary.clear();
+        selectedCustomerId = null;
     }
 
     // Navigation methods are inherited from BaseController
@@ -168,8 +191,8 @@ public class CustomerFormController extends BaseController {
     }
 
     public void btnNewCustomerOnAction(ActionEvent actionEvent) {
-        txtEmail.setEditable(true);
         btnSaveUpdate.setText("Save Customer");
         clearFields();
+        tbl.getSelectionModel().clearSelection();
     }
 }

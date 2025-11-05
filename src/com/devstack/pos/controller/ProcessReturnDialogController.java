@@ -82,7 +82,6 @@ public class ProcessReturnDialogController {
             
             if (loadedOrder != null) {
                 // Populate order details
-                txtCustomerEmail.setText(loadedOrder.getCustomerEmail() != null ? loadedOrder.getCustomerEmail() : "Guest");
                 txtOrderAmount.setText(String.format("%.2f", loadedOrder.getTotalCost()));
                 txtOrderDate.setText(loadedOrder.getIssuedDate().toLocalDate().toString());
                 txtRefundAmount.setText(String.format("%.2f", loadedOrder.getTotalCost()));
@@ -142,7 +141,7 @@ public class ProcessReturnDialogController {
             // Create and save return order to database
             ReturnOrder returnOrder = ReturnOrder.builder()
                 .orderId(Math.toIntExact(loadedOrder.getCode()))
-                .customerEmail(loadedOrder.getCustomerEmail() != null ? loadedOrder.getCustomerEmail() : "Guest")
+                .customerEmail(loadedOrder.getCustomerName() != null ? loadedOrder.getCustomerName() : "Guest")
                 .originalAmount(loadedOrder.getTotalCost())
                 .refundAmount(refundAmount)
                 .returnReason(cmbReturnReason.getValue())

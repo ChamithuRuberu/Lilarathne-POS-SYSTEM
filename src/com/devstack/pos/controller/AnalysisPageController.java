@@ -243,7 +243,7 @@ public class AnalysisPageController extends BaseController {
         
         // Configure Top Customers Table
         colCustomerRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
-        colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerEmail"));
+        colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
         
@@ -559,11 +559,11 @@ public class AnalysisPageController extends BaseController {
         
         int rank = 1;
         for (Object[] data : topCustomersData) {
-            String email = (String) data[0];
+            String customerName = (String) data[0];
             Integer orders = ((Number) data[1]).intValue();
             Double totalRevenue = ((Number) data[2]).doubleValue();
             
-            TopCustomerTm tm = new TopCustomerTm(rank++, email != null ? email : "Guest", orders, totalRevenue);
+            TopCustomerTm tm = new TopCustomerTm(rank++, customerName != null ? customerName : "Guest", orders, totalRevenue);
             observableList.add(tm);
         }
         
@@ -716,21 +716,21 @@ public class AnalysisPageController extends BaseController {
     
     public static class TopCustomerTm {
         private int rank;
-        private String customerEmail;
+        private String customerName;
         private int orders;
         private double totalRevenue;
         
-        public TopCustomerTm(int rank, String customerEmail, int orders, double totalRevenue) {
+        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue) {
             this.rank = rank;
-            this.customerEmail = customerEmail;
+            this.customerName = customerName;
             this.orders = orders;
             this.totalRevenue = totalRevenue;
         }
         
         public int getRank() { return rank; }
         public void setRank(int rank) { this.rank = rank; }
-        public String getCustomerEmail() { return customerEmail; }
-        public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
+        public String getCustomerName() { return customerName; }
+        public void setCustomerName(String customerName) { this.customerName = customerName; }
         public int getOrders() { return orders; }
         public void setOrders(int orders) { this.orders = orders; }
         public double getTotalRevenue() { return totalRevenue; }

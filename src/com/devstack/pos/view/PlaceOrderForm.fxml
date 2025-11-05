@@ -72,46 +72,32 @@
                      <Font name="System Bold" size="18.0" />
                   </font>
                </Text>
-               <GridPane hgap="16" vgap="16">
-                  <columnConstraints>
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                  </columnConstraints>
+               <HBox spacing="16">
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Text text="Contact Number (Search)" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtContact" promptText="Enter contact number to search customer" styleClass="text-field-modern" onAction="#searchCustomer" prefWidth="400.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
                   
-                  <JFXTextField fx:id="txtEmail" promptText="Email" styleClass="text-field-modern" onAction="#searchCustomer" GridPane.columnIndex="0" prefWidth="220.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtName" editable="false" promptText="Name" styleClass="text-field-modern" GridPane.columnIndex="1" prefWidth="220.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtContact" editable="false" promptText="Contact" styleClass="text-field-modern" GridPane.columnIndex="2" prefWidth="220.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtSalary" editable="false" promptText="Salary" styleClass="text-field-modern" GridPane.columnIndex="3" prefWidth="220.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-               </GridPane>
-               <HBox spacing="12" alignment="CENTER_LEFT">
-                  <Hyperlink fx:id="urlNewLoyalty" onAction="#newLoyaltyOnAction" text="Show Loyalty Card Information" underline="true" visible="false" style="-fx-font-size: 14px; -fx-text-fill: #2563eb;">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </Hyperlink>
-                  <Label fx:id="lblLoyaltyType" text="(GOLD Member)" visible="false" style="-fx-font-size: 14px; -fx-text-fill: #10b981; -fx-font-weight: bold;">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                  </Label>
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Text text="Customer Name" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtName" editable="false" promptText="Customer name will appear here" styleClass="text-field-modern" prefWidth="400.0">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
                </HBox>
             </VBox>
             

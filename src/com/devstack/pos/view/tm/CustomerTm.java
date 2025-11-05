@@ -11,10 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerTm {
-    private int id;
-    private String email;
+    private Long id;
     private String name;
     private String contact;
-    private double salary;
+    private double totalSpent;
     private Button deleteButton;
 }

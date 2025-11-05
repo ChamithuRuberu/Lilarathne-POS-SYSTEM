@@ -7,32 +7,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "product")
+@Table(name = "category")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "code")
-    private Integer code;
+    @Column(name = "id")
+    private Integer id;
     
-    @Column(name = "description", nullable = false, length = 200)
+    @Column(name = "name", nullable = false, unique = true, length = 100)
+    private String name;
+    
+    @Column(name = "description", length = 200)
     private String description;
-    
-    @Column(name = "barcode", unique = true, length = 100)
-    private String barcode;
-    
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id")
-    private Category category;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status = Status.ACTIVE;
     
-    public Product(String description) {
+    public Category(String name, String description) {
+        this.name = name;
         this.description = description;
         this.status = Status.ACTIVE;
     }
 }
+

@@ -8,19 +8,23 @@ public class ProductDetailTm {
     private double sellingPrice;
     private double buyingPrice;
     private boolean discountAvailability;
-    private double showPrice;
+    // private double showPrice; // Commented out - Show Price logic removed
+    private String supplierName;
+    private Button viewBarcode;
     private Button delete;
 
     public ProductDetailTm() {
     }
 
-    public ProductDetailTm(String code, int qty, double sellingPrice, double buyingPrice, boolean discountAvailability, double showPrice, Button delete) {
+    public ProductDetailTm(String code, int qty, double sellingPrice, double buyingPrice, boolean discountAvailability, String supplierName, Button viewBarcode, Button delete) {
         this.code = code;
         this.qty = qty;
         this.sellingPrice = sellingPrice;
         this.buyingPrice = buyingPrice;
         this.discountAvailability = discountAvailability;
-        this.showPrice = showPrice;
+        // this.showPrice = showPrice; // Commented out
+        this.supplierName = supplierName;
+        this.viewBarcode = viewBarcode;
         this.delete = delete;
     }
 
@@ -64,12 +68,28 @@ public class ProductDetailTm {
         this.discountAvailability = discountAvailability;
     }
 
-    public double getShowPrice() {
-        return showPrice;
+    // public double getShowPrice() {
+    //     return showPrice;
+    // }
+    //
+    // public void setShowPrice(double showPrice) {
+    //     this.showPrice = showPrice;
+    // }
+
+    public String getSupplierName() {
+        return supplierName != null ? supplierName : "";
     }
 
-    public void setShowPrice(double showPrice) {
-        this.showPrice = showPrice;
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public Button getViewBarcode() {
+        return viewBarcode;
+    }
+
+    public void setViewBarcode(Button viewBarcode) {
+        this.viewBarcode = viewBarcode;
     }
 
     public Button getDelete() {

@@ -3,6 +3,7 @@ package com.devstack.pos.service;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.enums.Status;
 import com.devstack.pos.repository.ProductRepository;
+import com.devstack.pos.util.BarcodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,21 @@ public class ProductService {
         if (product.getStatus() == null) {
             product.setStatus(Status.ACTIVE);
         }
+        
+        // Validate barcode
+        if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
+            throw new IllegalArgumentException("Barcode is required. Please scan or enter a barcode.");
+        }
+        
+        if (!BarcodeGenerator.isValidBarcode(product.getBarcode())) {
+            throw new IllegalArgumentException("Invalid barcode format. Use alphanumeric characters only.");
+        }
+        
+        // Check if barcode already exists (only for new products)
+        if (product.getCode() == null && productRepository.existsByBarcode(product.getBarcode())) {
+            throw new IllegalArgumentException("Barcode already exists in the system.");
+        }
+        
         return productRepository.save(product);
     }
     
@@ -57,6 +73,14 @@ public class ProductService {
                 .mapToInt(Product::getCode)
                 .max()
                 .orElse(0);
+    }
+    
+    public Product findProductByBarcode(String barcode) {
+        return productRepository.findByBarcode(barcode).orElse(null);
+    }
+    
+    public boolean barcodeExists(String barcode) {
+        return productRepository.existsByBarcode(barcode);
     }
 }
 

@@ -47,12 +47,12 @@
             <VBox spacing="16">
                <HBox spacing="12" alignment="CENTER_LEFT">
                   <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Product Code" styleClass="form-label">
+                     <Text text="Barcode (Scan or Enter)" styleClass="form-label">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
                      </Text>
-                     <JFXTextField fx:id="txtProductCode" editable="false" promptText="Auto-generated" styleClass="text-field-modern">
+                     <JFXTextField fx:id="txtBarcode" promptText="Scan barcode or enter manually" styleClass="text-field-modern">
                         <font>
                            <Font name="System" size="14.0" />
                         </font>
@@ -69,6 +69,28 @@
                </HBox>
                
                <VBox spacing="8">
+                  <HBox alignment="CENTER_LEFT" spacing="8">
+                     <Text text="Category" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <Region HBox.hgrow="ALWAYS" />
+                     <JFXButton onAction="#btnManageCategoriesOnAction" text="+ Manage" 
+                                style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-size: 11px; -fx-padding: 4 12;">
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                  </HBox>
+                  <ComboBox fx:id="cmbCategory" promptText="Select Category" styleClass="combo-box-modern" maxWidth="Infinity">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </ComboBox>
+               </VBox>
+               
+               <VBox spacing="8">
                   <Text text="Description" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />
@@ -81,6 +103,34 @@
                   </TextArea>
                </VBox>
                
+               <VBox spacing="8" fx:id="barcodeImageContainer" visible="false" managed="false">
+                  <Text text="Generated Barcode" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <javafx.scene.image.ImageView fx:id="imgBarcode" fitWidth="300.0" preserveRatio="true" />
+               </VBox>
+               
+               <HBox spacing="12">
+                  <JFXButton fx:id="btnGenerateBarcode" onAction="#btnGenerateBarcodeOnAction" text="Preview Barcode" buttonType="RAISED" styleClass="btn-secondary" prefHeight="40.0" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+                  <JFXButton onAction="#btnClearBarcodeOnAction" text="Clear" buttonType="RAISED" styleClass="btn-secondary" prefHeight="40.0" prefWidth="100.0">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
+                  </JFXButton>
+               </HBox>
+               
                <JFXButton fx:id="btnSaveUpdate" onAction="#btnNewProductOnAction" text="Save Product" buttonType="RAISED" styleClass="btn-success" prefHeight="44.0" maxWidth="Infinity">
                   <font>
                      <Font name="System Bold" size="14.0" />
@@ -90,106 +140,112 @@
                   </cursor>
                </JFXButton>
                
-               <Separator style="-fx-background-color: #e2e8f0;" />
-               
-               <VBox spacing="8">
-                  <Text text="Search Products" styleClass="form-label">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                  </Text>
-                  <JFXTextField promptText="Search Products..." styleClass="text-field-modern">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
+            </VBox>
                </VBox>
                
+        <!-- Right Panel - Product List and Selected Product Summary -->
+        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+           <content>
+              <VBox spacing="24" styleClass="form-section" style="-fx-padding: 0 8 24 8;">
+                 <!-- Product List Section -->
                <VBox spacing="12">
+               <HBox alignment="CENTER_LEFT" spacing="12">
                   <Text text="Product List" styleClass="label-section">
                      <font>
                         <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Text>
-                  <TableView fx:id="tbl" styleClass="table-view-modern" prefHeight="200.0" VBox.vgrow="ALWAYS">
-                     <columns>
-                        <TableColumn fx:id="colProductId" prefWidth="70.0" text="#" />
-                        <TableColumn fx:id="colProductDesc" prefWidth="180.0" text="Description" />
-                        <TableColumn fx:id="colProductShowMore" prefWidth="100.0" text="Batches" />
-                        <TableColumn fx:id="colProductDelete" prefWidth="90.0" text="Delete" />
-                     </columns>
-                  </TableView>
-               </VBox>
-            </VBox>
-         </VBox>
-         
-         <!-- Right Panel - Batch Details -->
-         <VBox spacing="20" styleClass="form-section" HBox.hgrow="ALWAYS">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text text="Batch Pricing Details" styleClass="label-section">
-                  <font>
-                     <Font name="System Bold" size="20.0" />
                   </font>
                </Text>
                <Region HBox.hgrow="ALWAYS" />
-               <JFXButton fx:id="btnNewBatch" onAction="#newBatchOnAction" text="+ New Batch" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0" disable="true">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </HBox>
-            
-            <VBox spacing="16">
-               <HBox spacing="12" alignment="CENTER_LEFT">
-                  <VBox spacing="8" prefWidth="150.0">
-                     <Text text="Product Code" styleClass="form-label">
+                  <VBox spacing="8">
+                     <Text text="Search Products" styleClass="form-label" style="-fx-font-size: 12px;">
                         <font>
-                           <Font name="System Bold" size="14.0" />
+                           <Font name="System Bold" size="12.0" />
                         </font>
                      </Text>
-                     <JFXTextField fx:id="txtSelectedProdId" editable="false" promptText="Product Code" styleClass="text-field-modern">
+                     <JFXTextField fx:id="txtSearchProducts" promptText="Search Products..." styleClass="text-field-modern" prefWidth="200.0">
                         <font>
                            <Font name="System" size="14.0" />
                         </font>
                      </JFXTextField>
                   </VBox>
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Description" styleClass="form-label">
+               </HBox>
+              <TableView fx:id="tbl" styleClass="table-view-modern" prefHeight="420.0" minHeight="360.0">
+                     <columns>
+                     <TableColumn fx:id="colProductBarcode" prefWidth="110.0" minWidth="100.0" text="Barcode" />
+                     <TableColumn fx:id="colProductDesc" prefWidth="140.0" minWidth="120.0" text="Description" />
+                     <TableColumn fx:id="colProductCategory" prefWidth="90.0" minWidth="80.0" text="Category" />
+                    <TableColumn fx:id="colProductViewBarcode" prefWidth="100.0" minWidth="90.0" text="View Barcode" />
+                    <TableColumn fx:id="colProductDelete" prefWidth="70.0" minWidth="60.0" text="Delete" />
+                     </columns>
+                  </TableView>
+                 </VBox>
+
+                 <!-- Selected Product Summary -->
+                 <VBox spacing="14" style="-fx-background-color: white; -fx-padding: 18; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);" minHeight="150.0">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                       <Text text="Selected Product" styleClass="label-section" style="-fx-font-size: 18px; -fx-fill: #34495e;">
+                          <font>
+                             <Font name="System Bold" size="18.0" />
+                          </font>
+                       </Text>
+                       <Region HBox.hgrow="ALWAYS" />
+                       <JFXButton fx:id="btnNewBatch" onAction="#newBatchOnAction" text="+ New Batch" buttonType="RAISED" styleClass="btn-primary" prefWidth="150.0" prefHeight="42.0" disable="true" style="-fx-font-size: 14px;">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
-                     </Text>
-                     <TextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Selected Product Description" styleClass="text-field-modern" prefHeight="40.0" wrapText="true">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </TextArea>
+                          <cursor>
+                             <Cursor fx:constant="HAND" />
+                          </cursor>
+                       </JFXButton>
+                    </HBox>
+                    <Separator />
+                    <GridPane hgap="18" vgap="14">
+                       <columnConstraints>
+                          <ColumnConstraints prefWidth="130.0" halignment="RIGHT" />
+                          <ColumnConstraints hgrow="ALWAYS" />
+                       </columnConstraints>
+                       
+                       <rowConstraints>
+                          <RowConstraints minHeight="40.0" vgrow="NEVER" />
+                          <RowConstraints minHeight="70.0" vgrow="NEVER" />
+                       </rowConstraints>
+                       
+                       <Text text="Product Code" GridPane.rowIndex="0" style="-fx-font-size: 13px; -fx-fill: #7f8c8d; -fx-font-weight: bold;" />
+                       <JFXTextField fx:id="txtSelectedProdId" editable="false" promptText="Not selected" styleClass="text-field-modern" style="-fx-font-size: 16px; -fx-font-weight: bold;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                       
+                       <Text text="Description" GridPane.rowIndex="1" style="-fx-font-size: 13px; -fx-fill: #7f8c8d; -fx-font-weight: bold;" />
+                       <TextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Select a product from the list above..." styleClass="text-field-modern" prefHeight="68.0" wrapText="true" style="-fx-font-size: 15px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    </GridPane>
                   </VBox>
-               </HBox>
                
-               <VBox spacing="12">
-                  <Text text="Batch List" styleClass="label-section">
+                 <!-- Batch Details Table -->
+                 <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 18; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);">
+                    <Text text="Batch Details" styleClass="label-section" style="-fx-font-size: 18px; -fx-fill: #34495e;">
                      <font>
                         <Font name="System Bold" size="18.0" />
                      </font>
                   </Text>
-                  <TableView fx:id="tblDetail" styleClass="table-view-modern" VBox.vgrow="ALWAYS">
+                    <ScrollPane fx:id="scrollPaneBatchDetails" fitToWidth="true" prefHeight="300.0" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+                       <content>
+                          <TableView fx:id="tblDetail" styleClass="table-view-modern" prefHeight="280.0">
                      <columns>
-                        <TableColumn fx:id="colPDId" prefWidth="60.0" text="Batch #" />
-                        <TableColumn fx:id="colPDQty" prefWidth="70.0" text="Qty" />
-                        <TableColumn fx:id="colPDSellingPrice" prefWidth="110.0" text="Selling Price" />
-                        <TableColumn fx:id="colPDBuyingPrice" prefWidth="110.0" text="Buying Price" />
-                        <TableColumn fx:id="colPDDAvailability" prefWidth="80.0" text="D: Avail." />
-                        <TableColumn fx:id="colPDShowPrice" prefWidth="90.0" text="Show Price" />
-                        <TableColumn fx:id="colPDDelete" prefWidth="70.0" text="Delete" />
+                                <TableColumn fx:id="colPDId" prefWidth="100.0" text="Batch Code" />
+                                <TableColumn fx:id="colPDQty" prefWidth="80.0" text="Quantity" />
+                                <TableColumn fx:id="colPDBuyingPrice" prefWidth="100.0" text="Buying Price" />
+                                <TableColumn fx:id="colPDSellingPrice" prefWidth="100.0" text="Selling Price" />
+                                <!-- <TableColumn fx:id="colPDShowPrice" prefWidth="100.0" text="Show Price" /> -->
+                                <TableColumn fx:id="colPDSupplierName" prefWidth="120.0" text="Supplier Name" />
+                                <TableColumn fx:id="colPDDAvailability" prefWidth="100.0" text="Discount" />
+                                <TableColumn fx:id="colPDViewBarcode" prefWidth="90.0" text="View Barcode" />
+                                <TableColumn fx:id="colPDDelete" prefWidth="100.0" text="Delete" />
                      </columns>
                   </TableView>
+                       </content>
+                    </ScrollPane>
                </VBox>
             </VBox>
-         </VBox>
+           </content>
+        </ScrollPane>
       </HBox>
    </children>
 </AnchorPane>

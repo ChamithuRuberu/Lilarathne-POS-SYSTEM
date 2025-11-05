@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product_detail")
@@ -13,13 +18,19 @@ import lombok.NoArgsConstructor;
 public class ProductDetail {
     @Id
     @Column(name = "code", length = 100)
-    private String code;
+    private String code; // Batch Code / Batch ID
+    
+    @Column(name = "batch_number", length = 50)
+    private String batchNumber; // Human-readable batch number
     
     @Column(name = "barcode", columnDefinition = "TEXT")
-    private String barcode;
+    private String barcode; // Batch barcode image (Base64)
     
     @Column(name = "qty_on_hand", nullable = false)
     private int qtyOnHand;
+    
+    @Column(name = "initial_qty", nullable = false)
+    private int initialQty; // Original quantity when batch was created
     
     @Column(name = "selling_price", nullable = false)
     private double sellingPrice;
@@ -30,11 +41,97 @@ public class ProductDetail {
     @Column(name = "buying_price", nullable = false)
     private double buyingPrice;
     
+    @Column(name = "profit_margin")
+    private double profitMargin; // Calculated: (selling - buying) / buying * 100
+    
     @Column(name = "product_code", nullable = false)
     private int productCode;
     
     @Column(name = "discount_availability", nullable = false)
     private boolean discountAvailability;
     
+    @Column(name = "discount_rate")
+    private double discountRate; // Percentage discount if applicable
+    
+    @Column(name = "supplier_name", length = 200)
+    private String supplierName;
+    
+    @Column(name = "supplier_contact", length = 100)
+    private String supplierContact;
+    
+    @Column(name = "manufacturing_date")
+    private LocalDate manufacturingDate;
+    
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+    
+    @Column(name = "low_stock_threshold")
+    private Integer lowStockThreshold; // Alert when qty falls below this
+    
+    @Column(name = "batch_status", length = 50)
+    private String batchStatus; // ACTIVE, LOW_STOCK, OUT_OF_STOCK, EXPIRED
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes; // Additional notes about the batch
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
     private Long productId;
+    
+    /**
+     * Calculate profit margin percentage
+     */
+    @PrePersist
+    @PreUpdate
+    public void calculateProfitMargin() {
+        if (buyingPrice > 0) {
+            this.profitMargin = ((sellingPrice - buyingPrice) / buyingPrice) * 100;
+        }
+        
+        // Update batch status based on quantity and expiry
+        updateBatchStatus();
+    }
+    
+    /**
+     * Update batch status based on current state
+     */
+    public void updateBatchStatus() {
+        if (expiryDate != null && LocalDate.now().isAfter(expiryDate)) {
+            this.batchStatus = "EXPIRED";
+        } else if (qtyOnHand <= 0) {
+            this.batchStatus = "OUT_OF_STOCK";
+        } else if (lowStockThreshold != null && qtyOnHand <= lowStockThreshold) {
+            this.batchStatus = "LOW_STOCK";
+        } else {
+            this.batchStatus = "ACTIVE";
+        }
+    }
+    
+    /**
+     * Check if batch is expired
+     */
+    public boolean isExpired() {
+        return expiryDate != null && LocalDate.now().isAfter(expiryDate);
+    }
+    
+    /**
+     * Check if batch is low on stock
+     */
+    public boolean isLowStock() {
+        return lowStockThreshold != null && qtyOnHand > 0 && qtyOnHand <= lowStockThreshold;
+    }
+    
+    /**
+     * Get days until expiry
+     */
+    public long getDaysUntilExpiry() {
+        if (expiryDate == null) return Long.MAX_VALUE;
+        return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+    }
 }

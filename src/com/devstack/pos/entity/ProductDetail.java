@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProductDetail {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Batch Code / Batch ID
+
     @Column(name = "code", length = 100)
     private String code; // Batch Code / Batch ID
     

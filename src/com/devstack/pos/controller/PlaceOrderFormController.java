@@ -1,27 +1,16 @@
 package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.Customer;
-import com.devstack.pos.entity.ItemDetail;
-import com.devstack.pos.entity.LoyaltyCard;
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
-import com.devstack.pos.enums.CardType;
 import com.devstack.pos.service.CustomerService;
-import com.devstack.pos.service.ItemDetailService;
-import com.devstack.pos.service.LoyaltyCardService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.util.AuthorizationUtil;
-import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.CartTm;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.oned.Code128Writer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -29,20 +18,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
-import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
@@ -53,7 +37,6 @@ public class PlaceOrderFormController extends BaseController {
     public TextField txtDescription;
     public TextField txtSellingPrice;
     public TextField txtDiscount;
-    public TextField txtShowPrice;
     public TextField txtQtyOnHand;
     public TextField txtBuyingPrice;
     public TextField txtQty;
@@ -62,7 +45,6 @@ public class PlaceOrderFormController extends BaseController {
     public TableColumn colDesc;
     public TableColumn colSelPrice;
     public TableColumn colSelDisc;
-    public TableColumn colSelShPrice;
     public TableColumn colSelQty;
     public TableColumn colSelTotal;
     public TableColumn colSelOperation;
@@ -73,7 +55,6 @@ public class PlaceOrderFormController extends BaseController {
     private final ProductDetailService productDetailService;
     private final ProductService productService;
     private final OrderDetailService orderDetailService;
-    private final ItemDetailService itemDetailService;
 
 
     public void initialize() {
@@ -92,7 +73,6 @@ public class PlaceOrderFormController extends BaseController {
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));
         colSelPrice.setCellValueFactory(new PropertyValueFactory<>("sellingPrice"));
         colSelDisc.setCellValueFactory(new PropertyValueFactory<>("discount"));
-        colSelShPrice.setCellValueFactory(new PropertyValueFactory<>("showPrice"));
         colSelQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colSelTotal.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
         colSelOperation.setCellValueFactory(new PropertyValueFactory<>("btn"));
@@ -159,17 +139,37 @@ public class PlaceOrderFormController extends BaseController {
 
     public void loadProduct(ActionEvent actionEvent) {
         try {
-            // Search product detail by barcode code (code is the barcode identifier)
-            ProductDetail productDetail = productDetailService.findByCodeWithProduct(txtBarcode.getText());
+            String input = txtBarcode.getText() == null ? "" : txtBarcode.getText().trim();
+            if (input.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter a barcode or product code!").show();
+                return;
+            }
+            
+            // Try by batch code or barcode first
+            ProductDetail productDetail = productDetailService.findByCodeWithProduct(input);
+            
+            // If not found, try by product code (numeric)
+            if (productDetail == null) {
+                try {
+                    int productCode = Integer.parseInt(input);
+                    List<ProductDetail> activeBatches = productDetailService.findActiveBatchesByProductCode(productCode);
+                    if (!activeBatches.isEmpty()) {
+                        productDetail = activeBatches.get(0);
+                    }
+                } catch (NumberFormatException ignored) {
+                    // input is not a product code
+                }
+            }
+            
             if (productDetail != null) {
                 // Load product description using product code
                 Product product = productService.findProduct(productDetail.getProductCode());
                 if (product != null) {
                     txtDescription.setText(product.getDescription());
                 }
-                txtDiscount.setText(String.valueOf(250));
+                // Ensure barcode field holds the batch code used for stock reduction
+                txtBarcode.setText(productDetail.getCode());
                 txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
-                txtShowPrice.setText(String.valueOf(productDetail.getShowPrice()));
                 txtQtyOnHand.setText(String.valueOf(productDetail.getQtyOnHand()));
                 txtBuyingPrice.setText(String.valueOf(productDetail.getBuyingPrice()));
                 txtQty.requestFocus();
@@ -186,13 +186,15 @@ public class PlaceOrderFormController extends BaseController {
 
     public void addToCart(ActionEvent actionEvent) {
         int qty = Integer.parseInt(txtQty.getText());
-        /*if (customer.cardType.equals(CardType.GOLD.name())){
-            //
-        }*/
-        double discount = 250;//=>
-
-        double sellingPrice = (Double.parseDouble(txtSellingPrice.getText())-discount);
-        double totalCost = qty * sellingPrice;
+        double unitPrice = Double.parseDouble(txtSellingPrice.getText());
+        double unitDiscount = 0.0;
+        String discountText = txtDiscount.getText() == null ? "" : txtDiscount.getText().trim();
+        if (!discountText.isEmpty()) {
+            unitDiscount = Double.parseDouble(discountText);
+        }
+        double effectiveUnitPrice = unitPrice - unitDiscount;
+        if (effectiveUnitPrice < 0) effectiveUnitPrice = 0.0;
+        double totalCost = qty * effectiveUnitPrice;
 
 
         CartTm selectedCartTm = isExists(txtBarcode.getText());
@@ -204,9 +206,9 @@ public class PlaceOrderFormController extends BaseController {
             Button btn = new Button("Remove");
             CartTm tm = new CartTm(txtBarcode.getText(),
                     txtDescription.getText(),
-                    Double.parseDouble(txtDiscount.getText()),
-                    sellingPrice,
-                    Double.parseDouble(txtShowPrice.getText()),
+                    unitDiscount,
+                    effectiveUnitPrice,
+                    0.0,
                     qty,
                     totalCost,
                     btn);
@@ -228,7 +230,6 @@ public class PlaceOrderFormController extends BaseController {
         txtDescription.clear();
         txtSellingPrice.clear();
         txtDiscount.clear();
-        txtShowPrice.clear();
         txtQtyOnHand.clear();
         txtBuyingPrice.clear();
         txtQty.clear();
@@ -262,9 +263,9 @@ public class PlaceOrderFormController extends BaseController {
                 return;
             }
             
-            // Calculate total discount
+            // Calculate total discount (unit discount * qty)
             double totalDiscount = tms.stream()
-                    .mapToDouble(CartTm::getDiscount)
+                    .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
                     .sum();
             
             // Create order detail
@@ -276,20 +277,12 @@ public class PlaceOrderFormController extends BaseController {
             orderDetail.setDiscount(totalDiscount);
             orderDetail.setOperatorEmail(UserSessionData.email);
             
-            // Create item details from cart
-            List<ItemDetail> itemDetails = new ArrayList<>();
+            // Save order
+            orderDetailService.saveOrderDetail(orderDetail);
+            // Reduce stock per cart line using batch code
             for (CartTm tm : tms) {
-                ItemDetail itemDetail = new ItemDetail();
-                itemDetail.setDetailCode(tm.getCode());
-                itemDetail.setQty(tm.getQty());
-                itemDetail.setDiscount(tm.getDiscount());
-                itemDetail.setAmount(tm.getTotalCost());
-                itemDetails.add(itemDetail);
+                productDetailService.reduceStock(tm.getCode(), tm.getQty());
             }
-            
-            // Save order with items
-            orderDetailService.createOrder(orderDetail, itemDetails);
-            itemDetailService.saveItemDetails(itemDetails);
             
             new Alert(Alert.AlertType.CONFIRMATION, "Order Completed Successfully!").show();
             clearFields();
@@ -309,7 +302,6 @@ public class PlaceOrderFormController extends BaseController {
         txtDescription.clear();
         txtSellingPrice.clear();
         txtDiscount.clear();
-        txtShowPrice.clear();
         txtQtyOnHand.clear();
         txtBuyingPrice.clear();
         txtQty.clear();

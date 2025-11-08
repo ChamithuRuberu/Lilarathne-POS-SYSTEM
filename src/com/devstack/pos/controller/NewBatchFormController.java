@@ -64,12 +64,6 @@ public class NewBatchFormController {
     @FXML
     public TextField txtProfitMargin;
     
-    // Discount Fields
-    @FXML
-    public RadioButton rBtnYes;
-    @FXML
-    public TextField txtDiscountRate;
-    
     // Batch Tracking Fields
     @FXML
     public TextField txtBatchNumber;
@@ -261,7 +255,6 @@ public class NewBatchFormController {
         // Prices - allow decimals
         setupDecimalField(txtBuyingPrice);
         setupDecimalField(txtSellingPrice);
-        setupDecimalField(txtDiscountRate);
     }
 
     /**
@@ -360,10 +353,6 @@ public class NewBatchFormController {
                     }
                     if (txtBuyingPrice != null) txtBuyingPrice.setText(String.format("%.2f", productDetail.getBuyingPrice()));
                     if (txtSellingPrice != null) txtSellingPrice.setText(String.format("%.2f", productDetail.getSellingPrice()));
-                    if (rBtnYes != null) rBtnYes.setSelected(productDetail.isDiscountAvailability());
-                    if (txtDiscountRate != null && productDetail.getDiscountRate() > 0) {
-                        txtDiscountRate.setText(String.format("%.2f", productDetail.getDiscountRate()));
-                    }
                     if (txtBatchNumber != null && productDetail.getBatchNumber() != null) {
                         txtBatchNumber.setText(productDetail.getBatchNumber());
                     }
@@ -525,19 +514,6 @@ public class NewBatchFormController {
                 }
             }
             
-            // Validate discount rate
-            if (rBtnYes != null && rBtnYes.isSelected()) {
-                if (txtDiscountRate == null || txtDiscountRate.getText().trim().isEmpty()) {
-                    showError("Please enter discount rate when discount is available!");
-                    return false;
-                }
-                double discountRate = Double.parseDouble(txtDiscountRate.getText().trim());
-                if (discountRate < 0 || discountRate > 100) {
-                    showError("Discount rate must be between 0 and 100!");
-                    return false;
-                }
-            }
-            
             // Validate dates
             if (dateManufacturing != null && dateManufacturing.getValue() != null) {
                 if (dateManufacturing.getValue().isAfter(LocalDate.now())) {
@@ -660,11 +636,9 @@ public class NewBatchFormController {
             // Set show price same as selling price
             productDetail.setShowPrice(Double.parseDouble(txtSellingPrice.getText().trim()));
             
-            // Set discount
-            productDetail.setDiscountAvailability(rBtnYes != null && rBtnYes.isSelected());
-            if (txtDiscountRate != null && !txtDiscountRate.getText().trim().isEmpty()) {
-                productDetail.setDiscountRate(Double.parseDouble(txtDiscountRate.getText().trim()));
-            }
+            // Set discount (always false since discount section is removed)
+            productDetail.setDiscountAvailability(false);
+            productDetail.setDiscountRate(0.0);
             
             // Set batch tracking info
             if (txtBatchNumber != null && !txtBatchNumber.getText().trim().isEmpty()) {
@@ -786,12 +760,8 @@ public class NewBatchFormController {
             txtProfitMargin.clear();
             clearFieldHighlight(txtProfitMargin);
         }
-        if (txtDiscountRate != null) {
-            txtDiscountRate.clear();
-            clearFieldHighlight(txtDiscountRate);
-        }
         if (txtBatchNumber != null) {
-            txtBatchNumber.clear();
+            // Batch number is auto-generated, don't clear it
             clearFieldHighlight(txtBatchNumber);
         }
         if (dateManufacturing != null) {
@@ -805,9 +775,6 @@ public class NewBatchFormController {
         }
         if (txtSupplierContact != null) {
             txtSupplierContact.clear();
-        }
-        if (rBtnYes != null) {
-            rBtnYes.setSelected(false);
         }
     }
 }

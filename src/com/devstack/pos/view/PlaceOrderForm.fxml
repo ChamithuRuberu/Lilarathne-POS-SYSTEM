@@ -110,7 +110,7 @@
                </Text>
                <HBox spacing="16" alignment="CENTER_LEFT">
                   <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Scan or Enter Barcode" styleClass="form-label">
+                     <Text text="Scan or Enter Barcode / Product Code" styleClass="form-label">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
@@ -155,23 +155,18 @@
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
-                  <JFXTextField fx:id="txtDiscount" editable="false" promptText="Discount" styleClass="text-field-modern" GridPane.columnIndex="3">
+                  <JFXTextField fx:id="txtDiscount" promptText="Discount" styleClass="text-field-modern" GridPane.columnIndex="3">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
-                  <JFXTextField fx:id="txtShowPrice" editable="false" promptText="Show Price" styleClass="text-field-modern" GridPane.columnIndex="4">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtQtyOnHand" editable="false" promptText="Qty On Hand" styleClass="text-field-modern" GridPane.columnIndex="5">
+                  <JFXTextField fx:id="txtQtyOnHand" editable="false" promptText="Qty On Hand" styleClass="text-field-modern" GridPane.columnIndex="4">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
                   
-                  <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price" styleClass="text-field-modern" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="5">
+                  <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price" styleClass="text-field-modern" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="4">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
@@ -201,7 +196,6 @@
                      <TableColumn fx:id="colDesc" prefWidth="250.0" text="Description" />
                      <TableColumn fx:id="colSelPrice" prefWidth="120.0" text="Selling Price" />
                      <TableColumn fx:id="colSelDisc" prefWidth="100.0" text="Discount" />
-                     <TableColumn fx:id="colSelShPrice" prefWidth="100.0" text="Show Price" />
                      <TableColumn fx:id="colSelQty" prefWidth="80.0" text="QTY" />
                      <TableColumn fx:id="colSelTotal" prefWidth="120.0" text="Total Cost" />
                      <TableColumn fx:id="colSelOperation" prefWidth="150.0" text="Actions" />

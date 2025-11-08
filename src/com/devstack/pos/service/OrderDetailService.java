@@ -1,6 +1,5 @@
 package com.devstack.pos.service;
 
-import com.devstack.pos.entity.ItemDetail;
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.repository.OrderDetailRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -61,18 +59,6 @@ public class OrderDetailService {
         }
         Double total = orderDetailRepository.getTotalSpentByCustomerId(customerId);
         return total != null ? total : 0.0;
-    }
-    
-    public OrderDetail createOrder(OrderDetail orderDetail, List<ItemDetail> itemDetails) {
-        // Save order first
-        OrderDetail savedOrder = orderDetailRepository.save(orderDetail);
-        
-        // Set order code for all item details
-        for (ItemDetail itemDetail : itemDetails) {
-            itemDetail.setOrderCode(Math.toIntExact(savedOrder.getCode()));
-        }
-        
-        return savedOrder;
     }
     
     // Analytics methods

@@ -3,25 +3,19 @@ package com.devstack.pos.controller;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.repository.ProductDetailRepository;
 import com.devstack.pos.repository.ProductRepository;
-import com.devstack.pos.service.ItemDetailService;
 import com.devstack.pos.service.OrderDetailService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -188,7 +182,6 @@ public class AnalysisPageController extends BaseController {
     private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
     
     private final OrderDetailService orderDetailService;
-    private final ItemDetailService itemDetailService;
     private final ProductRepository productRepository;
     private final ProductDetailRepository productDetailRepository;
     
@@ -296,18 +289,15 @@ public class AnalysisPageController extends BaseController {
         if (filterStartDate != null && filterEndDate != null) {
             revenue = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
             orders = orderDetailService.countOrdersByDateRange(filterStartDate, filterEndDate);
-            profit = itemDetailService.getProfitByDateRange(filterStartDate, filterEndDate);
             avgOrder = orderDetailService.getAverageOrderValueByDateRange(filterStartDate, filterEndDate);
         } else {
             revenue = orderDetailService.getTotalRevenue();
             orders = orderDetailService.getTotalOrderCount();
-            profit = itemDetailService.getTotalProfit();
             avgOrder = orderDetailService.getAverageOrderValue();
         }
         
         lblTotalRevenue.setText(String.format("%.2f /=", revenue != null ? revenue : 0.0));
         lblTotalOrders.setText(String.valueOf(orders != null ? orders : 0));
-        lblTotalProfit.setText(String.format("%.2f /=", profit != null ? profit : 0.0));
         lblAvgOrderValue.setText(String.format("%.2f /=", avgOrder != null ? avgOrder : 0.0));
     }
     
@@ -326,12 +316,11 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
-            Double profit = itemDetailService.getProfitByDateRange(startDateTime, endDateTime);
-            
+
             String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
                           weekEnd.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-            
-            data.add(new SalesReportTm(period, orders.intValue(), revenue, profit));
+            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -352,11 +341,10 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
-            Double profit = itemDetailService.getProfitByDateRange(startDateTime, endDateTime);
-            
+
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-            
-            data.add(new SalesReportTm(period, orders.intValue(), revenue, profit));
+            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -377,71 +365,23 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
-            Double profit = itemDetailService.getProfitByDateRange(startDateTime, endDateTime);
-            
+
             String period = String.valueOf(yearStart.getYear());
-            
-            data.add(new SalesReportTm(period, orders.intValue(), revenue, profit));
+            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
     }
     
     private void loadTopProducts() {
-        List<Object[]> topProductsData = itemDetailService.getTopSellingProductsByRevenue();
-        ObservableList<TopProductTm> observableList = FXCollections.observableArrayList();
-        
-        // Create a map to lookup product names
-        Map<String, String> productNames = new HashMap<>();
-        List<Product> allProducts = productRepository.findAll();
-        for (Product product : allProducts) {
-            productNames.put(String.valueOf(product.getCode()), product.getDescription());
-        }
-        
-        int rank = 1;
-        for (Object[] data : topProductsData) {
-            if (rank > 10) break; // Top 10 only
-            
-            String detailCode = (String) data[0];
-            Integer qtySold = ((Number) data[1]).intValue();
-            Double revenue = ((Number) data[2]).doubleValue();
-            
-            // Get product name from detail code
-            String productName = productNames.getOrDefault(detailCode, "Product #" + detailCode);
-            
-            TopProductTm tm = new TopProductTm(rank++, productName, qtySold, revenue);
-            observableList.add(tm);
-        }
-        
-        tblTopProducts.setItems(observableList);
+        // Item-level aggregation removed; show empty top products for now
+        tblTopProducts.setItems(FXCollections.observableArrayList());
     }
     
     private void loadSalesByCategory() {
-        List<Object[]> categoryData = itemDetailService.getSalesByCategory();
-        ObservableList<CategoryReportTm> observableList = FXCollections.observableArrayList();
-        
-        // Create a map to lookup product names
-        Map<Integer, String> productNames = new HashMap<>();
-        List<Product> allProducts = productRepository.findAll();
-        for (Product product : allProducts) {
-            productNames.put(product.getCode(), product.getDescription());
-        }
-        
-        for (Object[] data : categoryData) {
-            Integer productCode = (Integer) data[0];
-            Integer qtySold = ((Number) data[1]).intValue();
-            Double revenue = ((Number) data[2]).doubleValue();
-            
-            String categoryName = productNames.getOrDefault(productCode, "Category #" + productCode);
-            
-            // Estimate profit (would need to calculate from buying/selling prices)
-            Double profit = revenue * 0.25; // Assuming 25% margin as estimate
-            
-            CategoryReportTm tm = new CategoryReportTm(categoryName, qtySold, revenue, profit);
-            observableList.add(tm);
-        }
-        
-        tblSalesByCategory.setItems(observableList);
+        // Item-level aggregation removed; show empty sales-by-category for now
+        tblSalesByCategory.setItems(FXCollections.observableArrayList());
     }
     
     private void loadSalesByCashier() {
@@ -475,12 +415,12 @@ public class AnalysisPageController extends BaseController {
         
         if (filterStartDate != null && filterEndDate != null) {
             totalSales = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
-            costOfGoods = itemDetailService.getCostOfGoodsByDateRange(filterStartDate, filterEndDate);
-            grossProfit = itemDetailService.getProfitByDateRange(filterStartDate, filterEndDate);
+            costOfGoods = 0.0;
+            grossProfit = 0.0;
         } else {
             totalSales = orderDetailService.getTotalRevenue();
-            costOfGoods = itemDetailService.getCostOfGoodsSold();
-            grossProfit = itemDetailService.getTotalProfit();
+            costOfGoods = 0.0;
+            grossProfit = 0.0;
         }
         
         lblPLTotalSales.setText(String.format("%.2f /=", totalSales != null ? totalSales : 0.0));
@@ -491,22 +431,7 @@ public class AnalysisPageController extends BaseController {
         lblPLProfitMargin.setText(String.format("%.2f%%", profitMargin));
         
         // Load detailed profit by product
-        List<Object[]> profitData = itemDetailService.getProfitByProduct();
-        ObservableList<ProfitLossTm> observableList = FXCollections.observableArrayList();
-        
-        for (Object[] data : profitData) {
-            String productCode = (String) data[0];
-            String productName = (String) data[1];
-            Integer qtySold = ((Number) data[2]).intValue();
-            Double cost = ((Number) data[3]).doubleValue();
-            Double revenue = ((Number) data[4]).doubleValue();
-            Double profit = ((Number) data[5]).doubleValue();
-            
-            ProfitLossTm tm = new ProfitLossTm(productName, qtySold, cost, revenue, profit);
-            observableList.add(tm);
-        }
-        
-        tblProfitLoss.setItems(observableList);
+        tblProfitLoss.setItems(FXCollections.observableArrayList());
     }
     
     private void loadTaxSummary() {

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.SupplierManagementController" stylesheets="@styles/pos-styles.css">
+   <children>
+      <!-- Header Bar -->
+      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+
+               <Text styleClass="header-title" text="🏢 Supplier Management">
+                  <font>
+                     <Font name="System Bold" size="24.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnRefresh" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+               <JFXButton onAction="#btnBackToDashboard" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
+                  <font>
+                     <Font name="System Bold" size="13.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+         </children>
+      </VBox>
+      
+      <!-- Scrollable Main Content -->
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" styleClass="scroll-pane" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+         <content>
+            <VBox spacing="24" style="-fx-padding: 32;">
+               
+               <!-- Supplier Form Section -->
+               <VBox spacing="20" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 28; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);">
+                  <!-- Header -->
+                  <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 12 0;">
+                     <Text text="📋" style="-fx-font-size: 24;" />
+                     <Text text="Supplier Information" style="-fx-font-size: 22; -fx-font-weight: bold; -fx-fill: #1e293b;" />
+                  </HBox>
+                  
+                  <!-- Form Fields in 2-Column Grid -->
+                  <GridPane hgap="20" vgap="18" style="-fx-padding: 8 0 0 0;">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50" />
+                     </columnConstraints>
+                     
+                     <!-- Row 1: Supplier Name & Email -->
+                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <HBox spacing="4" alignment="CENTER_LEFT">
+                           <Text text="Supplier Name" style="-fx-font-size: 13; -fx-fill: #1e293b; -fx-font-weight: bold;" />
+                           <Text text="*" style="-fx-font-size: 13; -fx-fill: #EF4444; -fx-font-weight: bold;" />
+                        </HBox>
+                        <JFXTextField fx:id="txtName" promptText="Enter supplier name" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     </VBox>
+                     
+                     <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Text text="Email Address" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
+                        <JFXTextField fx:id="txtEmail" promptText="supplier@company.com" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     </VBox>
+                     
+                     <!-- Row 2: Contact Person & Phone -->
+                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Text text="Contact Person" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
+                        <JFXTextField fx:id="txtContactPerson" promptText="e.g., John Doe" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     </VBox>
+                     
+                     <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <Text text="Phone Number" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
+                        <JFXTextField fx:id="txtPhone" promptText="e.g., +94 77 123 4567" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     </VBox>
+                     
+                     <!-- Row 3: Product Name (Full Width) -->
+                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                        <Text text="Product Name" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
+                        <JFXTextField fx:id="txtProductName" promptText="Enter product name" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     </VBox>
+                  </GridPane>
+                  
+                  <!-- Action Buttons -->
+                  <HBox spacing="12" alignment="CENTER_RIGHT" style="-fx-padding: 0 0 0 0;">
+                     <JFXButton onAction="#btnClear" text="Clear" buttonType="RAISED" styleClass="btn-secondary" prefWidth="120" prefHeight="42" style="-fx-font-size: 14; -fx-font-weight: 600;">
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                     <JFXButton onAction="#btnUpdate" fx:id="btnUpdate" text="Update" buttonType="RAISED" styleClass="btn-success" prefWidth="140" prefHeight="42" visible="false" style="-fx-font-size: 14; -fx-font-weight: 600;">
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                     <JFXButton onAction="#btnSave" fx:id="btnSave" text="Save Supplier" buttonType="RAISED" styleClass="btn-primary" prefWidth="160" prefHeight="42" style="-fx-font-size: 14; -fx-font-weight: 600;">
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                  </HBox>
+               </VBox>
+               
+               <!-- Search & Filter Section -->
+               <HBox spacing="16" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 24; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);">
+                  <VBox spacing="6" HBox.hgrow="ALWAYS">
+                     <Text text="🔍 Search Suppliers" style="-fx-font-size: 13; -fx-fill: #1e293b; -fx-font-weight: 600;" />
+                     <JFXTextField fx:id="txtSearch" promptText="Search by name, email, phone, or contact person..." prefHeight="42" styleClass="modern-text-field" style="-fx-font-size: 14;" />
+                  </VBox>
+                  
+                  <VBox spacing="6">
+                     <Text text="Status Filter" style="-fx-font-size: 13; -fx-fill: #1e293b; -fx-font-weight: 600;" />
+                     <ComboBox fx:id="cmbStatus" prefWidth="160" prefHeight="42" promptText="All Status" style="-fx-font-size: 14;" />
+                  </VBox>
+               </HBox>
+               
+               <!-- Statistics Cards -->
+               <HBox spacing="20" alignment="CENTER" style="-fx-padding: 8 0;">
+                  <!-- Total Suppliers Card -->
+                  <VBox spacing="12" style="-fx-background-color: linear-gradient(to bottom right, #3B82F6, #2563EB); -fx-background-radius: 12; -fx-padding: 24; -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.3), 12, 0, 0, 4);" HBox.hgrow="ALWAYS">
+                     <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Text text="📊" style="-fx-font-size: 28;" />
+                        <VBox spacing="2">
+                           <Text text="Total Suppliers" style="-fx-fill: rgba(255,255,255,0.9); -fx-font-size: 13; -fx-font-weight: 500;" />
+                           <Text fx:id="lblTotalSuppliers" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 32;" />
+                        </VBox>
+                     </HBox>
+                  </VBox>
+                  
+                  <!-- Active Suppliers Card -->
+                  <VBox spacing="12" style="-fx-background-color: linear-gradient(to bottom right, #10B981, #059669); -fx-background-radius: 12; -fx-padding: 24; -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.3), 12, 0, 0, 4);" HBox.hgrow="ALWAYS">
+                     <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Text text="✅" style="-fx-font-size: 28;" />
+                        <VBox spacing="2">
+                           <Text text="Active" style="-fx-fill: rgba(255,255,255,0.9); -fx-font-size: 13; -fx-font-weight: 500;" />
+                           <Text fx:id="lblActiveSuppliers" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 32;" />
+                        </VBox>
+                     </HBox>
+                  </VBox>
+                  
+                  <!-- Inactive Suppliers Card -->
+                  <VBox spacing="12" style="-fx-background-color: linear-gradient(to bottom right, #F59E0B, #D97706); -fx-background-radius: 12; -fx-padding: 24; -fx-effect: dropshadow(gaussian, rgba(245,158,11,0.3), 12, 0, 0, 4);" HBox.hgrow="ALWAYS">
+                     <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Text text="⏸️" style="-fx-font-size: 28;" />
+                        <VBox spacing="2">
+                           <Text text="Inactive" style="-fx-fill: rgba(255,255,255,0.9); -fx-font-size: 13; -fx-font-weight: 500;" />
+                           <Text fx:id="lblInactiveSuppliers" text="0" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 32;" />
+                        </VBox>
+                     </HBox>
+                  </VBox>
+               </HBox>
+               
+               <!-- Suppliers Table -->
+               <VBox spacing="16" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 24; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);">
+                  <HBox alignment="CENTER_LEFT" spacing="8">
+                     <Text text="📋" style="-fx-font-size: 20;" />
+                     <Text text="All Suppliers" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-fill: #1e293b;" />
+                  </HBox>
+                  
+                  <TableView fx:id="tblSuppliers" styleClass="table-view-modern" prefHeight="400.0" style="-fx-border-radius: 8; -fx-background-radius: 8;">
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                     <columns>
+                        <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
+                        <TableColumn fx:id="colName" prefWidth="180.0" text="Supplier Name" />
+                        <TableColumn fx:id="colEmail" prefWidth="180.0" text="Email" />
+                        <TableColumn fx:id="colPhone" prefWidth="130.0" text="Phone" />
+                        <TableColumn fx:id="colContactPerson" prefWidth="130.0" text="Contact Person" />
+                        <TableColumn fx:id="colProductName" prefWidth="160.0" text="Product Name" />
+                        <TableColumn fx:id="colAddress" prefWidth="180.0" text="Address" />
+                        <TableColumn fx:id="colStatus" prefWidth="100.0" text="Status" />
+                        <TableColumn fx:id="colAction" prefWidth="180.0" text="Actions" />
+                     </columns>
+                  </TableView>
+               </VBox>
+               
+            </VBox>
+         </content>
+      </ScrollPane>
+   </children>
+</AnchorPane>
+

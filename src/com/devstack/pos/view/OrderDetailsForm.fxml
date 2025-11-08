@@ -3,84 +3,138 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.Cursor?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 
-<AnchorPane fx:id="context" styleClass="background-modern" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.OrderDetailsFormController" stylesheets="@styles/pos-styles.css">
+<AnchorPane fx:id="context" xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.devstack.pos.controller.OrderDetailsFormController"
+            stylesheets="@styles/modern-dashboard.css"
+            style="-fx-background-color: linear-gradient(to bottom right, #f4f4f9, #ffffff);">
    <children>
-      <!-- Header Bar -->
-      <VBox styleClass="header-bar" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+      <!-- Sidebar -->
+      <VBox prefWidth="250" spacing="20" styleClass="sidebar-light"
+            AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0">
+         <padding>
+            <Insets top="25" right="15" bottom="30" left="15" />
+         </padding>
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text styleClass="header-title" text="Order Details">
-                  <font>
-                     <Font name="System Bold" size="24.0" />
-                  </font>
-               </Text>
-               <Region HBox.hgrow="ALWAYS" />
-               <JFXButton onAction="#BackToHomeOnAction" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-            </HBox>
+            <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
+            <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
+            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📦 Products" onAction="#btnProductOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-active-light" />
+            <JFXButton text="📊 Reports" onAction="#btnReportsOnAction" styleClass="sidebar-btn-light" />
+            
+            <Separator style="-fx-max-width: 190; -fx-background-color: #DDDDDD;"/>
+            
+            <JFXButton text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
+            
+            <VBox VBox.vgrow="ALWAYS" />
+            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
          </children>
       </VBox>
-      
+
       <!-- Main Content -->
-      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
-         <!-- Search Section -->
-         <VBox styleClass="form-section" spacing="16">
-            <HBox alignment="CENTER_LEFT" spacing="12">
-               <Text text="Search Orders" styleClass="label-section">
-                  <font>
-                     <Font name="System Bold" size="20.0" />
-                  </font>
-               </Text>
-               <Region HBox.hgrow="ALWAYS" />
-               <HBox spacing="12" alignment="CENTER_RIGHT">
-                  <JFXTextField fx:id="txtEmailSearch" promptText="Search by customer email..." styleClass="text-field-modern" prefWidth="300.0">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXButton onAction="#OderDetailsShowOnAction" text="Search" buttonType="RAISED" styleClass="btn-primary" prefWidth="120.0">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
-               </HBox>
+      <VBox spacing="25" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
+            AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
+         <children>
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20">
+               <Text text="All Orders" styleClass="header-title-light"/>
+               <Region HBox.hgrow="ALWAYS"/>
+               <JFXButton text="🔄 Refresh" onAction="#btnRefreshOnAction" styleClass="btn-refresh-light"/>
             </HBox>
-         </VBox>
-         
-         <!-- Orders Table -->
-         <VBox spacing="16">
-            <Text text="Order History" styleClass="label-section">
-               <font>
-                  <Font name="System Bold" size="20.0" />
-               </font>
-            </Text>
-            
-            <TableView fx:id="tblOrders" styleClass="table-view-modern" prefHeight="600.0">
-               <columns>
-                  <TableColumn fx:id="colId" prefWidth="100.0" text="Order Code" />
-                  <TableColumn fx:id="colCustomerEmail" prefWidth="280.0" text="Customer Email" />
-                  <TableColumn fx:id="colDate" prefWidth="180.0" text="Issued Date" />
-                  <TableColumn fx:id="colDiscount" prefWidth="150.0" text="Discount" />
-                  <TableColumn fx:id="colUserEmail" prefWidth="200.0" text="Operator" />
-                  <TableColumn fx:id="colTotal" prefWidth="180.0" text="Total Price" />
-               </columns>
-            </TableView>
-         </VBox>
+
+            <!-- Summary Statistics -->
+            <GridPane hgap="20">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
+               </columnConstraints>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="0">
+                  <Text text="Total Orders" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblTotalOrders" text="0" styleClass="kpi-value-primary"/>
+                  <Text fx:id="lblOrdersPeriod" text="All Time" styleClass="kpi-secondary-light"/>
+               </VBox>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="1">
+                  <Text text="Total Revenue" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblTotalRevenue" text="LKR 0.00" styleClass="kpi-value-light"/>
+                  <Text fx:id="lblRevenuePeriod" text="All Time" styleClass="kpi-secondary-light"/>
+               </VBox>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
+                  <Text text="Average Order" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblAvgOrder" text="LKR 0.00" styleClass="kpi-value-light"/>
+                  <Text text="Per Order" styleClass="kpi-secondary-light"/>
+               </VBox>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="3">
+                  <Text text="Today's Orders" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblTodayOrders" text="0" styleClass="kpi-value-light"/>
+                  <Text fx:id="lblTodayRevenue" text="LKR 0.00" styleClass="kpi-secondary-light"/>
+               </VBox>
+            </GridPane>
+
+            <!-- Filters Section -->
+            <VBox styleClass="card-compact-light" spacing="15">
+               <Text text="🔍 Search &amp; Filter" styleClass="card-title-small-light"/>
+               <GridPane hgap="15" vgap="15">
+                  <columnConstraints>
+                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
+                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
+                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
+                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
+                  </columnConstraints>
+                  <rowConstraints>
+                     <RowConstraints prefHeight="40"/>
+                  </rowConstraints>
+                  
+                  <JFXTextField fx:id="txtSearch" promptText="Search by Order ID, Customer, Operator..." 
+                               styleClass="text-field-modern" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+                  <DatePicker fx:id="dateFrom" promptText="From Date" GridPane.columnIndex="2"/>
+                  <DatePicker fx:id="dateTo" promptText="To Date" GridPane.columnIndex="3"/>
+               </GridPane>
+               <HBox spacing="10" alignment="CENTER_RIGHT">
+                  <JFXButton text="🔍 Search" onAction="#btnSearchOnAction" styleClass="btn-action-primary-light" prefWidth="120"/>
+                  <JFXButton text="🔄 Clear" onAction="#btnClearOnAction" styleClass="btn-action-secondary-light" prefWidth="120"/>
+               </HBox>
+            </VBox>
+
+            <!-- Orders Table -->
+            <VBox styleClass="card-compact-light" spacing="10" VBox.vgrow="ALWAYS">
+               <HBox alignment="CENTER_LEFT">
+                  <Text text="📋 Order History" styleClass="card-title-small-light"/>
+                  <Region HBox.hgrow="ALWAYS"/>
+                  <Text fx:id="lblRecordCount" text="Showing 0 orders" styleClass="kpi-secondary-light"/>
+               </HBox>
+               
+               <TableView fx:id="tblOrders" styleClass="table-view-modern" VBox.vgrow="ALWAYS">
+                  <columns>
+                     <TableColumn fx:id="colOrderId" text="Order ID" prefWidth="100"/>
+                     <TableColumn fx:id="colCustomerName" text="Customer" prefWidth="180"/>
+                     <TableColumn fx:id="colDate" text="Date &amp; Time" prefWidth="180"/>
+                     <TableColumn fx:id="colDiscount" text="Discount" prefWidth="100"/>
+                     <TableColumn fx:id="colOperator" text="Operator" prefWidth="150"/>
+                     <TableColumn fx:id="colTotal" text="Total Amount" prefWidth="150"/>
+                     <TableColumn fx:id="colAction" text="Action" prefWidth="120"/>
+                  </columns>
+               </TableView>
+            </VBox>
+
+         </children>
       </VBox>
    </children>
 </AnchorPane>

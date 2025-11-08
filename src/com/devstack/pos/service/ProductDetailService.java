@@ -110,6 +110,13 @@ public class ProductDetailService {
     }
     
     /**
+     * Find product detail by code - alternative name
+     */
+    public ProductDetail findProductDetailByCode(String code) {
+        return productDetailRepository.findByCode(code).orElse(null);
+    }
+    
+    /**
      * Find all product details
      */
     public List<ProductDetail> findAllProductDetails() {
@@ -253,6 +260,13 @@ public class ProductDetailService {
         productDetailRepository.save(batch);
         
         return true;
+    }
+    
+    /**
+     * Restore stock quantity (for returns) - alias for increaseStock
+     */
+    public boolean restoreStock(String batchCode, int quantity) {
+        return increaseStock(batchCode, quantity);
     }
     
     /**

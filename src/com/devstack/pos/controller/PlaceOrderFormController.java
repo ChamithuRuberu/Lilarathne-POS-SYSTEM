@@ -2,10 +2,12 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.Customer;
 import com.devstack.pos.entity.OrderDetail;
+import com.devstack.pos.entity.OrderItem;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.OrderDetailService;
+import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.util.AuthorizationUtil;
@@ -55,6 +57,7 @@ public class PlaceOrderFormController extends BaseController {
     private final ProductDetailService productDetailService;
     private final ProductService productService;
     private final OrderDetailService orderDetailService;
+    private final OrderItemService orderItemService;
 
 
     public void initialize() {
@@ -278,7 +281,30 @@ public class PlaceOrderFormController extends BaseController {
             orderDetail.setOperatorEmail(UserSessionData.email);
             
             // Save order
-            orderDetailService.saveOrderDetail(orderDetail);
+            OrderDetail savedOrder = orderDetailService.saveOrderDetail(orderDetail);
+            
+            // Save order items (individual products in the order)
+            List<OrderItem> orderItems = new ArrayList<>();
+            for (CartTm tm : tms) {
+                // Get product details to fetch product name
+                ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
+                
+                OrderItem orderItem = OrderItem.builder()
+                    .orderId(savedOrder.getCode())
+                    .productCode(productDetail != null ? productDetail.getProductCode() : null)
+                    .productName(tm.getDescription())
+                    .batchCode(tm.getCode())
+                    .batchNumber(productDetail != null ? productDetail.getBatchNumber() : null)
+                    .quantity(tm.getQty())
+                    .unitPrice(tm.getSellingPrice())
+                    .discountPerUnit(tm.getDiscount())
+                    .totalDiscount(tm.getDiscount() * tm.getQty())
+                    .lineTotal(tm.getTotalCost())
+                    .build();
+                orderItems.add(orderItem);
+            }
+            orderItemService.saveAllOrderItems(orderItems);
+            
             // Reduce stock per cart line using batch code
             for (CartTm tm : tms) {
                 productDetailService.reduceStock(tm.getCode(), tm.getQty());

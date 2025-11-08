@@ -99,6 +99,8 @@ public class SupplierManagementController extends BaseController {
     
     @FXML
     public void initialize() {
+        // Fix table to prevent extra column
+        tblSuppliers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Check authorization
         if (!AuthorizationUtil.isAdmin()) {
             showError("Access Denied", "You don't have permission to access this page.");

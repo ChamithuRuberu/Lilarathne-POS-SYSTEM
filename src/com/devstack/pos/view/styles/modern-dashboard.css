@@ -171,6 +171,25 @@
     -fx-background-color: #CED4DA;
 }
 
+/* Refresh Button */
+.btn-refresh-light {
+    -fx-background-color: #E9ECEF;
+    -fx-text-fill: -fx-secondary-color;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 8 15;
+    -fx-border-color: #DEE2E6;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+.btn-refresh-light:hover {
+    -fx-background-color: -fx-primary-color;
+    -fx-text-fill: -fx-light-background;
+    -fx-border-color: -fx-primary-color;
+}
+
 /* ============================
    PIE CHART CUSTOMIZATION
 ============================ */
@@ -239,4 +258,65 @@
 
 .custom-scroll-pane > .scroll-bar:horizontal {
     -fx-pref-height: 0;
+}
+
+/* ============================
+   TABLE VIEW STYLES
+============================ */
+.table-view-modern {
+    -fx-background-color: -fx-light-background;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.table-view-modern .column-header-background {
+    -fx-background-color: #F8F9FA;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view-modern .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 10 15;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fx-secondary-color;
+}
+
+.table-view-modern .table-row-cell {
+    -fx-background-color: -fx-light-background;
+    -fx-border-color: #F1F5F9;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view-modern .table-row-cell:hover {
+    -fx-background-color: #F8F9FA;
+}
+
+.table-view-modern .table-row-cell:selected {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+}
+
+.table-view-modern .table-cell {
+    -fx-padding: 10 15;
+    -fx-text-fill: -fx-secondary-color;
+    -fx-font-size: 13px;
+}
+
+/* ============================
+   TEXT FIELD STYLES
+============================ */
+.text-field-modern {
+    -fx-background-color: -fx-light-background;
+    -fx-border-color: #DEE2E6;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+}
+
+.text-field-modern:focused {
+    -fx-border-color: -fx-primary-color;
+    -fx-border-width: 2;
 }

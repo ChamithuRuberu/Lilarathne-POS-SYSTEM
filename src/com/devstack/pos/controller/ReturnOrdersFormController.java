@@ -3,6 +3,8 @@ package com.devstack.pos.controller;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import com.devstack.pos.entity.ReturnOrder;
+import com.devstack.pos.entity.ReturnOrderItem;
+import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.util.AuthorizationUtil;
 import javafx.collections.FXCollections;
@@ -11,9 +13,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
@@ -34,6 +34,7 @@ import java.util.List;
 public class ReturnOrdersFormController extends BaseController {
     
     private final ReturnOrderService returnOrderService;
+    private final ReturnOrderItemService returnOrderItemService;
     
     @FXML
     private JFXTextField txtSearch;
@@ -215,8 +216,101 @@ public class ReturnOrdersFormController extends BaseController {
     }
     
     private void viewReturnDetails(ReturnOrder returnOrder) {
-        // TODO: Implement view details dialog
-        System.out.println("Viewing details for return: " + returnOrder.getReturnId());
+        try {
+            // Get return order items
+            List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrder.getId());
+            
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Return Order Details");
+            alert.setHeaderText("Return ID: " + (returnOrder.getReturnId() != null ? returnOrder.getReturnId() : returnOrder.getId()));
+            
+            StringBuilder content = new StringBuilder();
+            content.append("═══════════════════════════════════════\n");
+            content.append("ORDER INFORMATION\n");
+            content.append("═══════════════════════════════════════\n");
+            content.append("Order ID: ").append(returnOrder.getOrderId()).append("\n")
+                   .append("Customer: ").append(returnOrder.getCustomerEmail()).append("\n")
+                   .append("Original Amount: ").append(String.format("%.2f /=", returnOrder.getOriginalAmount())).append("\n")
+                   .append("Refund Amount: ").append(String.format("%.2f /=", returnOrder.getRefundAmount())).append("\n")
+                   .append("Reason: ").append(returnOrder.getReturnReason()).append("\n")
+                   .append("Status: ").append(returnOrder.getStatus()).append("\n")
+                   .append("Processed By: ").append(returnOrder.getProcessedBy() != null ? returnOrder.getProcessedBy() : "N/A").append("\n")
+                   .append("Return Date: ").append(returnOrder.getReturnDate() != null ? 
+                       returnOrder.getReturnDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : "N/A").append("\n");
+            
+            if (returnOrder.getNotes() != null && !returnOrder.getNotes().isEmpty()) {
+                content.append("Notes: ").append(returnOrder.getNotes()).append("\n");
+            }
+            
+            // Add product details
+            if (!returnItems.isEmpty()) {
+                content.append("\n═══════════════════════════════════════\n");
+                content.append("RETURNED PRODUCTS (").append(returnItems.size()).append(" items)\n");
+                content.append("═══════════════════════════════════════\n");
+                
+                int itemNumber = 1;
+                for (ReturnOrderItem item : returnItems) {
+                    content.append("\n").append(itemNumber++).append(". ").append(item.getProductName()).append("\n");
+                    content.append("   Batch: ").append(item.getBatchNumber() != null ? item.getBatchNumber() : "N/A").append("\n");
+                    content.append("   Return Qty: ").append(item.getReturnQuantity())
+                           .append(" / ").append(item.getOriginalQuantity()).append(" (ordered)\n");
+                    content.append("   Unit Price: ").append(String.format("%.2f /=", item.getUnitPrice())).append("\n");
+                    content.append("   Refund: ").append(String.format("%.2f /=", item.getRefundAmount())).append("\n");
+                    content.append("   Inventory Restored: ").append(item.getInventoryRestored() ? "Yes ✓" : "No ✗").append("\n");
+                }
+                
+                content.append("\n═══════════════════════════════════════\n");
+                content.append("Total Refund: ").append(String.format("%.2f /=", returnOrder.getRefundAmount())).append("\n");
+                content.append("═══════════════════════════════════════\n");
+            } else {
+                content.append("\n⚠ No product details available for this return.\n");
+            }
+            
+            alert.setContentText(content.toString());
+            
+            // Add action buttons for PENDING returns
+            if ("PENDING".equals(returnOrder.getStatus())) {
+                ButtonType approveButton = new ButtonType("Approve & Restore Inventory", ButtonBar.ButtonData.OK_DONE);
+                ButtonType completeButton = new ButtonType("Complete Return", ButtonBar.ButtonData.APPLY);
+                ButtonType rejectButton = new ButtonType("Reject", ButtonBar.ButtonData.NO);
+                ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+                
+                alert.getButtonTypes().setAll(approveButton, completeButton, rejectButton, closeButton);
+                
+                alert.showAndWait().ifPresent(response -> {
+                    try {
+                        if (response == approveButton) {
+                            returnOrderService.approveReturn(returnOrder.getId(), "Current User");
+                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
+                                "Return order approved successfully!").showAndWait();
+                            loadReturnOrders();
+                            loadStatistics();
+                        } else if (response == completeButton) {
+                            returnOrderService.completeReturn(returnOrder.getId());
+                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
+                                "Return order completed and inventory restored successfully!").showAndWait();
+                            loadReturnOrders();
+                            loadStatistics();
+                        } else if (response == rejectButton) {
+                            returnOrderService.rejectReturn(returnOrder.getId(), "Current User");
+                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
+                                "Return order rejected successfully!").showAndWait();
+                            loadReturnOrders();
+                            loadStatistics();
+                        }
+                    } catch (Exception e) {
+                        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, 
+                            "Error updating return: " + e.getMessage()).showAndWait();
+                    }
+                });
+            } else {
+                alert.showAndWait();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, 
+                "Error loading return details: " + ex.getMessage()).showAndWait();
+        }
     }
     
     private void loadStatistics() {

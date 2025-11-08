@@ -1,6 +1,7 @@
 package com.devstack.pos.service;
 
 import com.devstack.pos.entity.ReturnOrder;
+import com.devstack.pos.entity.ReturnOrderItem;
 import com.devstack.pos.repository.ReturnOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import java.util.Optional;
 public class ReturnOrderService {
     
     private final ReturnOrderRepository returnOrderRepository;
+    private final ReturnOrderItemService returnOrderItemService;
+    private final ProductDetailService productDetailService;
     
     public ReturnOrder saveReturnOrder(ReturnOrder returnOrder) {
         return returnOrderRepository.save(returnOrder);
@@ -124,9 +127,59 @@ public class ReturnOrderService {
             ReturnOrder returnOrder = optionalReturn.get();
             returnOrder.setStatus("COMPLETED");
             returnOrder.setCompletionDate(LocalDateTime.now());
+            
+            // Restore inventory for all items in this return order
+            restoreInventoryForReturnOrder(id);
+            
             return returnOrderRepository.save(returnOrder);
         }
         throw new RuntimeException("Return order not found with id: " + id);
+    }
+    
+    /**
+     * Restore inventory for all items in a return order
+     */
+    public void restoreInventoryForReturnOrder(Integer returnOrderId) {
+        List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrderId);
+        
+        for (ReturnOrderItem item : returnItems) {
+            if (!item.getInventoryRestored() && item.getBatchCode() != null) {
+                try {
+                    // Restore stock to the original batch
+                    productDetailService.restoreStock(item.getBatchCode(), item.getReturnQuantity());
+                    
+                    // Mark as restored
+                    item.setInventoryRestored(true);
+                    returnOrderItemService.updateReturnOrderItem(item);
+                } catch (Exception e) {
+                    System.err.println("Failed to restore inventory for item: " + item.getId() + 
+                                     ", batch: " + item.getBatchCode() + ", error: " + e.getMessage());
+                    // Continue with other items even if one fails
+                }
+            }
+        }
+    }
+    
+    /**
+     * Process a return order with item-level details
+     * Creates the return order and saves all individual return items
+     */
+    public ReturnOrder processReturnWithItems(ReturnOrder returnOrder, List<ReturnOrderItem> returnItems) {
+        // Save the return order first
+        ReturnOrder savedReturn = saveReturnOrder(returnOrder);
+        
+        // Save all return items
+        for (ReturnOrderItem item : returnItems) {
+            item.setReturnOrderId(savedReturn.getId());
+        }
+        returnOrderItemService.saveAllReturnOrderItems(returnItems);
+        
+        // If status is COMPLETED, immediately restore inventory
+        if ("COMPLETED".equals(savedReturn.getStatus())) {
+            restoreInventoryForReturnOrder(savedReturn.getId());
+        }
+        
+        return savedReturn;
     }
     
     public void deleteReturnOrder(Integer id) {

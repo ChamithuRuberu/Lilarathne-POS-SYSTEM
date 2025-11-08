@@ -21,14 +21,14 @@ public class OrderDetailService {
     }
     
     public boolean updateOrderDetail(OrderDetail orderDetail) {
-        if (orderDetailRepository.existsById(Math.toIntExact(orderDetail.getCode()))) {
+        if (orderDetailRepository.existsById(orderDetail.getCode())) {
             orderDetailRepository.save(orderDetail);
             return true;
         }
         return false;
     }
     
-    public boolean deleteOrderDetail(Integer code) {
+    public boolean deleteOrderDetail(Long code) {
         if (orderDetailRepository.existsById(code)) {
             orderDetailRepository.deleteById(code);
             return true;
@@ -36,7 +36,7 @@ public class OrderDetailService {
         return false;
     }
     
-    public OrderDetail findOrderDetail(Integer code) {
+    public OrderDetail findOrderDetail(Long code) {
         return orderDetailRepository.findById(code).orElse(null);
     }
     

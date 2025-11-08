@@ -31,6 +31,7 @@
             <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn-light" />
             
             <Separator style="-fx-max-width: 190; -fx-background-color: #DDDDDD;"/>
@@ -50,7 +51,8 @@
             <HBox alignment="CENTER_LEFT" spacing="20">
                <Text text="Executive Dashboard" styleClass="header-title-light"/>
                <Region HBox.hgrow="ALWAYS"/>
-               <Text text="Welcome back, John Doe (Manager) | Shift: 08:00 - 17:00" styleClass="welcome-text-light"/>
+               <Text fx:id="lblWelcomeMessage" text="Welcome back!" styleClass="welcome-text-light"/>
+               <JFXButton text="🔄 Refresh" onAction="#btnRefreshOnAction" styleClass="btn-refresh-light"/>
             </HBox>
 
             <GridPane hgap="20">
@@ -62,23 +64,23 @@
                </columnConstraints>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="0">
                   <Text text="Today's Revenue" styleClass="kpi-label-light"/>
-                  <Text text="LKR 2,500,000" styleClass="kpi-value-primary"/>
-                  <Text text="▲ 12.5% vs Yesterday" styleClass="kpi-change-positive"/>
+                  <Text fx:id="lblTodayRevenue" text="LKR 0.00" styleClass="kpi-value-primary"/>
+                  <Text fx:id="lblRevenueChange" text="--" styleClass="kpi-change-positive"/>
                </VBox>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="1">
                   <Text text="Gross Profit" styleClass="kpi-label-light"/>
-                  <Text text="LKR 550,000" styleClass="kpi-value-light"/>
-                  <Text text="▼ 3.1% vs Last Week" styleClass="kpi-change-negative"/>
+                  <Text fx:id="lblGrossProfit" text="LKR 0.00" styleClass="kpi-value-light"/>
+                  <Text fx:id="lblProfitChange" text="--" styleClass="kpi-change-negative"/>
                </VBox>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
                   <Text text="Active Invoices" styleClass="kpi-label-light"/>
-                  <Text text="45" styleClass="kpi-value-light"/>
-                  <Text text="New Customers: 5" styleClass="kpi-secondary-light"/>
+                  <Text fx:id="lblActiveInvoices" text="0" styleClass="kpi-value-light"/>
+                  <Text fx:id="lblCustomersSecondary" text="Total Customers: 0" styleClass="kpi-secondary-light"/>
                </VBox>
                <VBox styleClass="kpi-card-alert-light" GridPane.columnIndex="3">
                   <Text text="⚠️ Critical Stock" styleClass="kpi-label-alert-light"/>
-                  <Text text="18 Items" styleClass="kpi-value-alert"/>
-                  <Text text="Need to Reorder: 12" styleClass="kpi-secondary-light"/>
+                  <Text fx:id="lblCriticalStock" text="0 Items" styleClass="kpi-value-alert"/>
+                  <Text fx:id="lblNeedToReorder" text="Need to Reorder: 0" styleClass="kpi-secondary-light"/>
                </VBox>
             </GridPane>
 
@@ -86,14 +88,8 @@
 
                <VBox styleClass="chart-container-light" HBox.hgrow="ALWAYS">
                   <Text text="Sales Distribution by Category (Last 30 Days)" styleClass="chart-title-light"/>
-                  <PieChart animated="true" VBox.vgrow="ALWAYS" styleClass="animated-pie-chart-light">
+                  <PieChart fx:id="pieChartSales" animated="true" VBox.vgrow="ALWAYS" styleClass="animated-pie-chart-light">
                      <data>
-<!--                        <FXCollections fx:factory="observableArrayList">-->
-<!--                        <PieChart.Data name="Construction Materials" pieValue="45.0"/>-->
-<!--                        <PieChart.Data name="Paints & Chemicals" pieValue="25.0"/>-->
-<!--                        <PieChart.Data name="Tools & Machinery" pieValue="18.0"/>-->
-<!--                        <PieChart.Data name="Electrical & Plumbing" pieValue="12.0"/>-->
-<!--                     </FXCollections>-->
                      </data>
                   </PieChart>
                </VBox>
@@ -101,30 +97,36 @@
                <VBox prefWidth="350" spacing="20">
                   <VBox styleClass="card-compact-light">
                      <Text text="Top Selling Product" styleClass="card-title-small-light"/>
-                     <Text text="Wall Paint (White - 10L)" styleClass="card-desc-bold-light"/>
-                     <Text text="Units Sold: 250 (3.5% of total sales)" styleClass="card-desc-light"/>
+                     <Text fx:id="lblTopProductName" text="No data available" styleClass="card-desc-bold-light"/>
+                     <Text fx:id="lblTopProductStats" text="--" styleClass="card-desc-light"/>
                   </VBox>
 
                   <VBox styleClass="card-compact-light">
-                     <Text text="📋 Pending Tasks" styleClass="card-title-small-light"/>
+                     <Text text="🔄 Return Orders Status" styleClass="card-title-small-light"/>
                      <VBox spacing="10">
                         <HBox alignment="CENTER_LEFT">
-                           <Text text="GRN Pending Approval" styleClass="task-item-light"/>
+                           <Text text="⏳ Pending Returns" styleClass="task-item-light"/>
                            <Region HBox.hgrow="ALWAYS"/>
-                           <Text text="2" styleClass="task-count-alert"/>
+                           <Text fx:id="lblPendingReturns" text="0" styleClass="task-count-alert"/>
                         </HBox>
                         <Separator style="-fx-background-color: #DDDDDD;"/>
                         <HBox alignment="CENTER_LEFT">
-                           <Text text="Customer Due Payments" styleClass="task-item-light"/>
+                           <Text text="💰 Pending Refunds" styleClass="task-item-light"/>
                            <Region HBox.hgrow="ALWAYS"/>
-                           <Text text="LKR 50,000" styleClass="task-count-primary"/>
+                           <Text fx:id="lblPendingRefunds" text="LKR 0.00" styleClass="task-count-primary"/>
+                        </HBox>
+                        <Separator style="-fx-background-color: #DDDDDD;"/>
+                        <HBox alignment="CENTER_LEFT">
+                           <Text text="✅ Today's Returns" styleClass="task-item-light"/>
+                           <Region HBox.hgrow="ALWAYS"/>
+                           <Text fx:id="lblTodayReturns" text="0" styleClass="task-count-success"/>
                         </HBox>
                      </VBox>
                   </VBox>
 
                   <VBox spacing="10">
-                     <JFXButton text="PROCESS PURCHASE RETURN" onAction="#btnPurchaseReturnOnAction" styleClass="btn-action-primary-light"/>
-                     <JFXButton text="ANALYZE STOCK VALUATION" onAction="#btnStockValuationOnAction" styleClass="btn-action-secondary-light"/>
+                     <JFXButton text="🔄 MANAGE RETURNS" onAction="#btnReturnsOrderOnAction" styleClass="btn-action-primary-light"/>
+                     <JFXButton text="📊 VIEW REPORTS" onAction="#btnIncomeReportOnAction" styleClass="btn-action-secondary-light"/>
                   </VBox>
 
                </VBox>

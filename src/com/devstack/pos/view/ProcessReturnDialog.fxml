@@ -10,7 +10,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="dialogContext" prefWidth="700" prefHeight="650" style="-fx-background-color: white; -fx-background-radius: 10;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.ProcessReturnDialogController">
+<AnchorPane fx:id="dialogContext" prefWidth="1000" prefHeight="750" style="-fx-background-color: white; -fx-background-radius: 10;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.ProcessReturnDialogController">
    <children>
       <VBox spacing="20" style="-fx-padding: 30;" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
          
@@ -35,8 +35,9 @@
             
             <GridPane hgap="16" vgap="12">
                <columnConstraints>
-                  <ColumnConstraints percentWidth="50" />
-                  <ColumnConstraints percentWidth="50" />
+                  <ColumnConstraints percentWidth="33" />
+                  <ColumnConstraints percentWidth="33" />
+                  <ColumnConstraints percentWidth="34" />
                </columnConstraints>
                
                <!-- Order ID -->
@@ -46,21 +47,45 @@
                         <Font name="System" size="12.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtOrderId" promptText="Enter Order ID" styleClass="modern-text-field">
+                  <HBox spacing="8">
+                     <JFXTextField fx:id="txtOrderId" promptText="Enter Order ID" styleClass="modern-text-field" HBox.hgrow="ALWAYS">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                     <JFXButton onAction="#btnLoadOrder" text="Load" buttonType="RAISED" style="-fx-background-color: #3B82F6; -fx-text-fill: white;" prefWidth="80">
+                        <font>
+                           <Font name="System Bold" size="13.0" />
+                        </font>
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                  </HBox>
+               </VBox>
+               
+               <!-- Customer -->
+               <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                  <Text text="Customer" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                     <font>
+                        <Font name="System" size="12.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtCustomerName" editable="false" promptText="Auto-filled" styleClass="modern-text-field">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
                </VBox>
                
-               <!-- Customer Email -->
-               <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                  <Text text="Customer Email" style="-fx-font-size: 12; -fx-fill: #64748b;">
+               <!-- Order Date -->
+               <VBox spacing="4" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                  <Text text="Order Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
                      <font>
                         <Font name="System" size="12.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtCustomerEmail" editable="false" promptText="Auto-filled" styleClass="modern-text-field">
+                  <JFXTextField fx:id="txtOrderDate" editable="false" promptText="YYYY-MM-DD" styleClass="modern-text-field">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
@@ -81,31 +106,66 @@
                   </JFXTextField>
                </VBox>
                
-               <!-- Order Date -->
+               <!-- Operator -->
                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                  <Text text="Order Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                  <Text text="Operator" style="-fx-font-size: 12; -fx-fill: #64748b;">
                      <font>
                         <Font name="System" size="12.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtOrderDate" editable="false" promptText="YYYY-MM-DD" styleClass="modern-text-field">
+                  <JFXTextField fx:id="txtOperator" editable="false" promptText="N/A" styleClass="modern-text-field">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
                </VBox>
             </GridPane>
-            
-            <HBox>
-               <JFXButton onAction="#btnLoadOrder" text="Load Order" buttonType="RAISED" style="-fx-background-color: #3B82F6; -fx-text-fill: white;" prefWidth="120">
+         </VBox>
+         
+         <Separator />
+         
+         <!-- Products in Order Section -->
+         <VBox spacing="12" VBox.vgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT">
+               <Text text="Select Products to Return" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-fill: #475569;">
                   <font>
-                     <Font name="System Bold" size="13.0" />
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+               <JFXButton onAction="#btnSelectAll" text="Select All" buttonType="RAISED" style="-fx-background-color: #64748b; -fx-text-fill: white;">
+                  <font>
+                     <Font name="System" size="12.0" />
                   </font>
                   <cursor>
                      <Cursor fx:constant="HAND" />
                   </cursor>
                </JFXButton>
+               <JFXButton onAction="#btnDeselectAll" text="Deselect All" buttonType="RAISED" style="-fx-background-color: #94a3b8; -fx-text-fill: white; -fx-margin-left: 8;">
+                  <font>
+                     <Font name="System" size="12.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+                  <HBox.margin>
+                     <Insets left="8.0" />
+                  </HBox.margin>
+               </JFXButton>
             </HBox>
+            
+            <TableView fx:id="tblOrderItems" VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
+               <columns>
+                  <TableColumn fx:id="colSelect" prefWidth="60" text="Select" />
+                  <TableColumn fx:id="colProductName" prefWidth="250" text="Product Name" />
+                  <TableColumn fx:id="colBatchNumber" prefWidth="100" text="Batch" />
+                  <TableColumn fx:id="colOrderedQty" prefWidth="100" text="Ordered Qty" />
+                  <TableColumn fx:id="colReturnQty" prefWidth="120" text="Return Qty" />
+                  <TableColumn fx:id="colUnitPrice" prefWidth="100" text="Unit Price" />
+                  <TableColumn fx:id="colLineTotal" prefWidth="120" text="Line Total" />
+                  <TableColumn fx:id="colRefundAmount" prefWidth="130" text="Refund Amount" />
+               </columns>
+            </TableView>
          </VBox>
          
          <Separator />
@@ -131,20 +191,20 @@
                         <Font name="System" size="12.0" />
                      </font>
                   </Text>
-                  <ComboBox fx:id="cmbReturnReason" prefWidth="300" promptText="Select Reason">
+                  <ComboBox fx:id="cmbReturnReason" prefWidth="400" promptText="Select Reason">
                   </ComboBox>
                </VBox>
                
-               <!-- Refund Amount -->
+               <!-- Total Refund Amount -->
                <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                  <Text text="Refund Amount *" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                  <Text text="Total Refund Amount" style="-fx-font-size: 12; -fx-fill: #64748b;">
                      <font>
                         <Font name="System" size="12.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtRefundAmount" promptText="0.00" styleClass="modern-text-field">
+                  <JFXTextField fx:id="txtTotalRefund" editable="false" promptText="0.00 /=" styleClass="modern-text-field" style="-fx-font-weight: bold; -fx-text-fill: #EF4444; -fx-font-size: 16;">
                      <font>
-                        <Font name="System" size="14.0" />
+                        <Font name="System Bold" size="16.0" />
                      </font>
                   </JFXTextField>
                </VBox>
@@ -157,7 +217,7 @@
                      <Font name="System" size="12.0" />
                   </font>
                </Text>
-               <JFXTextArea fx:id="txtNotes" promptText="Enter any additional notes about this return..." prefRowCount="4" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5;">
+               <JFXTextArea fx:id="txtNotes" promptText="Enter any additional notes about this return..." prefRowCount="2" style="-fx-border-color: #e2e8f0; -fx-border-radius: 5;">
                   <font>
                      <Font name="System" size="14.0" />
                   </font>
@@ -191,4 +251,3 @@
       </VBox>
    </children>
 </AnchorPane>
-

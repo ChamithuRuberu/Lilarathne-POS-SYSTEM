@@ -171,9 +171,6 @@
                   </HBox>
                   
                   <TableView fx:id="tblSuppliers" styleClass="table-view-modern" prefHeight="400.0" style="-fx-border-radius: 8; -fx-background-radius: 8;">
-                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                     </columnResizePolicy>
                      <columns>
                         <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
                         <TableColumn fx:id="colName" prefWidth="180.0" text="Supplier Name" />

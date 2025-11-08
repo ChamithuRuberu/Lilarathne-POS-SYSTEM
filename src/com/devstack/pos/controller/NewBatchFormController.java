@@ -2,10 +2,14 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
+import com.devstack.pos.entity.Supplier;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
+import com.devstack.pos.service.SupplierService;
 import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.view.tm.ProductDetailTm;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -58,8 +62,6 @@ public class NewBatchFormController {
     @FXML
     public TextField txtSellingPrice;
     @FXML
-    public TextField txtShowPrice;
-    @FXML
     public TextField txtProfitMargin;
     
     // Discount Fields
@@ -78,13 +80,9 @@ public class NewBatchFormController {
     
     // Supplier Fields
     @FXML
-    public TextField txtSupplierName;
+    public ComboBox cmbSupplier;  // Raw type for FXML compatibility
     @FXML
     public TextField txtSupplierContact;
-    
-    // Notes
-    @FXML
-    public TextArea txtNotes;
     
     String uniqueData = null;
     Stage stage = null;
@@ -94,12 +92,80 @@ public class NewBatchFormController {
 
     private final ProductDetailService productDetailService;
     private final ProductService productService;
+    private final SupplierService supplierService;
 
     @FXML
     public void initialize() {
         setupProfitMarginCalculation();
         setupDateValidation();
         setupNumericValidation();
+        loadSuppliers();
+        setupSupplierSelection();
+    }
+    
+    /**
+     * Load suppliers into the combo box
+     */
+    @SuppressWarnings("unchecked")
+    private void loadSuppliers() {
+        try {
+            if (cmbSupplier != null) {
+                ObservableList<Supplier> suppliers = FXCollections.observableArrayList(
+                    supplierService.findActiveSuppliers()
+                );
+                cmbSupplier.setItems(suppliers);
+                
+                // Set cell factory to display supplier name
+                cmbSupplier.setCellFactory(param -> new ListCell<Supplier>() {
+                    @Override
+                    protected void updateItem(Supplier item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            setText(null);
+                        } else {
+                            setText(item.getName());
+                        }
+                    }
+                });
+                
+                // Set button cell to display supplier name
+                cmbSupplier.setButtonCell(new ListCell<Supplier>() {
+                    @Override
+                    protected void updateItem(Supplier item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item == null) {
+                            setText(null);
+                        } else {
+                            setText(item.getName());
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading suppliers: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Setup supplier selection listener to auto-fill contact
+     */
+    @SuppressWarnings("unchecked")
+    private void setupSupplierSelection() {
+        if (cmbSupplier != null && txtSupplierContact != null) {
+            cmbSupplier.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && newVal instanceof Supplier) {
+                    Supplier supplier = (Supplier) newVal;
+                    // Auto-fill supplier contact (phone)
+                    String contact = supplier.getPhone() != null ? supplier.getPhone() : "";
+                    if (contact.isEmpty() && supplier.getEmail() != null) {
+                        contact = supplier.getEmail();
+                    }
+                    txtSupplierContact.setText(contact);
+                } else {
+                    txtSupplierContact.clear();
+                }
+            });
+        }
     }
 
     /**
@@ -195,7 +261,6 @@ public class NewBatchFormController {
         // Prices - allow decimals
         setupDecimalField(txtBuyingPrice);
         setupDecimalField(txtSellingPrice);
-        setupDecimalField(txtShowPrice);
         setupDecimalField(txtDiscountRate);
     }
 
@@ -295,7 +360,6 @@ public class NewBatchFormController {
                     }
                     if (txtBuyingPrice != null) txtBuyingPrice.setText(String.format("%.2f", productDetail.getBuyingPrice()));
                     if (txtSellingPrice != null) txtSellingPrice.setText(String.format("%.2f", productDetail.getSellingPrice()));
-                    if (txtShowPrice != null) txtShowPrice.setText(String.format("%.2f", productDetail.getShowPrice()));
                     if (rBtnYes != null) rBtnYes.setSelected(productDetail.isDiscountAvailability());
                     if (txtDiscountRate != null && productDetail.getDiscountRate() > 0) {
                         txtDiscountRate.setText(String.format("%.2f", productDetail.getDiscountRate()));
@@ -309,14 +373,21 @@ public class NewBatchFormController {
                     if (dateExpiry != null && productDetail.getExpiryDate() != null) {
                         dateExpiry.setValue(productDetail.getExpiryDate());
                     }
-                    if (txtSupplierName != null && productDetail.getSupplierName() != null) {
-                        txtSupplierName.setText(productDetail.getSupplierName());
+                    // Load supplier if supplier name exists
+                    if (cmbSupplier != null && productDetail.getSupplierName() != null) {
+                        // Find supplier by name
+                        Supplier supplier = supplierService.findAllSuppliers().stream()
+                            .filter(s -> s.getName().equals(productDetail.getSupplierName()))
+                            .findFirst()
+                            .orElse(null);
+                        if (supplier != null) {
+                            @SuppressWarnings("unchecked")
+                            ComboBox<Supplier> supplierCombo = (ComboBox<Supplier>) cmbSupplier;
+                            supplierCombo.setValue(supplier);
+                        }
                     }
                     if (txtSupplierContact != null && productDetail.getSupplierContact() != null) {
                         txtSupplierContact.setText(productDetail.getSupplierContact());
-                    }
-                    if (txtNotes != null && productDetail.getNotes() != null) {
-                        txtNotes.setText(productDetail.getNotes());
                     }
                     
                     uniqueData = productDetail.getCode();
@@ -397,13 +468,6 @@ public class NewBatchFormController {
         }
         clearFieldHighlight(txtSellingPrice);
         
-        if (txtShowPrice == null || txtShowPrice.getText() == null || txtShowPrice.getText().trim().isEmpty()) {
-            if (txtShowPrice != null) highlightField(txtShowPrice);
-            showError("Show price is required!");
-            return false;
-        }
-        clearFieldHighlight(txtShowPrice);
-        
         try {
             // Validate quantity
             int qty = Integer.parseInt(txtQty.getText().trim());
@@ -431,9 +495,8 @@ public class NewBatchFormController {
             // Validate prices
             double buyingPrice = Double.parseDouble(txtBuyingPrice.getText().trim());
             double sellingPrice = Double.parseDouble(txtSellingPrice.getText().trim());
-            double showPrice = Double.parseDouble(txtShowPrice.getText().trim());
             
-            if (buyingPrice < 0 || sellingPrice < 0 || showPrice < 0) {
+            if (buyingPrice < 0 || sellingPrice < 0) {
                 showError("Prices cannot be negative!");
                 return false;
             }
@@ -594,7 +657,8 @@ public class NewBatchFormController {
             // Set pricing
             productDetail.setBuyingPrice(Double.parseDouble(txtBuyingPrice.getText().trim()));
             productDetail.setSellingPrice(Double.parseDouble(txtSellingPrice.getText().trim()));
-            productDetail.setShowPrice(Double.parseDouble(txtShowPrice.getText().trim()));
+            // Set show price same as selling price
+            productDetail.setShowPrice(Double.parseDouble(txtSellingPrice.getText().trim()));
             
             // Set discount
             productDetail.setDiscountAvailability(rBtnYes != null && rBtnYes.isSelected());
@@ -616,17 +680,19 @@ public class NewBatchFormController {
             }
             
             // Set supplier info
-            if (txtSupplierName != null && !txtSupplierName.getText().trim().isEmpty()) {
-                productDetail.setSupplierName(txtSupplierName.getText().trim());
-            }
-            
-            if (txtSupplierContact != null && !txtSupplierContact.getText().trim().isEmpty()) {
-                productDetail.setSupplierContact(txtSupplierContact.getText().trim());
-            }
-            
-            // Set notes
-            if (txtNotes != null && !txtNotes.getText().trim().isEmpty()) {
-                productDetail.setNotes(txtNotes.getText().trim());
+            if (cmbSupplier != null && cmbSupplier.getValue() != null) {
+                @SuppressWarnings("unchecked")
+                Supplier selectedSupplier = (Supplier) cmbSupplier.getValue();
+                productDetail.setSupplierName(selectedSupplier.getName());
+                
+                // Set supplier contact from the auto-filled field
+                if (txtSupplierContact != null && !txtSupplierContact.getText().trim().isEmpty()) {
+                    productDetail.setSupplierContact(txtSupplierContact.getText().trim());
+                } else if (selectedSupplier.getPhone() != null) {
+                    productDetail.setSupplierContact(selectedSupplier.getPhone());
+                } else if (selectedSupplier.getEmail() != null) {
+                    productDetail.setSupplierContact(selectedSupplier.getEmail());
+                }
             }
             
             // Set product code
@@ -716,10 +782,6 @@ public class NewBatchFormController {
             txtSellingPrice.clear();
             clearFieldHighlight(txtSellingPrice);
         }
-        if (txtShowPrice != null) {
-            txtShowPrice.clear();
-            clearFieldHighlight(txtShowPrice);
-        }
         if (txtProfitMargin != null) {
             txtProfitMargin.clear();
             clearFieldHighlight(txtProfitMargin);
@@ -738,15 +800,11 @@ public class NewBatchFormController {
         if (dateExpiry != null) {
             dateExpiry.setValue(null);
         }
-        if (txtSupplierName != null) {
-            txtSupplierName.clear();
+        if (cmbSupplier != null) {
+            cmbSupplier.setValue(null);
         }
         if (txtSupplierContact != null) {
             txtSupplierContact.clear();
-        }
-        if (txtNotes != null) {
-            txtNotes.clear();
-            clearFieldHighlight(txtNotes);
         }
         if (rBtnYes != null) {
             rBtnYes.setSelected(false);

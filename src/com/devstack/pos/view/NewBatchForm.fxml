@@ -156,20 +156,7 @@
                               </JFXTextField>
                            </VBox>
                            
-                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                              <Text text="Show Price *" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                              <JFXTextField fx:id="txtShowPrice" promptText="0.00" styleClass="text-field-modern" prefWidth="220.0">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </JFXTextField>
-                  </VBox>
-                  
-                           <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
                               <Text text="Profit Margin (%)" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
@@ -311,11 +298,7 @@
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtSupplierName" promptText="Enter supplier name" styleClass="text-field-modern" prefWidth="220.0">
-                                 <font>
-                                    <Font name="System" size="14.0" />
-                                 </font>
-                              </JFXTextField>
+                              <ComboBox fx:id="cmbSupplier" promptText="Select supplier" styleClass="text-field-modern" prefWidth="220.0" style="-fx-font-size: 14px; -fx-cursor: hand;" />
                            </VBox>
                            
                            <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
@@ -324,27 +307,13 @@
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtSupplierContact" promptText="Phone/Email" styleClass="text-field-modern" prefWidth="220.0">
+                              <JFXTextField fx:id="txtSupplierContact" editable="false" promptText="Auto-filled" styleClass="text-field-modern" prefWidth="220.0" style="-fx-background-color: #f0f0f0;">
                                  <font>
                                     <Font name="System" size="14.0" />
                                  </font>
                               </JFXTextField>
                   </VBox>
                </GridPane>
-                     </VBox>
-                     
-                     <!-- Notes Section -->
-                     <VBox spacing="8" styleClass="form-subsection">
-                        <Text text="Additional Notes" styleClass="form-label">
-                           <font>
-                              <Font name="System Bold" size="14.0" />
-                           </font>
-                        </Text>
-                        <TextArea fx:id="txtNotes" promptText="Any additional notes about this batch..." styleClass="text-field-modern" prefHeight="80.0" wrapText="true">
-                           <font>
-                              <Font name="System" size="14.0" />
-                           </font>
-                        </TextArea>
                      </VBox>
                      
                      <!-- Action Buttons -->

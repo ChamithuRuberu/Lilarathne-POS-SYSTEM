@@ -102,7 +102,7 @@ public abstract class BaseController {
     @FXML
     public void btnPurchaseOnAction(ActionEvent event) {
         if (AuthorizationUtil.canAccessPurchaseOrders()) {
-            navigateTo("PurchaseOrdersForm", true);
+            navigateTo("SupplierManagementForm", true);
         } else {
             AuthorizationUtil.showAdminOnlyAlert();
         }

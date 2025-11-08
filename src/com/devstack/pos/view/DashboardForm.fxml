@@ -30,7 +30,7 @@
             <JFXButton text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn-light" />
             <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOrderOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
             <JFXButton text="📊 Reports" onAction="#btnIncomeReportOnAction" styleClass="sidebar-btn-light" />
             
             <Separator style="-fx-max-width: 190; -fx-background-color: #DDDDDD;"/>

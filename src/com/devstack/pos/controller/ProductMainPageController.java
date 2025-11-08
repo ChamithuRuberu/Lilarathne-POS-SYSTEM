@@ -6,6 +6,7 @@ import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.service.CategoryService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
+import com.devstack.pos.service.SupplierService;
 import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.view.tm.ProductDetailTm;
 import com.devstack.pos.view.tm.ProductTm;
@@ -36,6 +37,7 @@ public class ProductMainPageController extends BaseController {
     private final ProductService productService;
     private final ProductDetailService productDetailService;
     private final CategoryService categoryService;
+    private final SupplierService supplierService;
     public TextArea txtProductDescription;
     public Button btnSaveUpdate;
     public TextField txtBarcode;
@@ -529,7 +531,8 @@ public class ProductMainPageController extends BaseController {
             // Then manually inject Spring services
             NewBatchFormController controller = new NewBatchFormController(
                     productDetailService,
-                    productService
+                    productService,
+                    supplierService
             );
 
             // Set controller BEFORE loading FXML

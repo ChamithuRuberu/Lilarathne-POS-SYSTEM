@@ -262,6 +262,29 @@ public class ProductDetailService {
         int totalStock = getTotalStockForProduct(productCode);
         return totalStock >= requiredQuantity;
     }
+    
+    /**
+     * Find all product details by supplier name
+     */
+    public List<ProductDetail> findBySupplierName(String supplierName) {
+        if (supplierName == null || supplierName.trim().isEmpty()) {
+            return List.of();
+        }
+        return productDetailRepository.findBySupplierName(supplierName.trim());
+    }
+    
+    /**
+     * Find product details by supplier name within date range
+     */
+    public List<ProductDetail> findBySupplierNameAndDateRange(String supplierName, 
+                                                               java.time.LocalDateTime startDate, 
+                                                               java.time.LocalDateTime endDate) {
+        if (supplierName == null || supplierName.trim().isEmpty()) {
+            return List.of();
+        }
+        return productDetailRepository.findBySupplierNameAndDateRange(
+            supplierName.trim(), startDate, endDate);
+    }
 }
 
 

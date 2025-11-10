@@ -162,6 +162,7 @@
                   <TableColumn fx:id="colReason" prefWidth="200.0" text="Reason" />
                   <TableColumn fx:id="colAmount" prefWidth="120.0" text="Refund Amount" />
                   <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
+                  <TableColumn fx:id="colProcessedBy" prefWidth="150.0" text="Processed By" />
                   <TableColumn fx:id="colAction" prefWidth="150.0" text="Action" />
                </columns>
             </TableView>

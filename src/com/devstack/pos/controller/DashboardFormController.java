@@ -54,10 +54,10 @@ public class DashboardFormController extends BaseController {
     private Text lblTodayRevenue;
     
     @FXML
-    private Text lblMonthlyRevenue;
+    private Text lblTotalCustomers;
     
     @FXML
-    private Text lblMonthlyOrders;
+    private Text lblTotalProducts;
     
     @FXML
     private Text lblRevenueChange;
@@ -105,10 +105,10 @@ public class DashboardFormController extends BaseController {
     private Text lblAvgOrderValue;
     
     @FXML
-    private Text lblWeekRevenue;
+    private Text lblTotalProductsCount;
     
     @FXML
-    private Text lblWeekOrders;
+    private Text lblActiveProducts;
     
     @FXML
     private Text lblLowStockCount;
@@ -316,20 +316,26 @@ public class DashboardFormController extends BaseController {
                 lblRevenueChange.setText("No comparison data");
             }
             
-            // Monthly revenue and orders
-            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
-            LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
-            Double monthlyRevenue = orderDetailService.getRevenueByDateRange(monthStart, endOfDay);
-            Long monthlyOrders = orderDetailService.countOrdersByDateRange(monthStart, endOfDay);
+            // Total customers
+            int totalCustomers = 0;
+            try {
+                totalCustomers = customerService.findAllCustomers().size();
+            } catch (Exception ignored) {}
+            
+            // Total products
+            int totalProducts = 0;
+            try {
+                totalProducts = productService.findAllProducts().size();
+            } catch (Exception ignored) {}
             
             // Format and set texts
             String revenueText = String.format("LKR %,.2f", todayRevenue != null ? todayRevenue : 0.0);
-            String monthlyRevenueText = String.format("LKR %,.2f", monthlyRevenue != null ? monthlyRevenue : 0.0);
-            String monthlyOrdersText = (monthlyOrders != null ? monthlyOrders : 0L) + " orders this month";
+            String totalCustomersText = String.valueOf(totalCustomers);
+            String totalProductsText = "Total Products: " + totalProducts;
             
             if (lblTodayRevenue != null) lblTodayRevenue.setText(revenueText);
-            if (lblMonthlyRevenue != null) lblMonthlyRevenue.setText(monthlyRevenueText);
-            if (lblMonthlyOrders != null) lblMonthlyOrders.setText(monthlyOrdersText);
+            if (lblTotalCustomers != null) lblTotalCustomers.setText(totalCustomersText);
+            if (lblTotalProducts != null) lblTotalProducts.setText(totalProductsText);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -475,17 +481,28 @@ public class DashboardFormController extends BaseController {
                 lblAvgOrderValue.setText(String.format("LKR %,.2f", avgOrderValue != null ? avgOrderValue : 0.0));
             }
             
-            // This week revenue
-            LocalDate thisWeekStart = today.minusDays(7);
-            LocalDateTime thisWeekStartTime = thisWeekStart.atStartOfDay();
-            Double thisWeekRevenue = orderDetailService.getRevenueByDateRange(thisWeekStartTime, endOfDay);
-            Long thisWeekOrders = orderDetailService.countOrdersByDateRange(thisWeekStartTime, endOfDay);
+            // Total products count
+            int totalProductsCount = 0;
+            int activeProductsCount = 0;
+            try {
+                totalProductsCount = productService.findAllProducts().size();
+                // Count active products (products with active batches)
+                activeProductsCount = (int) productService.findAllProducts().stream()
+                    .filter(p -> {
+                        try {
+                            return !productDetailService.findActiveBatchesByProductCode(p.getCode()).isEmpty();
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .count();
+            } catch (Exception ignored) {}
             
-            if (lblWeekRevenue != null) {
-                lblWeekRevenue.setText(String.format("LKR %,.2f", thisWeekRevenue != null ? thisWeekRevenue : 0.0));
+            if (lblTotalProductsCount != null) {
+                lblTotalProductsCount.setText(String.valueOf(totalProductsCount));
             }
-            if (lblWeekOrders != null) {
-                lblWeekOrders.setText((thisWeekOrders != null ? thisWeekOrders : 0L) + " orders");
+            if (lblActiveProducts != null) {
+                lblActiveProducts.setText(activeProductsCount + " active products");
             }
             
             // Low stock count

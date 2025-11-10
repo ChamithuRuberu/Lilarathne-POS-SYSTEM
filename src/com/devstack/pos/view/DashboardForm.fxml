@@ -70,9 +70,9 @@
                   <Text fx:id="lblRevenueChange" text="--" styleClass="kpi-change-positive"/>
                </VBox>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="1">
-                  <Text text="Monthly Revenue" styleClass="kpi-label-light"/>
-                  <Text fx:id="lblMonthlyRevenue" text="LKR 0.00" styleClass="kpi-value-light"/>
-                  <Text fx:id="lblMonthlyOrders" text="0 orders this month" styleClass="kpi-secondary-light"/>
+                  <Text text="Total Customers" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblTotalCustomers" text="0" styleClass="kpi-value-light"/>
+<!--                  <Text fx:id="lblTotalProducts" text="Total Products: 0" styleClass="kpi-secondary-light"/>-->
                </VBox>
             </GridPane>
 
@@ -127,12 +127,12 @@
                         <Text text="Per transaction" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>
                      </VBox>
                      
-                     <!-- This Week Revenue -->
+                     <!-- Total Products -->
                      <VBox styleClass="summary-card-purple" GridPane.columnIndex="0" GridPane.rowIndex="1">
                         <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-                        <Text text="📊 This Week" style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: bold;"/>
-                        <Text fx:id="lblWeekRevenue" text="LKR 0.00" style="-fx-font-size: 22px; -fx-fill: #8b5cf6; -fx-font-weight: bold;"/>
-                        <Text fx:id="lblWeekOrders" text="0 orders" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>
+                        <Text text="📦 Total Products" style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: bold;"/>
+                        <Text fx:id="lblTotalProductsCount" text="0" style="-fx-font-size: 28px; -fx-fill: #8b5cf6; -fx-font-weight: bold;"/>
+                        <Text fx:id="lblActiveProducts" text="Active products" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>
                      </VBox>
                      
                      <!-- Low Stock Alert -->

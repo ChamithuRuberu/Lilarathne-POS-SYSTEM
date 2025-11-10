@@ -82,6 +82,9 @@ public class ReturnOrdersFormController extends BaseController {
     private TableColumn<ReturnOrderTm, JFXButton> colAction;
     
     @FXML
+    private TableColumn<ReturnOrderTm, String> colProcessedBy;
+    
+    @FXML
     public void initialize() {
         // Initialize sidebar
         initializeSidebar();
@@ -92,6 +95,9 @@ public class ReturnOrdersFormController extends BaseController {
             btnBackToDashboard(null);
             return;
         }
+        
+        // Set table column resize policy
+        tblReturns.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
         // Initialize date pickers
         dateFrom.setValue(LocalDate.now().minusMonths(1));
@@ -105,6 +111,7 @@ public class ReturnOrdersFormController extends BaseController {
         colReason.setCellValueFactory(new PropertyValueFactory<>("reason"));
         colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colProcessedBy.setCellValueFactory(new PropertyValueFactory<>("processedBy"));
         colAction.setCellValueFactory(new PropertyValueFactory<>("actionButton"));
         
         // Load data
@@ -204,6 +211,7 @@ public class ReturnOrdersFormController extends BaseController {
                     returnOrder.getReturnReason(),
                     returnOrder.getRefundAmount(),
                     returnOrder.getStatus(),
+                    returnOrder.getProcessedBy() != null ? returnOrder.getProcessedBy() : "N/A",
                     viewBtn
                 ));
             }
@@ -351,10 +359,11 @@ public class ReturnOrdersFormController extends BaseController {
         private String reason;
         private double amount;
         private String status;
+        private String processedBy;
         private JFXButton actionButton;
         
         public ReturnOrderTm(int returnId, int orderId, String customer, String returnDate, 
-                           String reason, double amount, String status, JFXButton actionButton) {
+                           String reason, double amount, String status, String processedBy, JFXButton actionButton) {
             this.returnId = returnId;
             this.orderId = orderId;
             this.customer = customer;
@@ -362,6 +371,7 @@ public class ReturnOrdersFormController extends BaseController {
             this.reason = reason;
             this.amount = amount;
             this.status = status;
+            this.processedBy = processedBy;
             this.actionButton = actionButton;
         }
         
@@ -385,6 +395,9 @@ public class ReturnOrdersFormController extends BaseController {
         
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
+        
+        public String getProcessedBy() { return processedBy; }
+        public void setProcessedBy(String processedBy) { this.processedBy = processedBy; }
         
         public JFXButton getActionButton() { return actionButton; }
         public void setActionButton(JFXButton actionButton) { this.actionButton = actionButton; }

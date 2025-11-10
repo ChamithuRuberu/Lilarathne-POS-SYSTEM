@@ -21,6 +21,7 @@ public class OrderTm {
     private String operatorEmail;
     private double totalCost;
     private JFXButton viewButton;
+    private JFXButton returnOrdersButton;
     
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
@@ -46,5 +47,10 @@ public class OrderTm {
         this.discount = discount;
         this.operatorEmail = operatorEmail;
         this.totalCost = totalCost;
+    }
+    
+    // Getter for return orders button text (for display)
+    public String getReturnOrdersText() {
+        return returnOrdersButton != null ? "View Returns" : "No Returns";
     }
 }

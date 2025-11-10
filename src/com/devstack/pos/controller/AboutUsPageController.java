@@ -59,16 +59,16 @@ public class AboutUsPageController extends BaseController {
     
     /**
      * Configure menu visibility based on user role
-     * Normal users: Dashboard, POS/Orders, Return Orders, All Orders, Help, About Us
-     * Admin users: All features
+     * Normal users: Customers, POS/Orders, Return Orders, All Orders
+     * Admin users: All features including Products, Supplier, Reports
      */
     private void configureMenuVisibility() {
         boolean isAdmin = AuthorizationUtil.isAdmin();
         
-        // Always visible for all users
-        if (btnDashboard != null) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
+        // Always visible for all users (normal and admin)
+        if (btnCustomer != null) {
+            btnCustomer.setVisible(true);
+            btnCustomer.setManaged(true);
         }
         if (btnPlaceOrder != null) {
             btnPlaceOrder.setVisible(true);
@@ -92,10 +92,6 @@ public class AboutUsPageController extends BaseController {
         }
         
         // Admin-only features
-        if (btnCustomer != null) {
-            btnCustomer.setVisible(isAdmin);
-            btnCustomer.setManaged(isAdmin);
-        }
         if (btnProduct != null) {
             btnProduct.setVisible(isAdmin);
             btnProduct.setManaged(isAdmin);

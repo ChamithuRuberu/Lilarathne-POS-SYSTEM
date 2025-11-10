@@ -54,7 +54,7 @@
       
       <!-- Main Content -->
       <ScrollPane fitToWidth="true" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" style="-fx-background: transparent; -fx-border-width: 0;">
-         <VBox spacing="24" style="-fx-padding: 32;">
+         <VBox spacing="12" style="-fx-padding: 16;">
             <!-- Quick Actions Header -->
             <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 16 0;">
                <Text text="⚡ Quick Actions" styleClass="label-section">
@@ -66,118 +66,67 @@
             </HBox>
             
             <!-- Customer Details Section -->
-            <VBox styleClass="form-section" spacing="16">
-               <Text text="Customer Information" styleClass="label-section">
+            <HBox styleClass="form-section" spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 12;">
+               <Text text="Customer:" styleClass="form-label" style="-fx-font-size: 13px;">
                   <font>
-                     <Font name="System Bold" size="18.0" />
+                     <Font name="System Bold" size="13.0" />
                   </font>
                </Text>
-               <HBox spacing="16">
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Contact Number (Search)" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <JFXTextField fx:id="txtContact" promptText="Enter contact number to search customer" styleClass="text-field-modern" onAction="#searchCustomer" prefWidth="400.0">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </JFXTextField>
-                  </VBox>
-                  
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Customer Name" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <JFXTextField fx:id="txtName" editable="false" promptText="Customer name will appear here" styleClass="text-field-modern" prefWidth="400.0">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </JFXTextField>
-                  </VBox>
-               </HBox>
-            </VBox>
+               <JFXTextField fx:id="txtContact" promptText="Contact (Search)" styleClass="text-field-modern" onAction="#searchCustomer" prefWidth="200.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtName" editable="false" promptText="Name" styleClass="text-field-modern" prefWidth="250.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+            </HBox>
             
             <!-- Product Details Section -->
-            <VBox styleClass="form-section" spacing="16">
-               <Text text="Product Information" styleClass="label-section">
+            <HBox styleClass="form-section" spacing="8" alignment="CENTER_LEFT" style="-fx-padding: 12;">
+               <Text text="Product:" styleClass="form-label" style="-fx-font-size: 13px;">
                   <font>
-                     <Font name="System Bold" size="18.0" />
+                     <Font name="System Bold" size="13.0" />
                   </font>
                </Text>
-               <HBox spacing="16" alignment="CENTER_LEFT">
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Scan or Enter Barcode / Product Code" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <JFXTextField fx:id="txtBarcode" promptText="Enter barcode" styleClass="text-field-modern" onAction="#loadProduct" prefWidth="300.0">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </JFXTextField>
-                  </VBox>
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Discount Available" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <Label fx:id="lblDiscountAvl" text="Discount Available" visible="false" style="-fx-text-fill: #10b981; -fx-font-size: 14px; -fx-font-weight: bold;">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Label>
-                  </VBox>
-               </HBox>
-               
-               <GridPane hgap="12" vgap="12">
-                  <columnConstraints>
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="140.0" prefWidth="160.0" />
-                  </columnConstraints>
-                  
-                  <JFXTextField fx:id="txtDescription" editable="false" promptText="Description" styleClass="text-field-modern" GridPane.columnIndex="0" GridPane.columnSpan="2">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtSellingPrice" editable="false" promptText="Selling Price" styleClass="text-field-modern" GridPane.columnIndex="2">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtDiscount" promptText="Discount" styleClass="text-field-modern" GridPane.columnIndex="3">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtQtyOnHand" editable="false" promptText="Qty On Hand" styleClass="text-field-modern" GridPane.columnIndex="4">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  
-                  <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price" styleClass="text-field-modern" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="4">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-                  <JFXTextField fx:id="txtQty" promptText="Quantity" styleClass="text-field-modern" onAction="#addToCart" GridPane.rowIndex="1" GridPane.columnIndex="5">
-                     <font>
-                        <Font name="System" size="14.0" />
-                     </font>
-                  </JFXTextField>
-               </GridPane>
-            </VBox>
+               <JFXTextField fx:id="txtBarcode" promptText="Barcode/Code" styleClass="text-field-modern" onAction="#loadProduct" prefWidth="150.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtDescription" editable="false" promptText="Description" styleClass="text-field-modern" prefWidth="200.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtSellingPrice" editable="false" promptText="Selling Price" styleClass="text-field-modern" prefWidth="110.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtDiscount" promptText="Discount" styleClass="text-field-modern" prefWidth="100.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtQtyOnHand" editable="false" promptText="Qty On Hand" styleClass="text-field-modern" prefWidth="100.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price" styleClass="text-field-modern" prefWidth="110.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+               <JFXTextField fx:id="txtQty" promptText="Quantity" styleClass="text-field-modern" onAction="#addToCart" prefWidth="100.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System" size="13.0" />
+                  </font>
+               </JFXTextField>
+            </HBox>
             
             <!-- Cart Section -->
             <VBox spacing="16">

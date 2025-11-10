@@ -71,6 +71,9 @@ public class PlaceOrderFormController extends BaseController {
             return;
         }
         
+        // Set table column resize policy
+        tblCart.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        
         // Initialize table columns
         colCode.setCellValueFactory(new PropertyValueFactory<>("code"));
         colDesc.setCellValueFactory(new PropertyValueFactory<>("description"));

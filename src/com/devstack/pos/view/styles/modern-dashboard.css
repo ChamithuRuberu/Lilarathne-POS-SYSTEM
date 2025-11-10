@@ -73,6 +73,41 @@
     -fx-effect: dropshadow(gaussian, rgba(220, 53, 69, 0.2), 10, 0.2, 0, 3);
 }
 
+/* ============================
+   SUMMARY CARDS (Colorful)
+============================ */
+.summary-card-blue {
+    -fx-background-color: #EFF6FF;
+    -fx-border-color: #DBEAFE;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(14, 165, 233, 0.15), 6, 0, 0, 2);
+}
+
+.summary-card-green {
+    -fx-background-color: #F0FDF4;
+    -fx-border-color: #D1FAE5;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.15), 6, 0, 0, 2);
+}
+
+.summary-card-purple {
+    -fx-background-color: #F5F3FF;
+    -fx-border-color: #E9D5FF;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.15), 6, 0, 0, 2);
+}
+
+.summary-card-orange {
+    -fx-background-color: #FFFBEB;
+    -fx-border-color: #FEF3C7;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.15), 6, 0, 0, 2);
+}
+
 .kpi-label-light {
     -fx-fill: #6C757D;
     -fx-font-size: 13px;

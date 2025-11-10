@@ -24,21 +24,21 @@
         <children>
             <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
             <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
-            <JFXButton text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="📦 Products" onAction="#btnProductOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="🔄 Return Orders" onAction="#btnReturnsOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="💰 Purchasing" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton text="📊 Reports" onAction="#btnReportsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnDashboard" text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnProduct" text="📦 Products" onAction="#btnProductOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnPlaceOrder" text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnReturns" text="🔄 Return Orders" onAction="#btnReturnsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnPurchase" text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnOrderDetails" text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnReports" text="📊 Reports" onAction="#btnReportsOnAction" styleClass="sidebar-btn-light" />
             
             <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
             
-            <JFXButton text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-active-light" />
-            <JFXButton text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnHelp" text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-active-light" />
+            <JFXButton fx:id="btnAboutUs" text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
             <VBox VBox.vgrow="ALWAYS" />
-            <JFXButton text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
+            <JFXButton fx:id="btnLogout" text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
         </children>
     </VBox>
     

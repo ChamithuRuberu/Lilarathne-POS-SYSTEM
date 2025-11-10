@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +85,24 @@ public class OrderItemService {
     @Transactional(readOnly = true)
     public Long countItemsInOrder(Long orderId) {
         return orderItemRepository.countItemsInOrder(orderId);
+    }
+    
+    /**
+     * Get top selling products by quantity within a date range
+     * Returns list of Object[]: [productCode, productName, totalQuantity]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopSellingProductsByQuantity(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderItemRepository.getTopSellingProductsByQuantity(startDate, endDate);
+    }
+    
+    /**
+     * Get top selling products by quantity (all time)
+     * Returns list of Object[]: [productCode, productName, totalQuantity]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopSellingProductsByQuantity() {
+        return orderItemRepository.getTopSellingProductsByQuantity();
     }
     
     /**

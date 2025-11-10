@@ -1,10 +1,12 @@
 package com.devstack.pos.controller;
 
+import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.entity.ReturnOrder;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.service.OrderDetailService;
+import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.ReturnOrderService;
@@ -14,7 +16,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.TableView;
 import javafx.scene.text.Text;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,6 +29,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +40,7 @@ import java.util.stream.Collectors;
 public class DashboardFormController extends BaseController {
     
     private final OrderDetailService orderDetailService;
+    private final OrderItemService orderItemService;
     private final ProductDetailService productDetailService;
     private final CustomerService customerService;
     private final ReturnOrderService returnOrderService;
@@ -43,31 +52,31 @@ public class DashboardFormController extends BaseController {
     private Text lblTodayRevenue;
     
     @FXML
-    private Text lblGrossProfit;
-    
-    @FXML
     private Text lblActiveInvoices;
     
     @FXML
     private Text lblCustomersSecondary;
     
     @FXML
-    private Text lblCriticalStock;
-    
-    @FXML
-    private Text lblNeedToReorder;
-    
-    @FXML
     private Text lblRevenueChange;
-    
-    @FXML
-    private Text lblProfitChange;
     
     @FXML
     private Text lblWelcomeMessage;
     
     @FXML
-    private PieChart pieChartSales;
+    private PieChart pieChartTopProducts;
+    
+    @FXML
+    private BarChart<String, Number> barChartMonthlyIncome;
+    
+    @FXML
+    private CategoryAxis categoryAxis;
+    
+    @FXML
+    private NumberAxis numberAxis;
+    
+    @FXML
+    private TableView<RecentTransactionTm> tblRecentTransactions;
     
     @FXML
     private Text lblTopProductName;
@@ -83,6 +92,24 @@ public class DashboardFormController extends BaseController {
     
     @FXML
     private Text lblTodayReturns;
+    
+    @FXML
+    private Text lblTodayOrders;
+    
+    @FXML
+    private Text lblOrdersChange;
+    
+    @FXML
+    private Text lblAvgOrderValue;
+    
+    @FXML
+    private Text lblWeekRevenue;
+    
+    @FXML
+    private Text lblWeekOrders;
+    
+    @FXML
+    private Text lblLowStockCount;
     
     @FXML
     public void initialize() {
@@ -112,9 +139,10 @@ public class DashboardFormController extends BaseController {
         try {
             loadWelcomeMessage();
             loadKpis();
-            loadPieChart();
-            loadTopProduct();
-            loadPendingTasks();
+            loadTopSellingProductsChart();
+            loadMonthlyIncomeChart();
+            loadRecentTransactions();
+            loadQuickStats();
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Error refreshing dashboard: " + ex.getMessage());
@@ -236,99 +264,189 @@ public class DashboardFormController extends BaseController {
                 lblRevenueChange.setText("No comparison data");
             }
             
-            String profitChangeText = "--";
-            if (lastWeekRevenue != null && lastWeekRevenue > 0 && thisWeekRevenue != null) {
-                double change = ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100;
-                String symbol = change >= 0 ? "▲" : "▼";
-                String style = change >= 0 ? "kpi-change-positive" : "kpi-change-negative";
-                profitChangeText = String.format("%s %.1f%% vs Last Week", symbol, Math.abs(change));
-                if (lblProfitChange != null) {
-                    lblProfitChange.setText(profitChangeText);
-                    lblProfitChange.getStyleClass().removeAll("kpi-change-positive", "kpi-change-negative");
-                    lblProfitChange.getStyleClass().add(style);
-                }
-            } else if (lblProfitChange != null) {
-                lblProfitChange.setText("No comparison data");
-            }
-            
-            // Gross profit (not available - set to 0.00 for now)
-            double grossProfit = 0.0;
-            
             // Customers total
             int totalCustomers = 0;
             try {
                 totalCustomers = customerService.findAllCustomers().size();
             } catch (Exception ignored) {}
             
-            // Low stock counts
-            int criticalStock = 0;
-            try {
-                criticalStock = (int) productDetailService.findAllProductDetails().stream()
-                        .filter(ProductDetail::isLowStock)
-                        .count();
-            } catch (Exception ignored) {}
-            
-            int needToReorder = criticalStock; // same metric for now
-            
             // Format and set texts
             String revenueText = String.format("LKR %,.2f", todayRevenue != null ? todayRevenue : 0.0);
-            String profitText = String.format("LKR %,.2f", grossProfit);
             String invoicesText = String.valueOf(todayOrders != null ? todayOrders : 0L);
             String customersSecondaryText = "Total Customers: " + totalCustomers;
-            String criticalStockText = (criticalStock) + " Items";
-            String needToReorderText = "Need to Reorder: " + needToReorder;
             
             if (lblTodayRevenue != null) lblTodayRevenue.setText(revenueText);
-            if (lblGrossProfit != null) lblGrossProfit.setText(profitText);
             if (lblActiveInvoices != null) lblActiveInvoices.setText(invoicesText);
             if (lblCustomersSecondary != null) lblCustomersSecondary.setText(customersSecondaryText);
-            if (lblCriticalStock != null) lblCriticalStock.setText(criticalStockText);
-            if (lblNeedToReorder != null) lblNeedToReorder.setText(needToReorderText);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
     
-    private void loadPieChart() {
+    private void loadTopSellingProductsChart() {
         try {
-            // Since we don't have order line items, we'll create a distribution based on categories
-            // This is an approximation - showing category distribution of products
-            List<com.devstack.pos.entity.Category> categories = categoryService.findAllCategories();
-            
-            if (categories.isEmpty() || pieChartSales == null) {
+            if (pieChartTopProducts == null) {
                 return;
             }
             
+            // Get top selling products from last 30 days
+            LocalDateTime endDate = LocalDateTime.now();
+            LocalDateTime startDate = endDate.minusDays(30);
+            
+            List<Object[]> topProducts = orderItemService.getTopSellingProductsByQuantity(startDate, endDate);
+            
             ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
             
-            // Get products by category and create distribution
-            Map<String, Long> categoryCounts = productService.findAllProducts().stream()
-                    .filter(p -> p.getCategory() != null)
-                    .collect(Collectors.groupingBy(
-                        p -> p.getCategory().getName(),
-                        Collectors.counting()
-                    ));
-            
-            if (categoryCounts.isEmpty()) {
-                // If no category data, show a default message
-                pieChartData.add(new PieChart.Data("No Data", 100.0));
+            if (topProducts.isEmpty()) {
+                pieChartData.add(new PieChart.Data("No Sales Data", 100.0));
             } else {
-                // Calculate total for percentage
-                long total = categoryCounts.values().stream().mapToLong(Long::longValue).sum();
+                // Calculate total quantity for percentage
+                long totalQuantity = topProducts.stream()
+                    .mapToLong(item -> ((Number) item[2]).longValue())
+                    .sum();
                 
-                // Add pie chart data
-                categoryCounts.entrySet().stream()
-                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-                    .limit(5) // Top 5 categories
-                    .forEach(entry -> {
-                        double percentage = (entry.getValue().doubleValue() / total) * 100;
-                        pieChartData.add(new PieChart.Data(entry.getKey(), percentage));
+                // Add top 5 products to pie chart
+                topProducts.stream()
+                    .limit(5)
+                    .forEach(item -> {
+                        String productName = (String) item[1];
+                        if (productName == null || productName.isEmpty()) {
+                            productName = "Product #" + item[0];
+                        }
+                        long quantity = ((Number) item[2]).longValue();
+                        double percentage = totalQuantity > 0 ? (quantity * 100.0 / totalQuantity) : 0.0;
+                        pieChartData.add(new PieChart.Data(productName + " (" + quantity + ")", percentage));
                     });
             }
             
-            pieChartSales.setData(pieChartData);
+            pieChartTopProducts.setData(pieChartData);
         } catch (Exception ex) {
             ex.printStackTrace();
+            System.err.println("Error loading top selling products chart: " + ex.getMessage());
+        }
+    }
+    
+    private void loadMonthlyIncomeChart() {
+        try {
+            if (barChartMonthlyIncome == null || categoryAxis == null || numberAxis == null) {
+                return;
+            }
+            
+            // Get current month data
+            LocalDate today = LocalDate.now();
+            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+            LocalDate lastDayOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+            
+            // Clear existing data
+            barChartMonthlyIncome.getData().clear();
+            
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Daily Income");
+            
+            // Get income for each day of the month
+            for (LocalDate date = firstDayOfMonth; !date.isAfter(lastDayOfMonth); date = date.plusDays(1)) {
+                LocalDateTime startOfDay = date.atStartOfDay();
+                LocalDateTime endOfDay = date.atTime(23, 59, 59);
+                
+                Double dailyRevenue = orderDetailService.getRevenueByDateRange(startOfDay, endOfDay);
+                double revenue = dailyRevenue != null ? dailyRevenue : 0.0;
+                
+                String dayLabel = date.format(DateTimeFormatter.ofPattern("MM/dd"));
+                series.getData().add(new XYChart.Data<>(dayLabel, revenue));
+            }
+            
+            barChartMonthlyIncome.getData().add(series);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.err.println("Error loading monthly income chart: " + ex.getMessage());
+        }
+    }
+    
+    private void loadRecentTransactions() {
+        try {
+            if (tblRecentTransactions == null) {
+                return;
+            }
+            
+            // Get recent orders (last 10)
+            List<OrderDetail> recentOrders = orderDetailService.findAllOrderDetails().stream()
+                .sorted(Comparator.comparing(OrderDetail::getIssuedDate).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+            
+            ObservableList<RecentTransactionTm> transactionList = FXCollections.observableArrayList();
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
+            
+            for (OrderDetail order : recentOrders) {
+                String customerName = order.getCustomerName();
+                if (customerName == null || customerName.isEmpty()) {
+                    customerName = "Guest";
+                }
+                
+                String formattedDate = order.getIssuedDate().format(formatter);
+                String formattedAmount = String.format("LKR %,.2f", order.getTotalCost());
+                
+                transactionList.add(new RecentTransactionTm(
+                    String.valueOf(order.getCode()),
+                    customerName,
+                    formattedAmount,
+                    formattedDate
+                ));
+            }
+            
+            tblRecentTransactions.setItems(transactionList);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.err.println("Error loading recent transactions: " + ex.getMessage());
+        }
+    }
+    
+    private void loadQuickStats() {
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDateTime startOfDay = today.atStartOfDay();
+            LocalDateTime endOfDay = today.atTime(23, 59, 59);
+            
+            // Today's orders
+            Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
+            if (lblTodayOrders != null) {
+                lblTodayOrders.setText(String.valueOf(todayOrders != null ? todayOrders : 0L));
+            }
+            
+            // Average order value
+            Double avgOrderValue = orderDetailService.getAverageOrderValueByDateRange(startOfDay, endOfDay);
+            if (lblAvgOrderValue != null) {
+                lblAvgOrderValue.setText(String.format("LKR %,.2f", avgOrderValue != null ? avgOrderValue : 0.0));
+            }
+            
+            // This week revenue
+            LocalDate thisWeekStart = today.minusDays(7);
+            LocalDateTime thisWeekStartTime = thisWeekStart.atStartOfDay();
+            Double thisWeekRevenue = orderDetailService.getRevenueByDateRange(thisWeekStartTime, endOfDay);
+            Long thisWeekOrders = orderDetailService.countOrdersByDateRange(thisWeekStartTime, endOfDay);
+            
+            if (lblWeekRevenue != null) {
+                lblWeekRevenue.setText(String.format("LKR %,.2f", thisWeekRevenue != null ? thisWeekRevenue : 0.0));
+            }
+            if (lblWeekOrders != null) {
+                lblWeekOrders.setText((thisWeekOrders != null ? thisWeekOrders : 0L) + " orders");
+            }
+            
+            // Low stock count
+            int lowStockCount = 0;
+            try {
+                lowStockCount = (int) productDetailService.findAllProductDetails().stream()
+                    .filter(ProductDetail::isLowStock)
+                    .count();
+            } catch (Exception ignored) {}
+            
+            if (lblLowStockCount != null) {
+                lblLowStockCount.setText(String.valueOf(lowStockCount));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.err.println("Error loading quick stats: " + ex.getMessage());
         }
     }
     
@@ -404,5 +522,32 @@ public class DashboardFormController extends BaseController {
             ex.printStackTrace();
             System.err.println("Error loading return orders data: " + ex.getMessage());
         }
+    }
+    
+    // Table Model for Recent Transactions
+    public static class RecentTransactionTm {
+        private String orderId;
+        private String customerName;
+        private String amount;
+        private String date;
+        
+        public RecentTransactionTm(String orderId, String customerName, String amount, String date) {
+            this.orderId = orderId;
+            this.customerName = customerName;
+            this.amount = amount;
+            this.date = date;
+        }
+        
+        public String getOrderId() { return orderId; }
+        public void setOrderId(String orderId) { this.orderId = orderId; }
+        
+        public String getCustomerName() { return customerName; }
+        public void setCustomerName(String customerName) { this.customerName = customerName; }
+        
+        public String getAmount() { return amount; }
+        public void setAmount(String amount) { this.amount = amount; }
+        
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
     }
 }

@@ -137,7 +137,7 @@
                     <VBox spacing="10">
                         <Text text="Viewing Returns:" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #334155;"/>
                         <Text text="• View all processed returns in the returns table" style="-fx-fill: #64748b;"/>
-                        <Text text="• Filter returns by status: Pending, Approved, Rejected" style="-fx-fill: #64748b;"/>
+                        <Text text="• Filter returns by status: Pending, Completed, Rejected" style="-fx-fill: #64748b;"/>
                         <Text text="• Search returns by order ID or customer name" style="-fx-fill: #64748b;"/>
                     </VBox>
                 </VBox>

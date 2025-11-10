@@ -98,18 +98,6 @@ public class ReturnOrderService {
         return count != null ? count : 0L;
     }
     
-    public ReturnOrder approveReturn(Integer id, String approvedBy) {
-        Optional<ReturnOrder> optionalReturn = returnOrderRepository.findById(id);
-        if (optionalReturn.isPresent()) {
-            ReturnOrder returnOrder = optionalReturn.get();
-            returnOrder.setStatus("APPROVED");
-            returnOrder.setApprovalDate(LocalDateTime.now());
-            returnOrder.setProcessedBy(approvedBy);
-            return returnOrderRepository.save(returnOrder);
-        }
-        throw new RuntimeException("Return order not found with id: " + id);
-    }
-    
     public ReturnOrder rejectReturn(Integer id, String rejectedBy) {
         Optional<ReturnOrder> optionalReturn = returnOrderRepository.findById(id);
         if (optionalReturn.isPresent()) {

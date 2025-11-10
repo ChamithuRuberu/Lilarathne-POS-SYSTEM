@@ -278,22 +278,15 @@ public class ReturnOrdersFormController extends BaseController {
             
             // Add action buttons for PENDING returns
             if ("PENDING".equals(returnOrder.getStatus())) {
-                ButtonType approveButton = new ButtonType("Approve & Restore Inventory", ButtonBar.ButtonData.OK_DONE);
-                ButtonType completeButton = new ButtonType("Complete Return", ButtonBar.ButtonData.APPLY);
+                ButtonType completeButton = new ButtonType("Complete Return", ButtonBar.ButtonData.OK_DONE);
                 ButtonType rejectButton = new ButtonType("Reject", ButtonBar.ButtonData.NO);
                 ButtonType closeButton = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
                 
-                alert.getButtonTypes().setAll(approveButton, completeButton, rejectButton, closeButton);
+                alert.getButtonTypes().setAll(completeButton, rejectButton, closeButton);
                 
                 alert.showAndWait().ifPresent(response -> {
                     try {
-                        if (response == approveButton) {
-                            returnOrderService.approveReturn(returnOrder.getId(), "Current User");
-                            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
-                                "Return order approved successfully!").showAndWait();
-                            loadReturnOrders();
-                            loadStatistics();
-                        } else if (response == completeButton) {
+                        if (response == completeButton) {
                             returnOrderService.completeReturn(returnOrder.getId());
                             new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
                                 "Return order completed and inventory restored successfully!").showAndWait();

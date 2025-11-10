@@ -500,7 +500,7 @@ public class ProcessReturnDialogController {
                 "Items Returned: " + selectedItems.size() + "\n" +
                 "Total Refund: " + String.format("%.2f /=", totalRefundAmount) + "\n" +
                 "Status: " + savedReturn.getStatus() + "\n\n" +
-                "Note: Inventory will be restored when return is completed/approved.",
+                "Note: Inventory will be restored when return is completed.",
                 Alert.AlertType.INFORMATION);
             
             // Close dialog

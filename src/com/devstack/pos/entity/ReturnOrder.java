@@ -41,7 +41,7 @@ public class ReturnOrder {
     private String notes;
     
     @Column(name = "status", nullable = false)
-    private String status; // PENDING, APPROVED, REJECTED, COMPLETED
+    private String status; // PENDING, REJECTED, COMPLETED
     
     @Column(name = "processed_by")
     private String processedBy;

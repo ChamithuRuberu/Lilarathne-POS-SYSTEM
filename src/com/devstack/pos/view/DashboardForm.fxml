@@ -123,7 +123,7 @@
                      <VBox styleClass="summary-card-green" GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
                         <Text text="💰 Avg Order Value" style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: bold;"/>
-                        <Text fx:id="lblAvgOrderValue" text="LKR 0.00" style="-fx-font-size: 24px; -fx-fill: #10b981; -fx-font-weight: bold;"/>
+                        <Text fx:id="lblAvgOrderValue" text="LKR 0.00" style="-fx-font-size: 20px; -fx-fill: #10b981; -fx-font-weight: bold;"/>
                         <Text text="Per transaction" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>
                      </VBox>
                      
@@ -149,12 +149,12 @@
                      <Text text="Recent Transactions" styleClass="chart-title-light"/>
                      <TableView fx:id="tblRecentTransactions" styleClass="table-view-modern" VBox.vgrow="ALWAYS">
                         <columns>
-                           <TableColumn text="Customer" prefWidth="150">
+                           <TableColumn text="Customer" prefWidth="110">
                               <cellValueFactory>
                                  <PropertyValueFactory property="customerName"/>
                               </cellValueFactory>
                            </TableColumn>
-                           <TableColumn text="Amount" prefWidth="130">
+                           <TableColumn text="Amount" prefWidth="135">
                               <cellValueFactory>
                                  <PropertyValueFactory property="amount"/>
                               </cellValueFactory>
@@ -164,7 +164,7 @@
 <!--                                 <PropertyValueFactory property="discount"/>-->
 <!--                              </cellValueFactory>-->
 <!--                           </TableColumn>-->
-                           <TableColumn text="Date &amp; Time" prefWidth="180">
+                           <TableColumn text="Date &amp; Time" prefWidth="145">
                               <cellValueFactory>
                                  <PropertyValueFactory property="date"/>
                               </cellValueFactory>

@@ -4,6 +4,7 @@ import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.entity.ReturnOrder;
+import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
@@ -12,6 +13,7 @@ import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.CategoryService;
+import com.jfoenix.controls.JFXButton;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -52,10 +54,10 @@ public class DashboardFormController extends BaseController {
     private Text lblTodayRevenue;
     
     @FXML
-    private Text lblActiveInvoices;
+    private Text lblMonthlyRevenue;
     
     @FXML
-    private Text lblCustomersSecondary;
+    private Text lblMonthlyOrders;
     
     @FXML
     private Text lblRevenueChange;
@@ -111,10 +113,32 @@ public class DashboardFormController extends BaseController {
     @FXML
     private Text lblLowStockCount;
     
+    // Sidebar buttons for role-based visibility
+    @FXML
+    private JFXButton btnProduct;
+    
+    @FXML
+    private JFXButton btnCustomer;
+    
+    @FXML
+    private JFXButton btnPlaceOrder;
+    
+    @FXML
+    private JFXButton btnReturns;
+    
+    @FXML
+    private JFXButton btnOrderDetails;
+    
+    @FXML
+    private JFXButton btnPurchase;
+    
     @FXML
     public void initialize() {
         // Initialize sidebar with user info
         initializeSidebar();
+        
+        // Configure menu visibility based on user role
+        configureMenuVisibility();
         
         System.out.println("Dashboard loaded for user: " + UserSessionData.email + " with role: " + UserSessionData.userRole);
         
@@ -123,12 +147,40 @@ public class DashboardFormController extends BaseController {
     }
     
     /**
-     * Manual refresh button handler
-     * Standard approach: User can manually refresh dashboard data anytime
+     * Configure menu visibility based on user role
+     * Normal users: Customers, POS/Orders, Return Orders, All Orders
+     * Admin users: All features including Products, Supplier
      */
-    @FXML
-    public void btnRefreshOnAction(ActionEvent event) {
-        refreshDashboard();
+    private void configureMenuVisibility() {
+        boolean isAdmin = AuthorizationUtil.isAdmin();
+        
+        // Always visible for all users (normal and admin)
+        if (btnCustomer != null) {
+            btnCustomer.setVisible(true);
+            btnCustomer.setManaged(true);
+        }
+        if (btnPlaceOrder != null) {
+            btnPlaceOrder.setVisible(true);
+            btnPlaceOrder.setManaged(true);
+        }
+        if (btnReturns != null) {
+            btnReturns.setVisible(true);
+            btnReturns.setManaged(true);
+        }
+        if (btnOrderDetails != null) {
+            btnOrderDetails.setVisible(true);
+            btnOrderDetails.setManaged(true);
+        }
+        
+        // Admin-only features
+        if (btnProduct != null) {
+            btnProduct.setVisible(isAdmin);
+            btnProduct.setManaged(isAdmin);
+        }
+        if (btnPurchase != null) {
+            btnPurchase.setVisible(isAdmin);
+            btnPurchase.setManaged(isAdmin);
+        }
     }
     
     /**
@@ -264,20 +316,20 @@ public class DashboardFormController extends BaseController {
                 lblRevenueChange.setText("No comparison data");
             }
             
-            // Customers total
-            int totalCustomers = 0;
-            try {
-                totalCustomers = customerService.findAllCustomers().size();
-            } catch (Exception ignored) {}
+            // Monthly revenue and orders
+            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+            LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
+            Double monthlyRevenue = orderDetailService.getRevenueByDateRange(monthStart, endOfDay);
+            Long monthlyOrders = orderDetailService.countOrdersByDateRange(monthStart, endOfDay);
             
             // Format and set texts
             String revenueText = String.format("LKR %,.2f", todayRevenue != null ? todayRevenue : 0.0);
-            String invoicesText = String.valueOf(todayOrders != null ? todayOrders : 0L);
-            String customersSecondaryText = "Total Customers: " + totalCustomers;
+            String monthlyRevenueText = String.format("LKR %,.2f", monthlyRevenue != null ? monthlyRevenue : 0.0);
+            String monthlyOrdersText = (monthlyOrders != null ? monthlyOrders : 0L) + " orders this month";
             
             if (lblTodayRevenue != null) lblTodayRevenue.setText(revenueText);
-            if (lblActiveInvoices != null) lblActiveInvoices.setText(invoicesText);
-            if (lblCustomersSecondary != null) lblCustomersSecondary.setText(customersSecondaryText);
+            if (lblMonthlyRevenue != null) lblMonthlyRevenue.setText(monthlyRevenueText);
+            if (lblMonthlyOrders != null) lblMonthlyOrders.setText(monthlyOrdersText);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -386,11 +438,14 @@ public class DashboardFormController extends BaseController {
                 
                 String formattedDate = order.getIssuedDate().format(formatter);
                 String formattedAmount = String.format("LKR %,.2f", order.getTotalCost());
+                String formattedDiscount = order.getDiscount() > 0 
+                    ? String.format("LKR %,.2f", order.getDiscount()) 
+                    : "No discount";
                 
                 transactionList.add(new RecentTransactionTm(
-                    String.valueOf(order.getCode()),
                     customerName,
                     formattedAmount,
+                    formattedDiscount,
                     formattedDate
                 ));
             }
@@ -526,26 +581,26 @@ public class DashboardFormController extends BaseController {
     
     // Table Model for Recent Transactions
     public static class RecentTransactionTm {
-        private String orderId;
         private String customerName;
         private String amount;
+        private String discount;
         private String date;
         
-        public RecentTransactionTm(String orderId, String customerName, String amount, String date) {
-            this.orderId = orderId;
+        public RecentTransactionTm(String customerName, String amount, String discount, String date) {
             this.customerName = customerName;
             this.amount = amount;
+            this.discount = discount;
             this.date = date;
         }
-        
-        public String getOrderId() { return orderId; }
-        public void setOrderId(String orderId) { this.orderId = orderId; }
         
         public String getCustomerName() { return customerName; }
         public void setCustomerName(String customerName) { this.customerName = customerName; }
         
         public String getAmount() { return amount; }
         public void setAmount(String amount) { this.amount = amount; }
+        
+        public String getDiscount() { return discount; }
+        public void setDiscount(String discount) { this.discount = discount; }
         
         public String getDate() { return date; }
         public void setDate(String date) { this.date = date; }

@@ -66,6 +66,15 @@ public class AnalysisPageController extends BaseController {
     private TableColumn<SalesReportTm, Double> colSalesRevenue;
     
     @FXML
+    private TableColumn<SalesReportTm, Double> colSalesRefunds;
+    
+    @FXML
+    private TableColumn<SalesReportTm, Double> colSalesNetRevenue;
+    
+    @FXML
+    private TableColumn<SalesReportTm, Double> colSalesAvgOrder;
+    
+    @FXML
     private TableColumn<SalesReportTm, Double> colSalesProfit;
     
     // Top Products Tab
@@ -82,7 +91,22 @@ public class AnalysisPageController extends BaseController {
     private TableColumn<TopProductTm, Integer> colProductQtySold;
     
     @FXML
+    private TableColumn<TopProductTm, Integer> colProductReturns;
+    
+    @FXML
+    private TableColumn<TopProductTm, Integer> colProductNetQty;
+    
+    @FXML
     private TableColumn<TopProductTm, Double> colProductRevenue;
+    
+    @FXML
+    private TableColumn<TopProductTm, Double> colProductRefunds;
+    
+    @FXML
+    private TableColumn<TopProductTm, Double> colProductNetRevenue;
+    
+    @FXML
+    private TableColumn<TopProductTm, Double> colProductAvgPrice;
     
     // Sales by Category Tab
     @FXML
@@ -96,6 +120,15 @@ public class AnalysisPageController extends BaseController {
     
     @FXML
     private TableColumn<CategoryReportTm, Double> colCategoryRevenue;
+    
+    @FXML
+    private TableColumn<CategoryReportTm, Double> colCategoryRefunds;
+    
+    @FXML
+    private TableColumn<CategoryReportTm, Double> colCategoryNetRevenue;
+    
+    @FXML
+    private TableColumn<CategoryReportTm, Double> colCategoryAvgOrder;
     
     @FXML
     private TableColumn<CategoryReportTm, Double> colCategoryProfit;
@@ -115,6 +148,15 @@ public class AnalysisPageController extends BaseController {
     
     @FXML
     private TableColumn<CashierReportTm, Double> colCashierRevenue;
+    
+    @FXML
+    private TableColumn<CashierReportTm, Double> colCashierRefunds;
+    
+    @FXML
+    private TableColumn<CashierReportTm, Double> colCashierNetRevenue;
+    
+    @FXML
+    private TableColumn<CashierReportTm, Double> colCashierAvgOrder;
     
     // Profit & Loss Tab
     @FXML
@@ -163,6 +205,15 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
     
+    @FXML
+    private TableColumn<TopCustomerTm, Double> colCustomerRefunds;
+    
+    @FXML
+    private TableColumn<TopCustomerTm, Double> colCustomerNetRevenue;
+    
+    @FXML
+    private TableColumn<TopCustomerTm, Double> colCustomerAvgOrder;
+    
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final ProductRepository productRepository;
@@ -197,25 +248,65 @@ public class AnalysisPageController extends BaseController {
         colSalesPeriod.setCellValueFactory(new PropertyValueFactory<>("period"));
         colSalesOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colSalesRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+        colSalesRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        colSalesNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        colSalesAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
         colSalesProfit.setCellValueFactory(new PropertyValueFactory<>("profit"));
+        
+        // Format currency columns for Sales Reports
+        formatCurrencyColumn(colSalesRevenue);
+        formatCurrencyColumn(colSalesRefunds);
+        formatCurrencyColumn(colSalesNetRevenue);
+        formatCurrencyColumn(colSalesAvgOrder);
+        formatCurrencyColumn(colSalesProfit);
         
         // Configure Top Products Table
         colProductRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
         colProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colProductQtySold.setCellValueFactory(new PropertyValueFactory<>("qtySold"));
+        colProductReturns.setCellValueFactory(new PropertyValueFactory<>("returns"));
+        colProductNetQty.setCellValueFactory(new PropertyValueFactory<>("netQty"));
         colProductRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+        colProductRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        colProductNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        colProductAvgPrice.setCellValueFactory(new PropertyValueFactory<>("avgPrice"));
+        
+        // Format currency columns for Top Products
+        formatCurrencyColumn(colProductRevenue);
+        formatCurrencyColumn(colProductRefunds);
+        formatCurrencyColumn(colProductNetRevenue);
+        formatCurrencyColumn(colProductAvgPrice);
         
         // Configure Sales by Category Table
         colCategoryName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
         colCategoryOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colCategoryRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+        colCategoryRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        colCategoryNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        colCategoryAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
         colCategoryProfit.setCellValueFactory(new PropertyValueFactory<>("profit"));
+        
+        // Format currency columns for Sales by Category
+        formatCurrencyColumn(colCategoryRevenue);
+        formatCurrencyColumn(colCategoryRefunds);
+        formatCurrencyColumn(colCategoryNetRevenue);
+        formatCurrencyColumn(colCategoryAvgOrder);
+        formatCurrencyColumn(colCategoryProfit);
         
         // Configure Sales by Cashier Table
         colCashierRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
         colCashierName.setCellValueFactory(new PropertyValueFactory<>("cashierName"));
         colCashierOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colCashierRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+        colCashierRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        colCashierNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        colCashierAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
+        
+        // Format currency columns for Sales by Cashier
+        formatCurrencyColumn(colCashierRevenue);
+        formatCurrencyColumn(colCashierRefunds);
+        formatCurrencyColumn(colCashierNetRevenue);
+        formatCurrencyColumn(colCashierAvgOrder);
         
         // Configure Profit & Loss Table
         colPLProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
@@ -229,6 +320,15 @@ public class AnalysisPageController extends BaseController {
         colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
+        colCustomerRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        colCustomerNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        colCustomerAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
+        
+        // Format currency columns for Top Customers
+        formatCurrencyColumn(colCustomerRevenue);
+        formatCurrencyColumn(colCustomerRefunds);
+        formatCurrencyColumn(colCustomerNetRevenue);
+        formatCurrencyColumn(colCustomerAvgOrder);
         
         // Set CONSTRAINED_RESIZE_POLICY for all tables
         tblSalesReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -347,6 +447,23 @@ public class AnalysisPageController extends BaseController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+    
+    /**
+     * Helper method to format currency columns
+     */
+    private <T> void formatCurrencyColumn(TableColumn<T, Double> column) {
+        column.setCellFactory(col -> new javafx.scene.control.TableCell<T, Double>() {
+            @Override
+            protected void updateItem(Double value, boolean empty) {
+                super.updateItem(value, empty);
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f /=", value));
+                }
+            }
+        });
+    }
 
     @Override
     protected String getCurrentPageName() {
@@ -425,11 +542,14 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
                           weekEnd.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
             double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, 
+                revenue != null ? revenue : 0.0, refundAmount != null ? refundAmount : 0.0,
+                netRevenue != null ? netRevenue : 0.0, avgOrder, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -452,10 +572,13 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
             double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, 
+                revenue != null ? revenue : 0.0, refundAmount != null ? refundAmount : 0.0,
+                netRevenue != null ? netRevenue : 0.0, avgOrder, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -478,10 +601,13 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = String.valueOf(yearStart.getYear());
             double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, 
+                revenue != null ? revenue : 0.0, refundAmount != null ? refundAmount : 0.0,
+                netRevenue != null ? netRevenue : 0.0, avgOrder, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -533,10 +659,12 @@ public class AnalysisPageController extends BaseController {
             // Calculate net values
             Integer netQtySold = (qtySold != null ? qtySold : 0) - (returnedQty != null ? returnedQty : 0);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            Double avgPrice = (netQtySold != null && netQtySold > 0) ? (netRevenue / netQtySold) : 0.0;
             
             // Only show products with net quantity > 0 or net revenue > 0
             if (netQtySold > 0 || netRevenue > 0) {
-                TopProductTm tm = new TopProductTm(rank++, productName != null ? productName : "Unknown", netQtySold, netRevenue);
+                TopProductTm tm = new TopProductTm(rank++, productName != null ? productName : "Unknown", 
+                    qtySold, returnedQty, netQtySold, revenue, refundAmount, netRevenue, avgPrice);
                 observableList.add(tm);
             }
         }
@@ -580,12 +708,16 @@ public class AnalysisPageController extends BaseController {
             // Get refund amount for this category
             Double refundAmount = refundMap.getOrDefault(categoryKey, 0.0);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            Double avgOrder = orderCount.intValue() > 0 ? (netRevenue / orderCount.intValue()) : 0.0;
             Double profit = netRevenue; // Net revenue as profit
             
             CategoryReportTm tm = new CategoryReportTm(
                 categoryKey,
                 orderCount.intValue(),
+                revenue,
+                refundAmount,
                 netRevenue,
+                avgOrder,
                 profit
             );
             observableList.add(tm);
@@ -632,8 +764,10 @@ public class AnalysisPageController extends BaseController {
                 proportionalRefund = (revenue / totalRevenue) * totalRefunds;
             }
             Double netRevenue = (revenue != null ? revenue : 0.0) - proportionalRefund;
+            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
             
-            CashierReportTm tm = new CashierReportTm(rank++, cashierEmail != null ? cashierEmail : "Unknown", orders, netRevenue);
+            CashierReportTm tm = new CashierReportTm(rank++, cashierEmail != null ? cashierEmail : "Unknown", 
+                orders, revenue, proportionalRefund, netRevenue, avgOrder);
             observableList.add(tm);
         }
         
@@ -709,8 +843,10 @@ public class AnalysisPageController extends BaseController {
             // Get refund amount for this customer
             Double refundAmount = refundMap.getOrDefault(customerKey, 0.0);
             Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
             
-            TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, netRevenue);
+            TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, 
+                totalRevenue, refundAmount, netRevenue, avgOrder);
             observableList.add(tm);
         }
         
@@ -723,12 +859,18 @@ public class AnalysisPageController extends BaseController {
         private String period;
         private int orders;
         private double revenue;
+        private double refunds;
+        private double netRevenue;
+        private double avgOrder;
         private double profit;
         
-        public SalesReportTm(String period, int orders, double revenue, double profit) {
+        public SalesReportTm(String period, int orders, double revenue, double refunds, double netRevenue, double avgOrder, double profit) {
             this.period = period;
             this.orders = orders;
             this.revenue = revenue;
+            this.refunds = refunds;
+            this.netRevenue = netRevenue;
+            this.avgOrder = avgOrder;
             this.profit = profit;
         }
         
@@ -738,6 +880,12 @@ public class AnalysisPageController extends BaseController {
         public void setOrders(int orders) { this.orders = orders; }
         public double getRevenue() { return revenue; }
         public void setRevenue(double revenue) { this.revenue = revenue; }
+        public double getRefunds() { return refunds; }
+        public void setRefunds(double refunds) { this.refunds = refunds; }
+        public double getNetRevenue() { return netRevenue; }
+        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
+        public double getAvgOrder() { return avgOrder; }
+        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
         public double getProfit() { return profit; }
         public void setProfit(double profit) { this.profit = profit; }
     }
@@ -746,13 +894,23 @@ public class AnalysisPageController extends BaseController {
         private int rank;
         private String productName;
         private int qtySold;
+        private int returns;
+        private int netQty;
         private double revenue;
+        private double refunds;
+        private double netRevenue;
+        private double avgPrice;
         
-        public TopProductTm(int rank, String productName, int qtySold, double revenue) {
+        public TopProductTm(int rank, String productName, int qtySold, int returns, int netQty, double revenue, double refunds, double netRevenue, double avgPrice) {
             this.rank = rank;
             this.productName = productName;
             this.qtySold = qtySold;
+            this.returns = returns;
+            this.netQty = netQty;
             this.revenue = revenue;
+            this.refunds = refunds;
+            this.netRevenue = netRevenue;
+            this.avgPrice = avgPrice;
         }
         
         public int getRank() { return rank; }
@@ -761,20 +919,36 @@ public class AnalysisPageController extends BaseController {
         public void setProductName(String productName) { this.productName = productName; }
         public int getQtySold() { return qtySold; }
         public void setQtySold(int qtySold) { this.qtySold = qtySold; }
+        public int getReturns() { return returns; }
+        public void setReturns(int returns) { this.returns = returns; }
+        public int getNetQty() { return netQty; }
+        public void setNetQty(int netQty) { this.netQty = netQty; }
         public double getRevenue() { return revenue; }
         public void setRevenue(double revenue) { this.revenue = revenue; }
+        public double getRefunds() { return refunds; }
+        public void setRefunds(double refunds) { this.refunds = refunds; }
+        public double getNetRevenue() { return netRevenue; }
+        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
+        public double getAvgPrice() { return avgPrice; }
+        public void setAvgPrice(double avgPrice) { this.avgPrice = avgPrice; }
     }
     
     public static class CategoryReportTm {
         private String categoryName;
         private int orders;
         private double revenue;
+        private double refunds;
+        private double netRevenue;
+        private double avgOrder;
         private double profit;
         
-        public CategoryReportTm(String categoryName, int orders, double revenue, double profit) {
+        public CategoryReportTm(String categoryName, int orders, double revenue, double refunds, double netRevenue, double avgOrder, double profit) {
             this.categoryName = categoryName;
             this.orders = orders;
             this.revenue = revenue;
+            this.refunds = refunds;
+            this.netRevenue = netRevenue;
+            this.avgOrder = avgOrder;
             this.profit = profit;
         }
         
@@ -784,6 +958,12 @@ public class AnalysisPageController extends BaseController {
         public void setOrders(int orders) { this.orders = orders; }
         public double getRevenue() { return revenue; }
         public void setRevenue(double revenue) { this.revenue = revenue; }
+        public double getRefunds() { return refunds; }
+        public void setRefunds(double refunds) { this.refunds = refunds; }
+        public double getNetRevenue() { return netRevenue; }
+        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
+        public double getAvgOrder() { return avgOrder; }
+        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
         public double getProfit() { return profit; }
         public void setProfit(double profit) { this.profit = profit; }
     }
@@ -793,12 +973,18 @@ public class AnalysisPageController extends BaseController {
         private String cashierName;
         private int orders;
         private double revenue;
+        private double refunds;
+        private double netRevenue;
+        private double avgOrder;
         
-        public CashierReportTm(int rank, String cashierName, int orders, double revenue) {
+        public CashierReportTm(int rank, String cashierName, int orders, double revenue, double refunds, double netRevenue, double avgOrder) {
             this.rank = rank;
             this.cashierName = cashierName;
             this.orders = orders;
             this.revenue = revenue;
+            this.refunds = refunds;
+            this.netRevenue = netRevenue;
+            this.avgOrder = avgOrder;
         }
         
         public int getRank() { return rank; }
@@ -809,6 +995,12 @@ public class AnalysisPageController extends BaseController {
         public void setOrders(int orders) { this.orders = orders; }
         public double getRevenue() { return revenue; }
         public void setRevenue(double revenue) { this.revenue = revenue; }
+        public double getRefunds() { return refunds; }
+        public void setRefunds(double refunds) { this.refunds = refunds; }
+        public double getNetRevenue() { return netRevenue; }
+        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
+        public double getAvgOrder() { return avgOrder; }
+        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
     }
     
     public static class ProfitLossTm {
@@ -843,12 +1035,18 @@ public class AnalysisPageController extends BaseController {
         private String customerName;
         private int orders;
         private double totalRevenue;
+        private double refunds;
+        private double netRevenue;
+        private double avgOrder;
         
-        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue) {
+        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue, double refunds, double netRevenue, double avgOrder) {
             this.rank = rank;
             this.customerName = customerName;
             this.orders = orders;
             this.totalRevenue = totalRevenue;
+            this.refunds = refunds;
+            this.netRevenue = netRevenue;
+            this.avgOrder = avgOrder;
         }
         
         public int getRank() { return rank; }
@@ -859,5 +1057,11 @@ public class AnalysisPageController extends BaseController {
         public void setOrders(int orders) { this.orders = orders; }
         public double getTotalRevenue() { return totalRevenue; }
         public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
+        public double getRefunds() { return refunds; }
+        public void setRefunds(double refunds) { this.refunds = refunds; }
+        public double getNetRevenue() { return netRevenue; }
+        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
+        public double getAvgOrder() { return avgOrder; }
+        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
     }
 }

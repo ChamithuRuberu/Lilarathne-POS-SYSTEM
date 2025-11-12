@@ -21,7 +21,7 @@
                   </font>
                </Text>
                <Region HBox.hgrow="ALWAYS" />
-               <JFXButton onAction="#btnBackToDashboard" text="← Back to Dashboard" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
+               <JFXButton onAction="#btnBackToDashboard" text="Back to Dashboard" buttonType="RAISED" styleClass="btn-secondary" prefWidth="160">
                   <font>
                      <Font name="System Bold" size="13.0" />
                   </font>
@@ -171,10 +171,13 @@
                      </HBox>
                      <TableView fx:id="tblSalesReports" prefHeight="300.0">
                         <columns>
-                           <TableColumn fx:id="colSalesPeriod" prefWidth="200.0" text="Period" />
-                           <TableColumn fx:id="colSalesOrders" prefWidth="150.0" text="Orders" />
-                           <TableColumn fx:id="colSalesRevenue" prefWidth="200.0" text="Revenue" />
-                           <TableColumn fx:id="colSalesProfit" prefWidth="200.0" text="Profit" />
+                           <TableColumn fx:id="colSalesPeriod" prefWidth="180.0" text="Period" />
+                           <TableColumn fx:id="colSalesOrders" prefWidth="100.0" text="Orders" />
+                           <TableColumn fx:id="colSalesRevenue" prefWidth="150.0" text="Revenue" />
+                           <TableColumn fx:id="colSalesRefunds" prefWidth="130.0" text="Refunds" />
+                           <TableColumn fx:id="colSalesNetRevenue" prefWidth="150.0" text="Net Revenue" />
+                           <TableColumn fx:id="colSalesAvgOrder" prefWidth="130.0" text="Avg Order" />
+                           <TableColumn fx:id="colSalesProfit" prefWidth="150.0" text="Profit" />
                         </columns>
                      </TableView>
                   </VBox>
@@ -196,10 +199,15 @@
                      </HBox>
                      <TableView fx:id="tblTopProducts" prefHeight="300.0">
                         <columns>
-                           <TableColumn fx:id="colProductRank" prefWidth="80.0" text="Rank" />
-                           <TableColumn fx:id="colProductName" prefWidth="300.0" text="Product" />
-                           <TableColumn fx:id="colProductQtySold" prefWidth="150.0" text="Qty Sold" />
-                           <TableColumn fx:id="colProductRevenue" prefWidth="200.0" text="Revenue" />
+                           <TableColumn fx:id="colProductRank" prefWidth="60.0" text="Rank" />
+                           <TableColumn fx:id="colProductName" prefWidth="250.0" text="Product" />
+                           <TableColumn fx:id="colProductQtySold" prefWidth="100.0" text="Qty Sold" />
+                           <TableColumn fx:id="colProductReturns" prefWidth="100.0" text="Returns" />
+                           <TableColumn fx:id="colProductNetQty" prefWidth="100.0" text="Net Qty" />
+                           <TableColumn fx:id="colProductRevenue" prefWidth="130.0" text="Revenue" />
+                           <TableColumn fx:id="colProductRefunds" prefWidth="120.0" text="Refunds" />
+                           <TableColumn fx:id="colProductNetRevenue" prefWidth="130.0" text="Net Revenue" />
+                           <TableColumn fx:id="colProductAvgPrice" prefWidth="120.0" text="Avg Price" />
                         </columns>
                      </TableView>
                   </VBox>
@@ -221,10 +229,13 @@
                      </HBox>
                      <TableView fx:id="tblSalesByCategory" prefHeight="300.0">
                         <columns>
-                           <TableColumn fx:id="colCategoryName" prefWidth="300.0" text="Product Category" />
-                           <TableColumn fx:id="colCategoryOrders" prefWidth="150.0" text="Orders" />
-                           <TableColumn fx:id="colCategoryRevenue" prefWidth="200.0" text="Revenue" />
-                           <TableColumn fx:id="colCategoryProfit" prefWidth="200.0" text="Profit" />
+                           <TableColumn fx:id="colCategoryName" prefWidth="250.0" text="Product Category" />
+                           <TableColumn fx:id="colCategoryOrders" prefWidth="100.0" text="Orders" />
+                           <TableColumn fx:id="colCategoryRevenue" prefWidth="130.0" text="Revenue" />
+                           <TableColumn fx:id="colCategoryRefunds" prefWidth="120.0" text="Refunds" />
+                           <TableColumn fx:id="colCategoryNetRevenue" prefWidth="130.0" text="Net Revenue" />
+                           <TableColumn fx:id="colCategoryAvgOrder" prefWidth="120.0" text="Avg Order" />
+                           <TableColumn fx:id="colCategoryProfit" prefWidth="130.0" text="Profit" />
                         </columns>
                      </TableView>
                   </VBox>
@@ -246,10 +257,13 @@
                      </HBox>
                      <TableView fx:id="tblSalesByCashier" prefHeight="300.0">
                         <columns>
-                           <TableColumn fx:id="colCashierRank" prefWidth="80.0" text="Rank" />
-                           <TableColumn fx:id="colCashierName" prefWidth="250.0" text="Cashier" />
-                           <TableColumn fx:id="colCashierOrders" prefWidth="150.0" text="Orders" />
-                           <TableColumn fx:id="colCashierRevenue" prefWidth="200.0" text="Revenue" />
+                           <TableColumn fx:id="colCashierRank" prefWidth="60.0" text="Rank" />
+                           <TableColumn fx:id="colCashierName" prefWidth="200.0" text="Cashier" />
+                           <TableColumn fx:id="colCashierOrders" prefWidth="100.0" text="Orders" />
+                           <TableColumn fx:id="colCashierRevenue" prefWidth="130.0" text="Revenue" />
+                           <TableColumn fx:id="colCashierRefunds" prefWidth="120.0" text="Refunds" />
+                           <TableColumn fx:id="colCashierNetRevenue" prefWidth="130.0" text="Net Revenue" />
+                           <TableColumn fx:id="colCashierAvgOrder" prefWidth="120.0" text="Avg Order" />
                         </columns>
                      </TableView>
                   </VBox>
@@ -336,10 +350,13 @@
                      </HBox>
                      <TableView fx:id="tblTopCustomers" prefHeight="300.0">
                         <columns>
-                           <TableColumn fx:id="colCustomerRank" prefWidth="80.0" text="Rank" />
-                           <TableColumn fx:id="colCustomerEmail" prefWidth="300.0" text="Customer Email" />
-                           <TableColumn fx:id="colCustomerOrders" prefWidth="150.0" text="Orders" />
-                           <TableColumn fx:id="colCustomerRevenue" prefWidth="200.0" text="Total Revenue" />
+                           <TableColumn fx:id="colCustomerRank" prefWidth="60.0" text="Rank" />
+                           <TableColumn fx:id="colCustomerEmail" prefWidth="200.0" text="Customer Name" />
+                           <TableColumn fx:id="colCustomerOrders" prefWidth="100.0" text="Orders" />
+                           <TableColumn fx:id="colCustomerRevenue" prefWidth="130.0" text="Revenue" />
+                           <TableColumn fx:id="colCustomerRefunds" prefWidth="120.0" text="Refunds" />
+                           <TableColumn fx:id="colCustomerNetRevenue" prefWidth="130.0" text="Net Revenue" />
+                           <TableColumn fx:id="colCustomerAvgOrder" prefWidth="120.0" text="Avg Order" />
                </columns>
             </TableView>
          </VBox>

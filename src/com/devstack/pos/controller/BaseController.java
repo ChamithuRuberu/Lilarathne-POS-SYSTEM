@@ -86,6 +86,15 @@ public abstract class BaseController {
     }
     
     @FXML
+    public void btnPendingPaymentsOnAction(ActionEvent event) {
+        if (AuthorizationUtil.canAccessPOSOrders()) {
+            navigateTo("PendingPaymentsForm", true);
+        } else {
+            AuthorizationUtil.showUnauthorizedAlert();
+        }
+    }
+    
+    @FXML
     public void btnOrderDetailsOnAction(ActionEvent event) {
         navigateTo("OrderDetailsForm", true);
     }

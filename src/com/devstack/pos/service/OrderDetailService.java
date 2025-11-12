@@ -126,5 +126,26 @@ public class OrderDetailService {
         Double avg = orderDetailRepository.getAverageOrderValueByDateRange(startDate, endDate);
         return avg != null ? avg : 0.0;
     }
+    
+    @Transactional(readOnly = true)
+    public List<OrderDetail> findPendingPayments() {
+        return orderDetailRepository.findPendingPayments();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<OrderDetail> findPendingPaymentsByMethod(String paymentMethod) {
+        return orderDetailRepository.findPendingPaymentsByMethod(paymentMethod);
+    }
+    
+    @Transactional
+    public boolean completePayment(Long orderCode) {
+        OrderDetail order = findOrderDetail(orderCode);
+        if (order != null && "PENDING".equals(order.getPaymentStatus())) {
+            order.setPaymentStatus("PAID");
+            orderDetailRepository.save(order);
+            return true;
+        }
+        return false;
+    }
 }
 

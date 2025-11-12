@@ -28,15 +28,15 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<OrderItem> findByBatchCode(String batchCode);
     
     /**
-     * Get total quantity sold for a product
+     * Get total quantity sold for a product (all orders, including pending payments)
      */
     @Query("SELECT COALESCE(SUM(oi.quantity), 0) FROM OrderItem oi WHERE oi.productCode = :productCode")
     Integer getTotalQuantitySoldByProduct(@Param("productCode") Integer productCode);
     
     /**
-     * Get total revenue from a product
+     * Get total revenue from a product (only PAID orders)
      */
-    @Query("SELECT COALESCE(SUM(oi.lineTotal), 0.0) FROM OrderItem oi WHERE oi.productCode = :productCode")
+    @Query("SELECT COALESCE(SUM(oi.lineTotal), 0.0) FROM OrderItem oi JOIN OrderDetail od ON oi.orderId = od.code WHERE oi.productCode = :productCode AND od.paymentStatus = 'PAID'")
     Double getTotalRevenueByProduct(@Param("productCode") Integer productCode);
     
     /**
@@ -46,7 +46,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     Long countItemsInOrder(@Param("orderId") Long orderId);
     
     /**
-     * Get top selling products by quantity (with date range)
+     * Get top selling products by quantity (with date range, all orders including pending payments)
      * Returns: productCode, productName, totalQuantity
      */
     @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity " +
@@ -59,7 +59,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                                                      @Param("endDate") LocalDateTime endDate);
     
     /**
-     * Get top selling products by quantity (all time)
+     * Get top selling products by quantity (all time, all orders including pending payments)
      * Returns: productCode, productName, totalQuantity
      */
     @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity " +
@@ -69,10 +69,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<Object[]> getTopSellingProductsByQuantity();
     
     /**
-     * Get top selling products with revenue (with date range)
+     * Get top selling products with revenue (with date range, quantity from all orders, revenue only PAID)
      * Returns: productCode, productName, totalQuantity, totalRevenue
      */
-    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(oi.lineTotal) as totalRevenue " +
+    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(CASE WHEN od.paymentStatus = 'PAID' THEN oi.lineTotal ELSE 0 END) as totalRevenue " +
            "FROM OrderItem oi " +
            "JOIN OrderDetail od ON oi.orderId = od.code " +
            "WHERE od.issuedDate BETWEEN :startDate AND :endDate " +
@@ -82,20 +82,21 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                                                       @Param("endDate") LocalDateTime endDate);
     
     /**
-     * Get top selling products with revenue (all time)
+     * Get top selling products with revenue (all time, quantity from all orders, revenue only PAID)
      * Returns: productCode, productName, totalQuantity, totalRevenue
      */
-    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(oi.lineTotal) as totalRevenue " +
+    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(CASE WHEN od.paymentStatus = 'PAID' THEN oi.lineTotal ELSE 0 END) as totalRevenue " +
            "FROM OrderItem oi " +
+           "JOIN OrderDetail od ON oi.orderId = od.code " +
            "GROUP BY oi.productCode, oi.productName " +
            "ORDER BY totalRevenue DESC")
     List<Object[]> getTopSellingProductsWithRevenue();
     
     /**
-     * Get sales by category (with date range)
+     * Get sales by category (with date range, orderCount from all orders, revenue only PAID)
      * Returns: categoryName, orderCount, totalRevenue
      */
-    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(oi.lineTotal) as totalRevenue " +
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(CASE WHEN od.paymentStatus = 'PAID' THEN oi.lineTotal ELSE 0 END) as totalRevenue " +
            "FROM OrderItem oi " +
            "JOIN OrderDetail od ON oi.orderId = od.code " +
            "JOIN Product p ON oi.productCode = p.code " +
@@ -107,10 +108,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                                       @Param("endDate") LocalDateTime endDate);
     
     /**
-     * Get sales by category (all time)
+     * Get sales by category (all time, orderCount from all orders, revenue only PAID)
      * Returns: categoryName, orderCount, totalRevenue
      */
-    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(oi.lineTotal) as totalRevenue " +
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(CASE WHEN od.paymentStatus = 'PAID' THEN oi.lineTotal ELSE 0 END) as totalRevenue " +
            "FROM OrderItem oi " +
            "JOIN OrderDetail od ON oi.orderId = od.code " +
            "JOIN Product p ON oi.productCode = p.code " +

@@ -21,6 +21,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Text;
+import com.jfoenix.controls.JFXComboBox;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,7 @@ public class PlaceOrderFormController extends BaseController {
     public TableColumn colSelTotal;
     public TableColumn colSelOperation;
     public Text txtTotal;
+    public JFXComboBox<String> cmbPaymentMethod;
 
     private Long selectedCustomerId = null;
     private final CustomerService customerService;
@@ -67,7 +69,7 @@ public class PlaceOrderFormController extends BaseController {
         // Authorization check: POS Orders accessible by ADMIN and CASHIER
         if (!AuthorizationUtil.canAccessPOSOrders()) {
             AuthorizationUtil.showUnauthorizedAlert();
-            btnBackToHomeOnAction(null);
+            btnDashboardOnAction(null);
             return;
         }
         
@@ -82,6 +84,12 @@ public class PlaceOrderFormController extends BaseController {
         colSelQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
         colSelTotal.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
         colSelOperation.setCellValueFactory(new PropertyValueFactory<>("btn"));
+        
+        // Initialize payment method dropdown
+        if (cmbPaymentMethod != null) {
+            cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
+            cmbPaymentMethod.setValue("Cash"); // Set default to Cash
+        }
     }
     
     @Override
@@ -274,6 +282,19 @@ public class PlaceOrderFormController extends BaseController {
                     .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
                     .sum();
             
+            // Determine payment method and status
+            String selectedPaymentMethod = cmbPaymentMethod.getValue();
+            if (selectedPaymentMethod == null || selectedPaymentMethod.isEmpty()) {
+                selectedPaymentMethod = "Cash";
+            }
+            
+            String paymentMethod = selectedPaymentMethod.toUpperCase();
+            String paymentStatus = "PAID";
+            
+            if ("CREDIT".equals(paymentMethod) || "CHEQUE".equals(paymentMethod)) {
+                paymentStatus = "PENDING";
+            }
+            
             // Create order detail
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setIssuedDate(LocalDateTime.now());
@@ -282,6 +303,8 @@ public class PlaceOrderFormController extends BaseController {
             orderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
             orderDetail.setDiscount(totalDiscount);
             orderDetail.setOperatorEmail(UserSessionData.email);
+            orderDetail.setPaymentMethod(paymentMethod);
+            orderDetail.setPaymentStatus(paymentStatus);
             
             // Save order
             OrderDetail savedOrder = orderDetailService.saveOrderDetail(orderDetail);
@@ -308,12 +331,17 @@ public class PlaceOrderFormController extends BaseController {
             }
             orderItemService.saveAllOrderItems(orderItems);
             
-            // Reduce stock per cart line using batch code
+            // Only reduce stock if payment is CASH (PAID)
+            // For CREDIT/CHEQUE (PENDING), stock will be reduced when payment is completed
+            if ("PAID".equals(paymentStatus)) {
             for (CartTm tm : tms) {
                 productDetailService.reduceStock(tm.getCode(), tm.getQty());
             }
-            
             new Alert(Alert.AlertType.CONFIRMATION, "Order Completed Successfully!").show();
+            } else {
+                new Alert(Alert.AlertType.INFORMATION, 
+                    "Order created with " + paymentMethod + " payment. Status: PENDING. Stock will be reduced when payment is completed.").show();
+            }
             clearFields();
             tms.clear();
             tblCart.setItems(tms);
@@ -335,5 +363,9 @@ public class PlaceOrderFormController extends BaseController {
         txtBuyingPrice.clear();
         txtQty.clear();
         selectedCustomerId = null;
+        // Reset payment method to Cash
+        if (cmbPaymentMethod != null) {
+            cmbPaymentMethod.setValue("Cash");
+        }
     }
 }

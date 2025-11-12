@@ -36,6 +36,12 @@ public class OrderDetail {
     @Column(name = "operator_email", length = 100)
     private String operatorEmail;
     
+    @Column(name = "payment_method", length = 20)
+    private String paymentMethod = "CASH";
+    
+    @Column(name = "payment_status", length = 20)
+    private String paymentStatus = "PAID";
+    
     // Note: We use customerId instead of @ManyToOne relationship to avoid lazy loading issues
     // and to support guest orders (where customerId can be null)
 }

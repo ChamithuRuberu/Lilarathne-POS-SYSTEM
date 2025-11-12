@@ -2,7 +2,7 @@
 
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXTextField?>
-<?import com.jfoenix.controls.JFXRadioButton?>
+<?import com.jfoenix.controls.JFXComboBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.*?>
@@ -151,8 +151,21 @@
                   </columns>
                </TableView>
                
+               <!-- Payment Method and Total Cost Section -->
+               <HBox alignment="CENTER_LEFT" spacing="24" style="-fx-padding: 16 0;">
+                  <!-- Payment Method -->
+                  <HBox spacing="12" alignment="CENTER_LEFT">
+                     <Text text="Payment Method:" styleClass="form-label" style="-fx-font-size: 12px;">
+                        <font>
+                           <Font name="System Bold" size="12.0" />
+                        </font>
+                     </Text>
+                     <JFXComboBox fx:id="cmbPaymentMethod" promptText="Select Payment Method" styleClass="text-field-modern" prefWidth="150.0" prefHeight="30.0" />
+                  </HBox>
+                  
+                  <Region HBox.hgrow="ALWAYS" />
+               
                <!-- Total and Complete Order -->
-               <HBox alignment="CENTER_RIGHT" spacing="24" style="-fx-padding: 16 0;">
                   <VBox alignment="CENTER_RIGHT" spacing="8">
                      <Text text="Total Cost:" style="-fx-font-size: 18px; -fx-fill: #64748b;">
                         <font>

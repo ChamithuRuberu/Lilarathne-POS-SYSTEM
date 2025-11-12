@@ -167,6 +167,15 @@
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </JFXButton>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadSalesReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
                      </HBox>
                      <TableView fx:id="tblSalesReports" prefHeight="300.0">
                         <columns>
@@ -182,6 +191,17 @@
                <!-- Tab 2: Top Selling Products -->
                <Tab text="🏆 Top Selling Products">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadSalesReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <TableView fx:id="tblTopProducts" prefHeight="300.0">
                         <columns>
                            <TableColumn fx:id="colProductRank" prefWidth="80.0" text="Rank" />
@@ -196,6 +216,17 @@
                <!-- Tab 3: Sales by Category -->
                <Tab text="📦 Sales by Category">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadSalesReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <TableView fx:id="tblSalesByCategory" prefHeight="300.0">
                         <columns>
                            <TableColumn fx:id="colCategoryName" prefWidth="300.0" text="Product Category" />
@@ -210,6 +241,17 @@
                <!-- Tab 4: Sales by Cashier -->
                <Tab text="👤 Sales by Cashier/User">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadSalesReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <TableView fx:id="tblSalesByCashier" prefHeight="300.0">
                         <columns>
                            <TableColumn fx:id="colCashierRank" prefWidth="80.0" text="Rank" />
@@ -224,6 +266,17 @@
                <!-- Tab 5: Profit & Loss -->
                <Tab text="💹 Profit &amp; Loss Report">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadFinancialReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <GridPane hgap="20" vgap="16">
                         <columnConstraints>
                            <ColumnConstraints percentWidth="50" />
@@ -278,6 +331,17 @@
                <!-- Tab 6: Tax Summary -->
                <Tab text="📄 Tax Summary Report">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadFinancialReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <HBox spacing="20" alignment="CENTER">
                         <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #e3f2fd; -fx-padding: 20; -fx-background-radius: 8;">
                            <Text text="Total Taxable Amount" style="-fx-font-size: 14;">
@@ -319,6 +383,17 @@
                <!-- Tab 7: Top Customers -->
                <Tab text="⭐ Top Customers">
                   <VBox spacing="16" style="-fx-padding: 20;">
+                     <HBox spacing="16" alignment="CENTER_LEFT">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <JFXButton onAction="#downloadSalesReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
                      <TableView fx:id="tblTopCustomers" prefHeight="300.0">
                         <columns>
                            <TableColumn fx:id="colCustomerRank" prefWidth="80.0" text="Rank" />

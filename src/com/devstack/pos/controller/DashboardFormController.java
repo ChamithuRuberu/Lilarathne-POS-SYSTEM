@@ -4,6 +4,7 @@ import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.entity.ReturnOrder;
+import com.devstack.pos.entity.ReturnOrderItem;
 import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.service.OrderDetailService;
@@ -11,6 +12,7 @@ import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.ReturnOrderService;
+import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.CategoryService;
 import com.jfoenix.controls.JFXButton;
@@ -47,6 +49,7 @@ public class DashboardFormController extends BaseController {
     private final ProductDetailService productDetailService;
     private final CustomerService customerService;
     private final ReturnOrderService returnOrderService;
+    private final ReturnOrderItemService returnOrderItemService;
     private final ProductService productService;
     private final CategoryService categoryService;
     
@@ -134,6 +137,9 @@ public class DashboardFormController extends BaseController {
     private JFXButton btnPurchase;
     
     @FXML
+    private JFXButton btnReports;
+    
+    @FXML
     public void initialize() {
         // Initialize sidebar with user info
         initializeSidebar();
@@ -212,6 +218,10 @@ public class DashboardFormController extends BaseController {
         if (btnPurchase != null) {
             btnPurchase.setVisible(isAdmin);
             btnPurchase.setManaged(isAdmin);
+        }
+        if (btnReports != null) {
+            btnReports.setVisible(isAdmin);
+            btnReports.setManaged(isAdmin);
         }
     }
     
@@ -411,23 +421,64 @@ public class DashboardFormController extends BaseController {
             if (topProducts.isEmpty()) {
                 pieChartData.add(new PieChart.Data("No Sales Data", 100.0));
             } else {
-                // Calculate total quantity for percentage
-                long totalQuantity = topProducts.stream()
-                    .mapToLong(item -> ((Number) item[2]).longValue())
+                // Get all return orders in the date range to calculate net sales
+                List<ReturnOrder> returnOrdersInRange = returnOrderService.findAllReturnOrders().stream()
+                    .filter(ro -> ro.getReturnDate() != null && 
+                           !ro.getReturnDate().isBefore(startDate) && 
+                           !ro.getReturnDate().isAfter(endDate))
+                    .collect(Collectors.toList());
+                
+                // Create a map of product code to returned quantity
+                Map<Integer, Long> returnedQuantitiesByProduct = new java.util.HashMap<>();
+                for (ReturnOrder returnOrder : returnOrdersInRange) {
+                    List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrder.getId());
+                    for (ReturnOrderItem returnItem : returnItems) {
+                        Integer productCode = returnItem.getProductCode();
+                        Long returnedQty = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
+                        returnedQuantitiesByProduct.put(productCode, returnedQty + returnItem.getReturnQuantity());
+                    }
+                }
+                
+                // Calculate net sales (sold - returned) for each product
+                List<ProductNetSales> netSalesList = new ArrayList<>();
+                for (Object[] product : topProducts) {
+                    Integer productCode = ((Number) product[0]).intValue();
+                    String productName = (String) product[1];
+                    if (productName == null || productName.isEmpty()) {
+                        productName = "Product #" + productCode;
+                    }
+                    long soldQuantity = ((Number) product[2]).longValue();
+                    long returnedQuantity = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
+                    long netQuantity = soldQuantity - returnedQuantity;
+                    
+                    // Only include products with positive net sales
+                    if (netQuantity > 0) {
+                        netSalesList.add(new ProductNetSales(productCode, productName, netQuantity));
+                    }
+                }
+                
+                // Sort by net quantity descending
+                netSalesList.sort(Comparator.comparing(ProductNetSales::getNetQuantity).reversed());
+                
+                // Calculate total net quantity for percentage
+                long totalNetQuantity = netSalesList.stream()
+                    .mapToLong(ProductNetSales::getNetQuantity)
                     .sum();
                 
-                // Add top 5 products to pie chart
-                topProducts.stream()
-                    .limit(5)
-                    .forEach(item -> {
-                        String productName = (String) item[1];
-                        if (productName == null || productName.isEmpty()) {
-                            productName = "Product #" + item[0];
-                        }
-                        long quantity = ((Number) item[2]).longValue();
-                        double percentage = totalQuantity > 0 ? (quantity * 100.0 / totalQuantity) : 0.0;
-                        pieChartData.add(new PieChart.Data(productName + " (" + quantity + ")", percentage));
-                    });
+                if (totalNetQuantity == 0) {
+                    pieChartData.add(new PieChart.Data("No Net Sales Data", 100.0));
+                } else {
+                    // Add top 5 products to pie chart (by net sales)
+                    netSalesList.stream()
+                        .limit(5)
+                        .forEach(product -> {
+                            double percentage = (product.getNetQuantity() * 100.0 / totalNetQuantity);
+                            pieChartData.add(new PieChart.Data(
+                                product.getProductName() + " (" + product.getNetQuantity() + ")", 
+                                percentage
+                            ));
+                        });
+                }
             }
             
             pieChartTopProducts.setData(pieChartData);
@@ -435,6 +486,23 @@ public class DashboardFormController extends BaseController {
             ex.printStackTrace();
             System.err.println("Error loading top selling products chart: " + ex.getMessage());
         }
+    }
+    
+    // Helper class for net sales calculation
+    private static class ProductNetSales {
+        private final Integer productCode;
+        private final String productName;
+        private final Long netQuantity;
+        
+        public ProductNetSales(Integer productCode, String productName, Long netQuantity) {
+            this.productCode = productCode;
+            this.productName = productName;
+            this.netQuantity = netQuantity;
+        }
+        
+        public Integer getProductCode() { return productCode; }
+        public String getProductName() { return productName; }
+        public Long getNetQuantity() { return netQuantity; }
     }
     
     private void loadMonthlyIncomeChart() {
@@ -568,10 +636,30 @@ public class DashboardFormController extends BaseController {
             LocalDateTime startOfDay = today.atStartOfDay();
             LocalDateTime endOfDay = today.atTime(23, 59, 59);
             
-            // Today's orders
+            // Today's orders and returns
             Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
+            Long todayReturns = returnOrderService.countReturnsByDateRange(startOfDay, endOfDay);
+            
             if (lblTodayOrders != null) {
-                lblTodayOrders.setText(String.valueOf(todayOrders != null ? todayOrders : 0L));
+                long ordersCount = todayOrders != null ? todayOrders : 0L;
+                long returnsCount = todayReturns != null ? todayReturns : 0L;
+                
+                // Show orders count, and if there are returns, show them too
+                if (returnsCount > 0) {
+                    lblTodayOrders.setText(ordersCount + " (" + returnsCount + " returns)");
+                } else {
+                    lblTodayOrders.setText(String.valueOf(ordersCount));
+                }
+            }
+            
+            // Update orders change indicator if available
+            if (lblOrdersChange != null) {
+                Long todayReturnsCount = returnOrderService.countReturnsByDateRange(startOfDay, endOfDay);
+                if (todayReturnsCount != null && todayReturnsCount > 0) {
+                    lblOrdersChange.setText(todayReturnsCount + " return" + (todayReturnsCount > 1 ? "s" : "") + " today");
+                } else {
+                    lblOrdersChange.setText("--");
+                }
             }
             
             // Average order value - calculate using net revenue (revenue minus refunds)

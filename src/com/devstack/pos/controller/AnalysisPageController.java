@@ -4,6 +4,8 @@ import com.devstack.pos.entity.Product;
 import com.devstack.pos.repository.ProductDetailRepository;
 import com.devstack.pos.repository.ProductRepository;
 import com.devstack.pos.service.OrderDetailService;
+import com.devstack.pos.service.PDFReportService;
+import com.devstack.pos.service.ReturnOrderService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -184,6 +186,8 @@ public class AnalysisPageController extends BaseController {
     private final OrderDetailService orderDetailService;
     private final ProductRepository productRepository;
     private final ProductDetailRepository productDetailRepository;
+    private final PDFReportService pdfReportService;
+    private final ReturnOrderService returnOrderService;
     
     private LocalDateTime filterStartDate = null;
     private LocalDateTime filterEndDate = null;
@@ -192,6 +196,16 @@ public class AnalysisPageController extends BaseController {
     public void initialize() {
         // Initialize sidebar
         initializeSidebar();
+        
+        // Authorization check: Reports accessible by ADMIN only
+        if (!com.devstack.pos.util.AuthorizationUtil.canAccessReports()) {
+            com.devstack.pos.util.AuthorizationUtil.showAdminOnlyAlert();
+            // Navigate back to dashboard
+            javafx.application.Platform.runLater(() -> {
+                btnDashboardOnAction(null);
+            });
+            return;
+        }
         
         // Initialize date pickers
         dateFrom.setValue(LocalDate.now().minusMonths(1));
@@ -242,13 +256,113 @@ public class AnalysisPageController extends BaseController {
         
         // Load all data
         loadAllReports();
+        
+        // Load weekly sales by default
+        loadWeeklySales(null);
     }
     
     @FXML
     public void refreshAll(ActionEvent event) {
         loadAllReports();
+        // Reload weekly sales to maintain default view
+        loadWeeklySales(null);
     }
-
+    
+    // PDF Download Methods
+    @FXML
+    public void downloadSalesReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateSalesReportPDF(
+                filterStartDate != null ? filterStartDate : null,
+                filterEndDate != null ? filterEndDate : null,
+                "comprehensive"
+            );
+            showSuccessAlert("PDF Generated", "Sales report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate sales report PDF: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void downloadReturnOrdersReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateReturnOrdersReportPDF(
+                filterStartDate != null ? filterStartDate : null,
+                filterEndDate != null ? filterEndDate : null
+            );
+            showSuccessAlert("PDF Generated", "Return orders report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate return orders report PDF: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void downloadInventoryReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateInventoryReportPDF();
+            showSuccessAlert("PDF Generated", "Inventory report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate inventory report PDF: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void downloadFinancialReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateFinancialReportPDF(
+                filterStartDate != null ? filterStartDate : null,
+                filterEndDate != null ? filterEndDate : null
+            );
+            showSuccessAlert("PDF Generated", "Financial report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate financial report PDF: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void downloadSupplierReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateSupplierReportPDF();
+            showSuccessAlert("PDF Generated", "Supplier report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate supplier report PDF: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void downloadComprehensiveReportPDF(ActionEvent event) {
+        try {
+            String filePath = pdfReportService.generateComprehensiveReportPDF(
+                filterStartDate != null ? filterStartDate : null,
+                filterEndDate != null ? filterEndDate : null
+            );
+            showSuccessAlert("PDF Generated", "Comprehensive report PDF has been saved to:\n" + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("PDF Generation Error", "Failed to generate comprehensive report PDF: " + e.getMessage());
+        }
+    }
+    
+    private void showSuccessAlert(String title, String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    private void showErrorAlert(String title, String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
     @Override
     protected String getCurrentPageName() {
@@ -282,22 +396,32 @@ public class AnalysisPageController extends BaseController {
     
     private void loadSummaryStatistics() {
         Double revenue;
+        Double refundAmount;
+        Double netRevenue;
         Long orders;
         Double profit;
         Double avgOrder;
         
         if (filterStartDate != null && filterEndDate != null) {
             revenue = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
+            refundAmount = returnOrderService.getTotalRefundAmountByDateRange(filterStartDate, filterEndDate);
+            netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             orders = orderDetailService.countOrdersByDateRange(filterStartDate, filterEndDate);
             avgOrder = orderDetailService.getAverageOrderValueByDateRange(filterStartDate, filterEndDate);
         } else {
             revenue = orderDetailService.getTotalRevenue();
+            refundAmount = returnOrderService.getTotalRefundAmount();
+            netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             orders = orderDetailService.getTotalOrderCount();
             avgOrder = orderDetailService.getAverageOrderValue();
         }
         
-        lblTotalRevenue.setText(String.format("%.2f /=", revenue != null ? revenue : 0.0));
+        // Calculate profit (net revenue - cost, simplified for now)
+        profit = netRevenue; // This can be enhanced with actual cost calculations
+        
+        lblTotalRevenue.setText(String.format("%.2f /=", netRevenue != null ? netRevenue : 0.0));
         lblTotalOrders.setText(String.valueOf(orders != null ? orders : 0));
+        lblTotalProfit.setText(String.format("%.2f /=", profit != null ? profit : 0.0));
         lblAvgOrderValue.setText(String.format("%.2f /=", avgOrder != null ? avgOrder : 0.0));
     }
     
@@ -315,12 +439,14 @@ public class AnalysisPageController extends BaseController {
             LocalDateTime endDateTime = weekEnd.atTime(23, 59, 59);
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
+            Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
 
             String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
                           weekEnd.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
+            double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -340,11 +466,13 @@ public class AnalysisPageController extends BaseController {
             LocalDateTime endDateTime = monthEnd.atTime(23, 59, 59);
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
+            Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
 
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
+            double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -364,11 +492,13 @@ public class AnalysisPageController extends BaseController {
             LocalDateTime endDateTime = yearEnd.atTime(23, 59, 59);
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
+            Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
 
             String period = String.valueOf(yearStart.getYear());
-            double profit = 0.0; // Item-level profit unavailable after ItemDetail removal
-            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, revenue != null ? revenue : 0.0, profit));
+            double profit = netRevenue != null ? netRevenue : 0.0; // Net revenue as profit (can be enhanced with cost calculations)
+            data.add(new SalesReportTm(period, orders != null ? orders.intValue() : 0, netRevenue != null ? netRevenue : 0.0, profit));
         }
         
         tblSalesReports.setItems(data);
@@ -410,24 +540,30 @@ public class AnalysisPageController extends BaseController {
     
     private void loadProfitLoss() {
         Double totalSales;
+        Double refundAmount;
+        Double netSales;
         Double costOfGoods;
         Double grossProfit;
         
         if (filterStartDate != null && filterEndDate != null) {
             totalSales = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
+            refundAmount = returnOrderService.getTotalRefundAmountByDateRange(filterStartDate, filterEndDate);
+            netSales = (totalSales != null ? totalSales : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             costOfGoods = 0.0;
-            grossProfit = 0.0;
+            grossProfit = netSales; // Net sales as profit (can be enhanced with cost calculations)
         } else {
             totalSales = orderDetailService.getTotalRevenue();
+            refundAmount = returnOrderService.getTotalRefundAmount();
+            netSales = (totalSales != null ? totalSales : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             costOfGoods = 0.0;
-            grossProfit = 0.0;
+            grossProfit = netSales; // Net sales as profit (can be enhanced with cost calculations)
         }
         
-        lblPLTotalSales.setText(String.format("%.2f /=", totalSales != null ? totalSales : 0.0));
+        lblPLTotalSales.setText(String.format("%.2f /=", netSales != null ? netSales : 0.0));
         lblPLCostOfGoods.setText(String.format("%.2f /=", costOfGoods != null ? costOfGoods : 0.0));
         lblPLGrossProfit.setText(String.format("%.2f /=", grossProfit != null ? grossProfit : 0.0));
         
-        double profitMargin = (totalSales != null && totalSales > 0) ? (grossProfit / totalSales * 100) : 0.0;
+        double profitMargin = (netSales != null && netSales > 0) ? (grossProfit / netSales * 100) : 0.0;
         lblPLProfitMargin.setText(String.format("%.2f%%", profitMargin));
         
         // Load detailed profit by product
@@ -436,16 +572,22 @@ public class AnalysisPageController extends BaseController {
     
     private void loadTaxSummary() {
         Double taxableAmount;
+        Double refundAmount;
+        Double netTaxableAmount;
         
         if (filterStartDate != null && filterEndDate != null) {
             taxableAmount = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
+            refundAmount = returnOrderService.getTotalRefundAmountByDateRange(filterStartDate, filterEndDate);
+            netTaxableAmount = (taxableAmount != null ? taxableAmount : 0.0) - (refundAmount != null ? refundAmount : 0.0);
         } else {
             taxableAmount = orderDetailService.getTotalRevenue();
+            refundAmount = returnOrderService.getTotalRefundAmount();
+            netTaxableAmount = (taxableAmount != null ? taxableAmount : 0.0) - (refundAmount != null ? refundAmount : 0.0);
         }
         
-        double tax = (taxableAmount != null ? taxableAmount : 0.0) * 0.15; // 15% tax
+        double tax = (netTaxableAmount != null ? netTaxableAmount : 0.0) * 0.15; // 15% tax
         
-        lblTaxableAmount.setText(String.format("%.2f /=", taxableAmount != null ? taxableAmount : 0.0));
+        lblTaxableAmount.setText(String.format("%.2f /=", netTaxableAmount != null ? netTaxableAmount : 0.0));
         lblEstimatedTax.setText(String.format("%.2f /=", tax));
         
         // Load monthly tax summary for last 12 months
@@ -460,12 +602,14 @@ public class AnalysisPageController extends BaseController {
             LocalDateTime endDateTime = monthEnd.atTime(23, 59, 59);
             
             Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
+            Double refund = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refund != null ? refund : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
-            Double taxAmount = (revenue != null ? revenue : 0.0) * 0.15;
+            Double taxAmount = (netRevenue != null ? netRevenue : 0.0) * 0.15;
             
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
             
-            data.add(new TaxSummaryTm(period, orders.intValue(), revenue, taxAmount));
+            data.add(new TaxSummaryTm(period, orders != null ? orders.intValue() : 0, netRevenue, taxAmount));
         }
         
         tblTaxSummary.setItems(data);

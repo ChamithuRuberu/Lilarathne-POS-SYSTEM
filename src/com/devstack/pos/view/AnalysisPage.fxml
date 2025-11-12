@@ -21,15 +21,7 @@
                   </font>
                </Text>
                <Region HBox.hgrow="ALWAYS" />
-               <JFXButton onAction="#refreshAll" text="🔄 Refresh All" buttonType="RAISED" styleClass="btn-primary">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
-               <JFXButton onAction="#btnBackToDashboard" text="← Back" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
+               <JFXButton onAction="#btnBackToDashboard" text="← Back to Dashboard" buttonType="RAISED" styleClass="btn-secondary" prefWidth="100">
                   <font>
                      <Font name="System Bold" size="13.0" />
                   </font>
@@ -328,59 +320,7 @@
                   </VBox>
                </Tab>
                
-               <!-- Tab 6: Tax Summary -->
-               <Tab text="📄 Tax Summary Report">
-                  <VBox spacing="16" style="-fx-padding: 20;">
-                     <HBox spacing="16" alignment="CENTER_LEFT">
-                        <Region HBox.hgrow="ALWAYS" />
-                        <JFXButton onAction="#downloadFinancialReportPDF" text="📥 Download PDF" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
-                           <font>
-                              <Font name="System Bold" size="12.0" />
-                           </font>
-                           <cursor>
-                              <Cursor fx:constant="HAND" />
-                           </cursor>
-                        </JFXButton>
-                     </HBox>
-                     <HBox spacing="20" alignment="CENTER">
-                        <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #e3f2fd; -fx-padding: 20; -fx-background-radius: 8;">
-                           <Text text="Total Taxable Amount" style="-fx-font-size: 14;">
-                              <font>
-                                 <Font name="System" size="14.0" />
-                              </font>
-                           </Text>
-                           <Text fx:id="lblTaxableAmount" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
-                     <font>
-                                 <Font name="System Bold" size="22.0" />
-                     </font>
-                           </Text>
-                        </VBox>
-                        <VBox spacing="8" alignment="CENTER" style="-fx-background-color: #fff3e0; -fx-padding: 20; -fx-background-radius: 8;">
-                           <Text text="Estimated Tax (15%)" style="-fx-font-size: 14;">
-                     <font>
-                                 <Font name="System" size="14.0" />
-                     </font>
-                           </Text>
-                           <Text fx:id="lblEstimatedTax" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold;">
-                     <font>
-                                 <Font name="System Bold" size="22.0" />
-                     </font>
-                           </Text>
-                        </VBox>
-                     </HBox>
-                     
-                     <TableView fx:id="tblTaxSummary" prefHeight="250.0">
-                        <columns>
-                           <TableColumn fx:id="colTaxPeriod" prefWidth="200.0" text="Period" />
-                           <TableColumn fx:id="colTaxOrders" prefWidth="120.0" text="Orders" />
-                           <TableColumn fx:id="colTaxGrossSales" prefWidth="200.0" text="Gross Sales" />
-                           <TableColumn fx:id="colTaxAmount" prefWidth="200.0" text="Tax Amount (15%)" />
-                        </columns>
-                     </TableView>
-                  </VBox>
-               </Tab>
-               
-               <!-- Tab 7: Top Customers -->
+               <!-- Tab 6: Top Customers -->
                <Tab text="⭐ Top Customers">
                   <VBox spacing="16" style="-fx-padding: 20;">
                      <HBox spacing="16" alignment="CENTER_LEFT">

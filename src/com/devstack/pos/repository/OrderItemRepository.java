@@ -67,5 +67,56 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
            "GROUP BY oi.productCode, oi.productName " +
            "ORDER BY totalQuantity DESC")
     List<Object[]> getTopSellingProductsByQuantity();
+    
+    /**
+     * Get top selling products with revenue (with date range)
+     * Returns: productCode, productName, totalQuantity, totalRevenue
+     */
+    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(oi.lineTotal) as totalRevenue " +
+           "FROM OrderItem oi " +
+           "JOIN OrderDetail od ON oi.orderId = od.code " +
+           "WHERE od.issuedDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY oi.productCode, oi.productName " +
+           "ORDER BY totalRevenue DESC")
+    List<Object[]> getTopSellingProductsWithRevenue(@Param("startDate") LocalDateTime startDate, 
+                                                      @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get top selling products with revenue (all time)
+     * Returns: productCode, productName, totalQuantity, totalRevenue
+     */
+    @Query("SELECT oi.productCode, oi.productName, SUM(oi.quantity) as totalQuantity, SUM(oi.lineTotal) as totalRevenue " +
+           "FROM OrderItem oi " +
+           "GROUP BY oi.productCode, oi.productName " +
+           "ORDER BY totalRevenue DESC")
+    List<Object[]> getTopSellingProductsWithRevenue();
+    
+    /**
+     * Get sales by category (with date range)
+     * Returns: categoryName, orderCount, totalRevenue
+     */
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(oi.lineTotal) as totalRevenue " +
+           "FROM OrderItem oi " +
+           "JOIN OrderDetail od ON oi.orderId = od.code " +
+           "JOIN Product p ON oi.productCode = p.code " +
+           "LEFT JOIN Category c ON p.category = c " +
+           "WHERE od.issuedDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY c.name " +
+           "ORDER BY totalRevenue DESC")
+    List<Object[]> getSalesByCategory(@Param("startDate") LocalDateTime startDate, 
+                                      @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get sales by category (all time)
+     * Returns: categoryName, orderCount, totalRevenue
+     */
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COUNT(DISTINCT od.code) as orderCount, SUM(oi.lineTotal) as totalRevenue " +
+           "FROM OrderItem oi " +
+           "JOIN OrderDetail od ON oi.orderId = od.code " +
+           "JOIN Product p ON oi.productCode = p.code " +
+           "LEFT JOIN Category c ON p.category = c " +
+           "GROUP BY c.name " +
+           "ORDER BY totalRevenue DESC")
+    List<Object[]> getSalesByCategory();
 }
 

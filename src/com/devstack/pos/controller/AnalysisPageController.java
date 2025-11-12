@@ -4,6 +4,7 @@ import com.devstack.pos.entity.Product;
 import com.devstack.pos.repository.ProductDetailRepository;
 import com.devstack.pos.repository.ProductRepository;
 import com.devstack.pos.service.OrderDetailService;
+import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
 import com.devstack.pos.service.ReturnOrderService;
 import javafx.collections.FXCollections;
@@ -145,28 +146,6 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<ProfitLossTm, Double> colPLProfit;
     
-    // Tax Summary Tab
-    @FXML
-    private Text lblTaxableAmount;
-    
-    @FXML
-    private Text lblEstimatedTax;
-    
-    @FXML
-    private TableView<TaxSummaryTm> tblTaxSummary;
-    
-    @FXML
-    private TableColumn<TaxSummaryTm, String> colTaxPeriod;
-    
-    @FXML
-    private TableColumn<TaxSummaryTm, Integer> colTaxOrders;
-    
-    @FXML
-    private TableColumn<TaxSummaryTm, Double> colTaxGrossSales;
-    
-    @FXML
-    private TableColumn<TaxSummaryTm, Double> colTaxAmount;
-    
     // Top Customers Tab
     @FXML
     private TableView<TopCustomerTm> tblTopCustomers;
@@ -184,6 +163,7 @@ public class AnalysisPageController extends BaseController {
     private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
     
     private final OrderDetailService orderDetailService;
+    private final OrderItemService orderItemService;
     private final ProductRepository productRepository;
     private final ProductDetailRepository productDetailRepository;
     private final PDFReportService pdfReportService;
@@ -241,12 +221,6 @@ public class AnalysisPageController extends BaseController {
         colPLCost.setCellValueFactory(new PropertyValueFactory<>("cost"));
         colPLRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
         colPLProfit.setCellValueFactory(new PropertyValueFactory<>("profit"));
-        
-        // Configure Tax Summary Table
-        colTaxPeriod.setCellValueFactory(new PropertyValueFactory<>("period"));
-        colTaxOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
-        colTaxGrossSales.setCellValueFactory(new PropertyValueFactory<>("grossSales"));
-        colTaxAmount.setCellValueFactory(new PropertyValueFactory<>("taxAmount"));
         
         // Configure Top Customers Table
         colCustomerRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
@@ -390,7 +364,6 @@ public class AnalysisPageController extends BaseController {
         loadSalesByCategory();
         loadSalesByCashier();
         loadProfitLoss();
-        loadTaxSummary();
         loadTopCustomers();
     }
     
@@ -505,13 +478,67 @@ public class AnalysisPageController extends BaseController {
     }
     
     private void loadTopProducts() {
-        // Item-level aggregation removed; show empty top products for now
-        tblTopProducts.setItems(FXCollections.observableArrayList());
+        List<Object[]> topProductsData;
+        
+        if (filterStartDate != null && filterEndDate != null) {
+            topProductsData = orderItemService.getTopSellingProductsWithRevenue(filterStartDate, filterEndDate);
+        } else {
+            topProductsData = orderItemService.getTopSellingProductsWithRevenue();
+        }
+        
+        ObservableList<TopProductTm> observableList = FXCollections.observableArrayList();
+        
+        int rank = 1;
+        for (Object[] data : topProductsData) {
+            Integer productCode = ((Number) data[0]).intValue();
+            String productName = (String) data[1];
+            Integer qtySold = ((Number) data[2]).intValue();
+            Double revenue = ((Number) data[3]).doubleValue();
+            
+            // Account for refunds
+            Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(
+                filterStartDate != null ? filterStartDate : LocalDateTime.of(2000, 1, 1, 0, 0),
+                filterEndDate != null ? filterEndDate : LocalDateTime.now()
+            );
+            // Note: Refund calculation per product would require more complex query
+            // For now, we show gross revenue
+            
+            TopProductTm tm = new TopProductTm(rank++, productName != null ? productName : "Unknown", qtySold, revenue);
+            observableList.add(tm);
+        }
+        
+        tblTopProducts.setItems(observableList);
     }
     
     private void loadSalesByCategory() {
-        // Item-level aggregation removed; show empty sales-by-category for now
-        tblSalesByCategory.setItems(FXCollections.observableArrayList());
+        List<Object[]> categoryData;
+        
+        if (filterStartDate != null && filterEndDate != null) {
+            categoryData = orderItemService.getSalesByCategory(filterStartDate, filterEndDate);
+        } else {
+            categoryData = orderItemService.getSalesByCategory();
+        }
+        
+        ObservableList<CategoryReportTm> observableList = FXCollections.observableArrayList();
+        
+        for (Object[] data : categoryData) {
+            String categoryName = (String) data[0];
+            Long orderCount = ((Number) data[1]).longValue();
+            Double revenue = ((Number) data[2]).doubleValue();
+            
+            // Account for refunds (simplified - would need category-level refund calculation)
+            Double profit = revenue; // Simplified profit calculation
+            
+            CategoryReportTm tm = new CategoryReportTm(
+                categoryName != null ? categoryName : "Uncategorized",
+                orderCount.intValue(),
+                revenue,
+                profit
+            );
+            observableList.add(tm);
+        }
+        
+        tblSalesByCategory.setItems(observableList);
     }
     
     private void loadSalesByCashier() {
@@ -568,51 +595,6 @@ public class AnalysisPageController extends BaseController {
         
         // Load detailed profit by product
         tblProfitLoss.setItems(FXCollections.observableArrayList());
-    }
-    
-    private void loadTaxSummary() {
-        Double taxableAmount;
-        Double refundAmount;
-        Double netTaxableAmount;
-        
-        if (filterStartDate != null && filterEndDate != null) {
-            taxableAmount = orderDetailService.getRevenueByDateRange(filterStartDate, filterEndDate);
-            refundAmount = returnOrderService.getTotalRefundAmountByDateRange(filterStartDate, filterEndDate);
-            netTaxableAmount = (taxableAmount != null ? taxableAmount : 0.0) - (refundAmount != null ? refundAmount : 0.0);
-        } else {
-            taxableAmount = orderDetailService.getTotalRevenue();
-            refundAmount = returnOrderService.getTotalRefundAmount();
-            netTaxableAmount = (taxableAmount != null ? taxableAmount : 0.0) - (refundAmount != null ? refundAmount : 0.0);
-        }
-        
-        double tax = (netTaxableAmount != null ? netTaxableAmount : 0.0) * 0.15; // 15% tax
-        
-        lblTaxableAmount.setText(String.format("%.2f /=", netTaxableAmount != null ? netTaxableAmount : 0.0));
-        lblEstimatedTax.setText(String.format("%.2f /=", tax));
-        
-        // Load monthly tax summary for last 12 months
-        ObservableList<TaxSummaryTm> data = FXCollections.observableArrayList();
-        LocalDate now = LocalDate.now();
-        
-        for (int i = 11; i >= 0; i--) {
-            LocalDate monthStart = now.minusMonths(i).with(TemporalAdjusters.firstDayOfMonth());
-            LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
-            
-            LocalDateTime startDateTime = monthStart.atStartOfDay();
-            LocalDateTime endDateTime = monthEnd.atTime(23, 59, 59);
-            
-            Double revenue = orderDetailService.getRevenueByDateRange(startDateTime, endDateTime);
-            Double refund = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
-            Double netRevenue = (revenue != null ? revenue : 0.0) - (refund != null ? refund : 0.0);
-            Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
-            Double taxAmount = (netRevenue != null ? netRevenue : 0.0) * 0.15;
-            
-            String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-            
-            data.add(new TaxSummaryTm(period, orders != null ? orders.intValue() : 0, netRevenue, taxAmount));
-        }
-        
-        tblTaxSummary.setItems(data);
     }
     
     private void loadTopCustomers() {
@@ -758,29 +740,6 @@ public class AnalysisPageController extends BaseController {
         public void setRevenue(double revenue) { this.revenue = revenue; }
         public double getProfit() { return profit; }
         public void setProfit(double profit) { this.profit = profit; }
-    }
-    
-    public static class TaxSummaryTm {
-        private String period;
-        private int orders;
-        private double grossSales;
-        private double taxAmount;
-        
-        public TaxSummaryTm(String period, int orders, double grossSales, double taxAmount) {
-            this.period = period;
-            this.orders = orders;
-            this.grossSales = grossSales;
-            this.taxAmount = taxAmount;
-        }
-        
-        public String getPeriod() { return period; }
-        public void setPeriod(String period) { this.period = period; }
-        public int getOrders() { return orders; }
-        public void setOrders(int orders) { this.orders = orders; }
-        public double getGrossSales() { return grossSales; }
-        public void setGrossSales(double grossSales) { this.grossSales = grossSales; }
-        public double getTaxAmount() { return taxAmount; }
-        public void setTaxAmount(double taxAmount) { this.taxAmount = taxAmount; }
     }
     
     public static class TopCustomerTm {

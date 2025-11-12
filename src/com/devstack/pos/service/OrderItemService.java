@@ -106,6 +106,42 @@ public class OrderItemService {
     }
     
     /**
+     * Get top selling products with revenue within a date range
+     * Returns list of Object[]: [productCode, productName, totalQuantity, totalRevenue]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopSellingProductsWithRevenue(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderItemRepository.getTopSellingProductsWithRevenue(startDate, endDate);
+    }
+    
+    /**
+     * Get top selling products with revenue (all time)
+     * Returns list of Object[]: [productCode, productName, totalQuantity, totalRevenue]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getTopSellingProductsWithRevenue() {
+        return orderItemRepository.getTopSellingProductsWithRevenue();
+    }
+    
+    /**
+     * Get sales by category within a date range
+     * Returns list of Object[]: [categoryName, orderCount, totalRevenue]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCategory(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderItemRepository.getSalesByCategory(startDate, endDate);
+    }
+    
+    /**
+     * Get sales by category (all time)
+     * Returns list of Object[]: [categoryName, orderCount, totalRevenue]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCategory() {
+        return orderItemRepository.getSalesByCategory();
+    }
+    
+    /**
      * Delete an order item
      */
     public void deleteOrderItem(Long id) {

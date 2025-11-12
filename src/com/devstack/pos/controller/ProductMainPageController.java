@@ -345,6 +345,17 @@ public class ProductMainPageController extends BaseController {
         txtSelectedProdDescription.setText(newValue.getDescription());
         btnNewBatch.setDisable(false);
         currentProductCode = newValue.getCode();
+        
+        // Load product data into form for editing
+        try {
+            Product product = productService.findProduct(newValue.getCode());
+            if (product != null) {
+                loadExistingProduct(product);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         try {
             loadBatchData(newValue.getCode());
         } catch (Exception e) {

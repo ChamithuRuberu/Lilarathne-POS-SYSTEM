@@ -109,17 +109,32 @@ public class ReturnOrderService {
         throw new RuntimeException("Return order not found with id: " + id);
     }
     
-    public ReturnOrder completeReturn(Integer id) {
+    public ReturnOrder completeReturn(Integer id, String processedBy) {
         Optional<ReturnOrder> optionalReturn = returnOrderRepository.findById(id);
         if (optionalReturn.isPresent()) {
             ReturnOrder returnOrder = optionalReturn.get();
             returnOrder.setStatus("COMPLETED");
             returnOrder.setCompletionDate(LocalDateTime.now());
+            returnOrder.setProcessedBy(processedBy);
+            
+            // Save the return order first to ensure status is updated
+            ReturnOrder savedReturn = returnOrderRepository.save(returnOrder);
+            System.out.println("Return order " + savedReturn.getReturnId() + " marked as COMPLETED and saved to database");
             
             // Restore inventory for all items in this return order
-            restoreInventoryForReturnOrder(id);
+            // This is done after saving to ensure the return order status is persisted
+            // even if inventory restoration encounters issues
+            try {
+                restoreInventoryForReturnOrder(id);
+                System.out.println("Inventory restored successfully for return order " + id);
+            } catch (Exception e) {
+                // Log the error but don't fail the transaction
+                // The return order status has already been saved
+                System.err.println("Warning: Failed to restore inventory for return order " + id + ": " + e.getMessage());
+                e.printStackTrace();
+            }
             
-            return returnOrderRepository.save(returnOrder);
+            return savedReturn;
         }
         throw new RuntimeException("Return order not found with id: " + id);
     }
@@ -153,21 +168,35 @@ public class ReturnOrderService {
      * Creates the return order and saves all individual return items
      */
     public ReturnOrder processReturnWithItems(ReturnOrder returnOrder, List<ReturnOrderItem> returnItems) {
-        // Save the return order first
-        ReturnOrder savedReturn = saveReturnOrder(returnOrder);
-        
-        // Save all return items
-        for (ReturnOrderItem item : returnItems) {
-            item.setReturnOrderId(savedReturn.getId());
+        try {
+            // Save the return order first
+            ReturnOrder savedReturn = saveReturnOrder(returnOrder);
+            System.out.println("Return order saved with ID: " + savedReturn.getId() + ", Return ID: " + savedReturn.getReturnId());
+            
+            // Save all return items
+            for (ReturnOrderItem item : returnItems) {
+                item.setReturnOrderId(savedReturn.getId());
+            }
+            List<ReturnOrderItem> savedItems = returnOrderItemService.saveAllReturnOrderItems(returnItems);
+            System.out.println("Saved " + savedItems.size() + " return order items");
+            
+            // If status is COMPLETED, immediately restore inventory
+            if ("COMPLETED".equals(savedReturn.getStatus())) {
+                try {
+                    restoreInventoryForReturnOrder(savedReturn.getId());
+                } catch (Exception e) {
+                    System.err.println("Warning: Failed to restore inventory during return processing: " + e.getMessage());
+                    e.printStackTrace();
+                    // Don't fail the transaction - return order is already saved
+                }
+            }
+            
+            return savedReturn;
+        } catch (Exception e) {
+            System.err.println("Error processing return with items: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to process return order: " + e.getMessage(), e);
         }
-        returnOrderItemService.saveAllReturnOrderItems(returnItems);
-        
-        // If status is COMPLETED, immediately restore inventory
-        if ("COMPLETED".equals(savedReturn.getStatus())) {
-            restoreInventoryForReturnOrder(savedReturn.getId());
-        }
-        
-        return savedReturn;
     }
     
     public void deleteReturnOrder(Integer id) {

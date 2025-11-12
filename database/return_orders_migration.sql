@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS return_order (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT chk_return_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED'))
+    CONSTRAINT chk_return_status CHECK (status IN ('PENDING', 'REJECTED', 'COMPLETED'))
 );
 
 -- Create indexes for return_order table

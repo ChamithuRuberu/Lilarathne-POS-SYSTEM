@@ -7,6 +7,7 @@ import com.devstack.pos.entity.ReturnOrderItem;
 import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.util.AuthorizationUtil;
+import com.devstack.pos.util.UserSessionData;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -287,7 +288,9 @@ public class ReturnOrdersFormController extends BaseController {
                 alert.showAndWait().ifPresent(response -> {
                     try {
                         if (response == completeButton) {
-                            returnOrderService.completeReturn(returnOrder.getId());
+                            returnOrderService.completeReturn(returnOrder.getId(), 
+                                UserSessionData.email != null && !UserSessionData.email.isEmpty() ? 
+                                    UserSessionData.email : "System");
                             new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, 
                                 "Return order completed and inventory restored successfully!").showAndWait();
                             loadReturnOrders();

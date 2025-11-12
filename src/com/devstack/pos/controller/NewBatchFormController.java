@@ -271,11 +271,73 @@ public class NewBatchFormController {
     }
 
     /**
-     * Generate unique batch barcode
+     * Generate short form from product description
+     * Takes first letter of each word (up to 4 words) and converts to uppercase
+     */
+    private String generateShortForm(String description) {
+        if (description == null || description.trim().isEmpty()) {
+            return "PROD";
+        }
+        
+        // Clean and split description into words
+        String[] words = description.trim().toUpperCase()
+                .replaceAll("[^A-Z0-9\\s]", "") // Remove special characters, keep alphanumeric
+                .split("\\s+");
+        
+        StringBuilder shortForm = new StringBuilder();
+        
+        // Take first letter of each word, up to 4 words
+        int maxWords = Math.min(words.length, 4);
+        for (int i = 0; i < maxWords; i++) {
+            if (!words[i].isEmpty()) {
+                // Take first character, or first 2 if it's a number
+                char firstChar = words[i].charAt(0);
+                if (Character.isLetter(firstChar)) {
+                    shortForm.append(firstChar);
+                } else if (Character.isDigit(firstChar)) {
+                    // For numbers, take first 2 digits if available
+                    shortForm.append(words[i].substring(0, Math.min(2, words[i].length())));
+                }
+            }
+        }
+        
+        // If we got nothing, use first 4 uppercase letters/numbers from description
+        if (shortForm.length() == 0) {
+            String cleaned = description.toUpperCase().replaceAll("[^A-Z0-9]", "");
+            shortForm.append(cleaned.substring(0, Math.min(4, cleaned.length())));
+        }
+        
+        // Ensure minimum length of 2
+        if (shortForm.length() < 2) {
+            shortForm.append("XX");
+        }
+        
+        return shortForm.toString();
+    }
+
+    /**
+     * Generate unique batch barcode with meaningful short form from product description
      */
     private void generateBatchBarcode() throws WriterException, IOException {
-        // Generate unique numeric barcode for batch
-        uniqueData = BarcodeGenerator.generateNumeric(12);
+        // Get product description
+        String description = txtSelectedProdDescription != null ? 
+                txtSelectedProdDescription.getText() : "";
+        
+        // Generate short form from description
+        String shortForm = generateShortForm(description);
+        
+        // Generate unique numeric suffix (6 digits for uniqueness)
+        String numericSuffix = BarcodeGenerator.generateNumeric(6);
+        
+        // Combine short form with numeric suffix
+        // Format: SHORTFORM + 6 digits (e.g., "COKE123456")
+        uniqueData = shortForm + numericSuffix;
+        
+        // Ensure barcode is valid (alphanumeric, max length for CODE 128)
+        // CODE 128 supports up to 80 characters, but we'll keep it reasonable
+        if (uniqueData.length() > 20) {
+            uniqueData = uniqueData.substring(0, 20);
+        }
         
         // Generate CODE 128 barcode image
         Code128Writer barcodeWriter = new Code128Writer();

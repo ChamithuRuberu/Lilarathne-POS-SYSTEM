@@ -32,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +144,38 @@ public class DashboardFormController extends BaseController {
         System.out.println("Dashboard loaded for user: " + UserSessionData.email + " with role: " + UserSessionData.userRole);
         
         // Load all dashboard data on initialization
+        // This is called every time the dashboard is navigated to (new controller instance)
         refreshDashboard();
+        
+        // Ensure dashboard refreshes when scene becomes visible
+        // Use Platform.runLater to ensure scene is fully initialized
+        javafx.application.Platform.runLater(() -> {
+            try {
+                if (context != null) {
+                    // Add listener for when scene is set
+                    context.sceneProperty().addListener((obs, oldScene, newScene) -> {
+                        if (newScene != null) {
+                            // Refresh when scene becomes visible
+                            javafx.application.Platform.runLater(() -> {
+                                System.out.println("Dashboard scene loaded - refreshing data");
+                                refreshDashboard();
+                            });
+                        }
+                    });
+                    
+                    // If scene is already set, refresh now
+                    if (context.getScene() != null) {
+                        javafx.application.Platform.runLater(() -> {
+                            System.out.println("Dashboard scene already set - refreshing data");
+                            refreshDashboard();
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error setting up dashboard refresh listener: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
     
     /**
@@ -185,16 +217,28 @@ public class DashboardFormController extends BaseController {
     
     /**
      * Refreshes all dashboard data
-     * Called on initialization and when refresh button is clicked
+     * Called on initialization, when refresh button is clicked, and when navigating to dashboard
      */
-    private void refreshDashboard() {
+    public void refreshDashboard() {
+        // Ensure this runs on JavaFX Application Thread
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            refreshDashboardInternal();
+        } else {
+            javafx.application.Platform.runLater(this::refreshDashboardInternal);
+        }
+    }
+    
+    private void refreshDashboardInternal() {
         try {
+            System.out.println("Refreshing dashboard data at " + java.time.LocalDateTime.now());
             loadWelcomeMessage();
             loadKpis();
             loadTopSellingProductsChart();
             loadMonthlyIncomeChart();
             loadRecentTransactions();
             loadQuickStats();
+            loadPendingTasks(); // Load return orders statistics
+            System.out.println("Dashboard refresh completed");
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Error refreshing dashboard: " + ex.getMessage());
@@ -205,6 +249,7 @@ public class DashboardFormController extends BaseController {
     protected String getCurrentPageName() {
         return "Dashboard";
     }
+    
     
     // Dashboard-specific action handlers
     
@@ -282,11 +327,19 @@ public class DashboardFormController extends BaseController {
             Double todayRevenue = orderDetailService.getRevenueByDateRange(startOfDay, endOfDay);
             Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
             
+            // Subtract today's refunds from revenue (net revenue)
+            Double todayRefundAmount = returnOrderService.getTotalRefundAmountByDateRange(startOfDay, endOfDay);
+            Double todayNetRevenue = (todayRevenue != null ? todayRevenue : 0.0) - (todayRefundAmount != null ? todayRefundAmount : 0.0);
+            
             // Yesterday's revenue for comparison
             LocalDate yesterday = today.minusDays(1);
             LocalDateTime yesterdayStart = yesterday.atStartOfDay();
             LocalDateTime yesterdayEnd = yesterday.atTime(23, 59, 59);
             Double yesterdayRevenue = orderDetailService.getRevenueByDateRange(yesterdayStart, yesterdayEnd);
+            
+            // Subtract yesterday's refunds from revenue
+            Double yesterdayRefundAmount = returnOrderService.getTotalRefundAmountByDateRange(yesterdayStart, yesterdayEnd);
+            Double yesterdayNetRevenue = (yesterdayRevenue != null ? yesterdayRevenue : 0.0) - (yesterdayRefundAmount != null ? yesterdayRefundAmount : 0.0);
             
             // Last week's revenue for profit comparison
             LocalDate lastWeekStart = today.minusDays(7);
@@ -300,10 +353,10 @@ public class DashboardFormController extends BaseController {
             LocalDateTime thisWeekStartTime = thisWeekStart.atStartOfDay();
             Double thisWeekRevenue = orderDetailService.getRevenueByDateRange(thisWeekStartTime, endOfDay);
             
-            // Calculate percentage changes
+            // Calculate percentage changes based on net revenue
             String revenueChangeText = "--";
-            if (yesterdayRevenue != null && yesterdayRevenue > 0 && todayRevenue != null) {
-                double change = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+            if (yesterdayNetRevenue != null && yesterdayNetRevenue > 0 && todayNetRevenue != null) {
+                double change = ((todayNetRevenue - yesterdayNetRevenue) / yesterdayNetRevenue) * 100;
                 String symbol = change >= 0 ? "▲" : "▼";
                 String style = change >= 0 ? "kpi-change-positive" : "kpi-change-negative";
                 revenueChangeText = String.format("%s %.1f%% vs Yesterday", symbol, Math.abs(change));
@@ -328,8 +381,8 @@ public class DashboardFormController extends BaseController {
                 totalProducts = productService.findAllProducts().size();
             } catch (Exception ignored) {}
             
-            // Format and set texts
-            String revenueText = String.format("LKR %,.2f", todayRevenue != null ? todayRevenue : 0.0);
+            // Format and set texts - use net revenue (revenue minus refunds)
+            String revenueText = String.format("LKR %,.2f", todayNetRevenue != null ? todayNetRevenue : 0.0);
             String totalCustomersText = String.valueOf(totalCustomers);
             String totalProductsText = "Total Products: " + totalProducts;
             
@@ -401,16 +454,18 @@ public class DashboardFormController extends BaseController {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Daily Income");
             
-            // Get income for each day of the month
+            // Get income for each day of the month (net revenue: revenue minus refunds)
             for (LocalDate date = firstDayOfMonth; !date.isAfter(lastDayOfMonth); date = date.plusDays(1)) {
                 LocalDateTime startOfDay = date.atStartOfDay();
                 LocalDateTime endOfDay = date.atTime(23, 59, 59);
                 
                 Double dailyRevenue = orderDetailService.getRevenueByDateRange(startOfDay, endOfDay);
-                double revenue = dailyRevenue != null ? dailyRevenue : 0.0;
+                Double dailyRefunds = returnOrderService.getTotalRefundAmountByDateRange(startOfDay, endOfDay);
+                
+                double netRevenue = (dailyRevenue != null ? dailyRevenue : 0.0) - (dailyRefunds != null ? dailyRefunds : 0.0);
                 
                 String dayLabel = date.format(DateTimeFormatter.ofPattern("MM/dd"));
-                series.getData().add(new XYChart.Data<>(dayLabel, revenue));
+                series.getData().add(new XYChart.Data<>(dayLabel, netRevenue));
             }
             
             barChartMonthlyIncome.getData().add(series);
@@ -426,16 +481,13 @@ public class DashboardFormController extends BaseController {
                 return;
             }
             
-            // Get recent orders (last 10)
-            List<OrderDetail> recentOrders = orderDetailService.findAllOrderDetails().stream()
-                .sorted(Comparator.comparing(OrderDetail::getIssuedDate).reversed())
-                .limit(10)
-                .collect(Collectors.toList());
-            
-            ObservableList<RecentTransactionTm> transactionList = FXCollections.observableArrayList();
-            
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm");
             
+            // Create a list to hold transactions with their dates for sorting
+            List<TransactionWithDate> allTransactions = new ArrayList<>();
+            
+            // Get recent orders
+            List<OrderDetail> recentOrders = orderDetailService.findAllOrderDetails();
             for (OrderDetail order : recentOrders) {
                 String customerName = order.getCustomerName();
                 if (customerName == null || customerName.isEmpty()) {
@@ -448,18 +500,65 @@ public class DashboardFormController extends BaseController {
                     ? String.format("LKR %,.2f", order.getDiscount()) 
                     : "No discount";
                 
-                transactionList.add(new RecentTransactionTm(
-                    customerName,
-                    formattedAmount,
-                    formattedDiscount,
-                    formattedDate
+                allTransactions.add(new TransactionWithDate(
+                    new RecentTransactionTm(customerName, formattedAmount, formattedDiscount, formattedDate),
+                    order.getIssuedDate()
                 ));
             }
             
-            tblRecentTransactions.setItems(transactionList);
+            // Get recent return orders
+            List<ReturnOrder> recentReturns = returnOrderService.findAllReturnOrders();
+            for (ReturnOrder returnOrder : recentReturns) {
+                String customerName = returnOrder.getCustomerEmail();
+                if (customerName == null || customerName.isEmpty()) {
+                    customerName = "Guest";
+                }
+                
+                LocalDateTime returnDate = returnOrder.getReturnDate() != null 
+                    ? returnOrder.getReturnDate() 
+                    : LocalDateTime.now();
+                
+                String formattedDate = returnDate.format(formatter);
+                // Show return as negative amount with "RETURN" prefix
+                String formattedAmount = String.format("RETURN: -LKR %,.2f", returnOrder.getRefundAmount());
+                String formattedDiscount = returnOrder.getStatus(); // Use status instead of discount for returns
+                
+                allTransactions.add(new TransactionWithDate(
+                    new RecentTransactionTm(customerName, formattedAmount, formattedDiscount, formattedDate),
+                    returnDate
+                ));
+            }
+            
+            // Sort by date (most recent first) and limit to 10
+            List<RecentTransactionTm> transactionList = allTransactions.stream()
+                .sorted(Comparator.comparing(TransactionWithDate::getDate).reversed())
+                .limit(10)
+                .map(TransactionWithDate::getTransaction)
+                .collect(Collectors.toList());
+            
+            tblRecentTransactions.setItems(FXCollections.observableArrayList(transactionList));
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Error loading recent transactions: " + ex.getMessage());
+        }
+    }
+    
+    // Helper class to sort transactions by date
+    private static class TransactionWithDate {
+        private final RecentTransactionTm transaction;
+        private final LocalDateTime date;
+        
+        public TransactionWithDate(RecentTransactionTm transaction, LocalDateTime date) {
+            this.transaction = transaction;
+            this.date = date;
+        }
+        
+        public RecentTransactionTm getTransaction() {
+            return transaction;
+        }
+        
+        public LocalDateTime getDate() {
+            return date;
         }
     }
     
@@ -475,8 +574,20 @@ public class DashboardFormController extends BaseController {
                 lblTodayOrders.setText(String.valueOf(todayOrders != null ? todayOrders : 0L));
             }
             
-            // Average order value
-            Double avgOrderValue = orderDetailService.getAverageOrderValueByDateRange(startOfDay, endOfDay);
+            // Average order value - calculate using net revenue (revenue minus refunds)
+            Double todayRevenue = orderDetailService.getRevenueByDateRange(startOfDay, endOfDay);
+            Double todayRefunds = returnOrderService.getTotalRefundAmountByDateRange(startOfDay, endOfDay);
+            Double todayNetRevenue = (todayRevenue != null ? todayRevenue : 0.0) - (todayRefunds != null ? todayRefunds : 0.0);
+            
+            // Calculate average order value from net revenue
+            Double avgOrderValue = null;
+            if (todayOrders != null && todayOrders > 0) {
+                avgOrderValue = todayNetRevenue / todayOrders;
+            } else {
+                // Fallback to service method if no orders today
+                avgOrderValue = orderDetailService.getAverageOrderValueByDateRange(startOfDay, endOfDay);
+            }
+            
             if (lblAvgOrderValue != null) {
                 lblAvgOrderValue.setText(String.format("LKR %,.2f", avgOrderValue != null ? avgOrderValue : 0.0));
             }

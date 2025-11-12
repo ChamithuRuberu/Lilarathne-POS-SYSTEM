@@ -456,14 +456,16 @@ public class ProcessReturnDialogController {
             // Create return order
             ReturnOrder returnOrder = ReturnOrder.builder()
                 .orderId(Math.toIntExact(loadedOrder.getCode()))
-                .customerEmail(loadedOrder.getCustomerName() != null ? 
+                .customerEmail(loadedOrder.getCustomerName() != null && !loadedOrder.getCustomerName().isEmpty() ? 
                     loadedOrder.getCustomerName() : "Guest")
                 .originalAmount(loadedOrder.getTotalCost())
                 .refundAmount(totalRefundAmount)
                 .returnReason(cmbReturnReason.getValue())
-                .notes(txtNotes.getText())
+                .notes(txtNotes.getText() != null && !txtNotes.getText().trim().isEmpty() ? 
+                    txtNotes.getText().trim() : null)
                 .status("PENDING")
-                .processedBy(UserSessionData.email)
+                .processedBy(UserSessionData.email != null && !UserSessionData.email.isEmpty() ? 
+                    UserSessionData.email : "System")
                 .returnDate(LocalDateTime.now())
                 .build();
             

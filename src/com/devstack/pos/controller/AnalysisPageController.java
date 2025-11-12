@@ -214,6 +214,9 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<TopCustomerTm, Double> colCustomerAvgOrder;
     
+    @FXML
+    private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
+    
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final ProductRepository productRepository;
@@ -323,12 +326,14 @@ public class AnalysisPageController extends BaseController {
         colCustomerRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
         colCustomerNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
         colCustomerAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
+        colCustomerPendingPayments.setCellValueFactory(new PropertyValueFactory<>("pendingPayments"));
         
         // Format currency columns for Top Customers
         formatCurrencyColumn(colCustomerRevenue);
         formatCurrencyColumn(colCustomerRefunds);
         formatCurrencyColumn(colCustomerNetRevenue);
         formatCurrencyColumn(colCustomerAvgOrder);
+        formatCurrencyColumn(colCustomerPendingPayments);
         
         // Set CONSTRAINED_RESIZE_POLICY for all tables
         tblSalesReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -823,12 +828,28 @@ public class AnalysisPageController extends BaseController {
             refundsByCustomer = returnOrderItemService.getRefundsByCustomer();
         }
         
+        // Get pending payments by customer
+        List<Object[]> pendingPaymentsByCustomer;
+        if (filterStartDate != null && filterEndDate != null) {
+            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomerByDateRange(filterStartDate, filterEndDate);
+        } else {
+            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomer();
+        }
+        
         // Create a map of customer email/name to refund amount
         Map<String, Double> refundMap = new HashMap<>();
         for (Object[] refundData : refundsByCustomer) {
             String customerEmail = (String) refundData[0];
             Double refundAmount = ((Number) refundData[1]).doubleValue();
             refundMap.put(customerEmail != null ? customerEmail : "Guest", refundAmount);
+        }
+        
+        // Create a map of customer name to pending payments total
+        Map<String, Double> pendingPaymentsMap = new HashMap<>();
+        for (Object[] pendingData : pendingPaymentsByCustomer) {
+            String customerName = (String) pendingData[0];
+            Double pendingAmount = ((Number) pendingData[1]).doubleValue();
+            pendingPaymentsMap.put(customerName != null ? customerName : "Guest", pendingAmount);
         }
         
         ObservableList<TopCustomerTm> observableList = FXCollections.observableArrayList();
@@ -845,8 +866,11 @@ public class AnalysisPageController extends BaseController {
             Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
             
+            // Get pending payments total for this customer
+            Double pendingPayments = pendingPaymentsMap.getOrDefault(customerKey, 0.0);
+            
             TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, 
-                totalRevenue, refundAmount, netRevenue, avgOrder);
+                totalRevenue, refundAmount, netRevenue, avgOrder, pendingPayments);
             observableList.add(tm);
         }
         
@@ -1038,8 +1062,9 @@ public class AnalysisPageController extends BaseController {
         private double refunds;
         private double netRevenue;
         private double avgOrder;
+        private double pendingPayments;
         
-        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue, double refunds, double netRevenue, double avgOrder) {
+        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue, double refunds, double netRevenue, double avgOrder, double pendingPayments) {
             this.rank = rank;
             this.customerName = customerName;
             this.orders = orders;
@@ -1047,6 +1072,7 @@ public class AnalysisPageController extends BaseController {
             this.refunds = refunds;
             this.netRevenue = netRevenue;
             this.avgOrder = avgOrder;
+            this.pendingPayments = pendingPayments;
         }
         
         public int getRank() { return rank; }
@@ -1063,5 +1089,7 @@ public class AnalysisPageController extends BaseController {
         public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
         public double getAvgOrder() { return avgOrder; }
         public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
+        public double getPendingPayments() { return pendingPayments; }
+        public void setPendingPayments(double pendingPayments) { this.pendingPayments = pendingPayments; }
     }
 }

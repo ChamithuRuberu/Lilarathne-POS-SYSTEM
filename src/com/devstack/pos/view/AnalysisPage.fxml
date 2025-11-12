@@ -357,6 +357,7 @@
                            <TableColumn fx:id="colCustomerRefunds" prefWidth="120.0" text="Refunds" />
                            <TableColumn fx:id="colCustomerNetRevenue" prefWidth="130.0" text="Net Revenue" />
                            <TableColumn fx:id="colCustomerAvgOrder" prefWidth="120.0" text="Avg Order" />
+                           <TableColumn fx:id="colCustomerPendingPayments" prefWidth="130.0" text="Pending Payments" />
                </columns>
             </TableView>
          </VBox>

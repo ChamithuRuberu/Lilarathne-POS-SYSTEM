@@ -69,5 +69,13 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     // Find pending payments by payment method
     @Query("SELECT o FROM OrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.paymentMethod = :paymentMethod ORDER BY o.issuedDate ASC")
     List<OrderDetail> findPendingPaymentsByMethod(@Param("paymentMethod") String paymentMethod);
+    
+    // Get pending payments total by customer (all time)
+    @Query("SELECT o.customerName, COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.customerName IS NOT NULL GROUP BY o.customerName")
+    List<Object[]> getPendingPaymentsByCustomer();
+    
+    // Get pending payments total by customer (with date range)
+    @Query("SELECT o.customerName, COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.customerName IS NOT NULL AND o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.customerName")
+    List<Object[]> getPendingPaymentsByCustomerByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
 

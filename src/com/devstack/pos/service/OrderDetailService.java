@@ -137,6 +137,16 @@ public class OrderDetailService {
         return orderDetailRepository.findPendingPaymentsByMethod(paymentMethod);
     }
     
+    @Transactional(readOnly = true)
+    public List<Object[]> getPendingPaymentsByCustomer() {
+        return orderDetailRepository.getPendingPaymentsByCustomer();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getPendingPaymentsByCustomerByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getPendingPaymentsByCustomerByDateRange(startDate, endDate);
+    }
+    
     @Transactional
     public boolean completePayment(Long orderCode) {
         OrderDetail order = findOrderDetail(orderCode);

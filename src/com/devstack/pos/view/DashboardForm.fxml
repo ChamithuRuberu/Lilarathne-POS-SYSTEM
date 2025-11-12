@@ -116,7 +116,7 @@
                      <VBox styleClass="summary-card-blue" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
                         <Text text="📦 Today's Orders" style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: bold;"/>
-                        <Text fx:id="lblTodayOrders" text="0" style="-fx-font-size: 24px; -fx-fill: #0ea5e9; -fx-font-weight: bold;"/>
+                        <Text fx:id="lblTodayOrders" text="0" style="-fx-font-size: 20px; -fx-fill: #0ea5e9; -fx-font-weight: bold;"/>
                         <Text fx:id="lblOrdersChange" text="--" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>
                      </VBox>
                      

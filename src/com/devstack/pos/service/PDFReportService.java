@@ -27,7 +27,6 @@ public class PDFReportService {
     private final ProductService productService;
     private final CustomerService customerService;
     private final SupplierService supplierService;
-    private final PurchaseOrderService purchaseOrderService;
     private final ProductDetailService productDetailService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

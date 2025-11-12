@@ -155,6 +155,42 @@ public class ReturnOrderItemService {
     }
     
     /**
+     * Get refund amounts grouped by category within date range
+     * Returns list of Object[]: [categoryName, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByCategoryByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return returnOrderItemRepository.getRefundsByCategoryByDateRange(startDate, endDate);
+    }
+    
+    /**
+     * Get refund amounts grouped by category (all time)
+     * Returns list of Object[]: [categoryName, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByCategory() {
+        return returnOrderItemRepository.getRefundsByCategory();
+    }
+    
+    /**
+     * Get refund amounts grouped by customer within date range
+     * Returns list of Object[]: [customerEmail, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByCustomerByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return returnOrderItemRepository.getRefundsByCustomerByDateRange(startDate, endDate);
+    }
+    
+    /**
+     * Get refund amounts grouped by customer (all time)
+     * Returns list of Object[]: [customerEmail, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByCustomer() {
+        return returnOrderItemRepository.getRefundsByCustomer();
+    }
+    
+    /**
      * Delete a return order item
      */
     public void deleteReturnOrderItem(Long id) {

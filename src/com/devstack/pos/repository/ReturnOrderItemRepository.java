@@ -107,5 +107,52 @@ public interface ReturnOrderItemRepository extends JpaRepository<ReturnOrderItem
      */
     @Query("SELECT roi FROM ReturnOrderItem roi WHERE roi.inventoryRestored = false")
     List<ReturnOrderItem> findUnrestoredItems();
+    
+    /**
+     * Get refund amounts grouped by category (with date range)
+     * Returns: categoryName, totalRefundAmount
+     */
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "JOIN Product p ON roi.productCode = p.code " +
+           "LEFT JOIN Category c ON p.category = c " +
+           "WHERE ro.returnDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY c.name")
+    List<Object[]> getRefundsByCategoryByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                     @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get refund amounts grouped by category (all time)
+     * Returns: categoryName, totalRefundAmount
+     */
+    @Query("SELECT COALESCE(c.name, 'Uncategorized'), COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN Product p ON roi.productCode = p.code " +
+           "LEFT JOIN Category c ON p.category = c " +
+           "GROUP BY c.name")
+    List<Object[]> getRefundsByCategory();
+    
+    /**
+     * Get refund amounts grouped by customer (with date range)
+     * Returns: customerEmail, totalRefundAmount
+     */
+    @Query("SELECT ro.customerEmail, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "WHERE ro.returnDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY ro.customerEmail")
+    List<Object[]> getRefundsByCustomerByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                     @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get refund amounts grouped by customer (all time)
+     * Returns: customerEmail, totalRefundAmount
+     */
+    @Query("SELECT ro.customerEmail, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "GROUP BY ro.customerEmail")
+    List<Object[]> getRefundsByCustomer();
 }
 

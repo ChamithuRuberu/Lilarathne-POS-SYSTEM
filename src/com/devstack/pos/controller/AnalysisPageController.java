@@ -553,20 +553,39 @@ public class AnalysisPageController extends BaseController {
             categoryData = orderItemService.getSalesByCategory();
         }
         
+        // Get refunds by category
+        List<Object[]> refundsByCategory;
+        if (filterStartDate != null && filterEndDate != null) {
+            refundsByCategory = returnOrderItemService.getRefundsByCategoryByDateRange(filterStartDate, filterEndDate);
+        } else {
+            refundsByCategory = returnOrderItemService.getRefundsByCategory();
+        }
+        
+        // Create a map of category name to refund amount
+        Map<String, Double> refundMap = new HashMap<>();
+        for (Object[] refundData : refundsByCategory) {
+            String categoryName = (String) refundData[0];
+            Double refundAmount = ((Number) refundData[1]).doubleValue();
+            refundMap.put(categoryName != null ? categoryName : "Uncategorized", refundAmount);
+        }
+        
         ObservableList<CategoryReportTm> observableList = FXCollections.observableArrayList();
         
         for (Object[] data : categoryData) {
             String categoryName = (String) data[0];
+            String categoryKey = categoryName != null ? categoryName : "Uncategorized";
             Long orderCount = ((Number) data[1]).longValue();
             Double revenue = ((Number) data[2]).doubleValue();
             
-            // Account for refunds (simplified - would need category-level refund calculation)
-            Double profit = revenue; // Simplified profit calculation
+            // Get refund amount for this category
+            Double refundAmount = refundMap.getOrDefault(categoryKey, 0.0);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            Double profit = netRevenue; // Net revenue as profit
             
             CategoryReportTm tm = new CategoryReportTm(
-                categoryName != null ? categoryName : "Uncategorized",
+                categoryKey,
                 orderCount.intValue(),
-                revenue,
+                netRevenue,
                 profit
             );
             observableList.add(tm);
@@ -584,6 +603,21 @@ public class AnalysisPageController extends BaseController {
             cashierData = orderDetailService.getSalesByCashier();
         }
         
+        // Get total refunds for the period (cashier-level refunds would require order-level tracking)
+        // For now, we'll use a proportional approach or show gross revenue
+        // Note: Cashier refund tracking would need order-to-cashier mapping in return orders
+        Double totalRefunds;
+        if (filterStartDate != null && filterEndDate != null) {
+            totalRefunds = returnOrderService.getTotalRefundAmountByDateRange(filterStartDate, filterEndDate);
+        } else {
+            totalRefunds = returnOrderService.getTotalRefundAmount();
+        }
+        
+        // Calculate total revenue to distribute refunds proportionally
+        Double totalRevenue = cashierData.stream()
+            .mapToDouble(data -> ((Number) data[2]).doubleValue())
+            .sum();
+        
         ObservableList<CashierReportTm> observableList = FXCollections.observableArrayList();
         
         int rank = 1;
@@ -592,7 +626,14 @@ public class AnalysisPageController extends BaseController {
             Integer orders = ((Number) data[1]).intValue();
             Double revenue = ((Number) data[2]).doubleValue();
             
-            CashierReportTm tm = new CashierReportTm(rank++, cashierEmail != null ? cashierEmail : "Unknown", orders, revenue);
+            // Calculate proportional refund (simplified - ideally would track by cashier)
+            Double proportionalRefund = 0.0;
+            if (totalRevenue != null && totalRevenue > 0 && totalRefunds != null) {
+                proportionalRefund = (revenue / totalRevenue) * totalRefunds;
+            }
+            Double netRevenue = (revenue != null ? revenue : 0.0) - proportionalRefund;
+            
+            CashierReportTm tm = new CashierReportTm(rank++, cashierEmail != null ? cashierEmail : "Unknown", orders, netRevenue);
             observableList.add(tm);
         }
         
@@ -640,15 +681,36 @@ public class AnalysisPageController extends BaseController {
             topCustomersData = orderDetailService.getTopCustomersWithOrderCount();
         }
         
+        // Get refunds by customer
+        List<Object[]> refundsByCustomer;
+        if (filterStartDate != null && filterEndDate != null) {
+            refundsByCustomer = returnOrderItemService.getRefundsByCustomerByDateRange(filterStartDate, filterEndDate);
+        } else {
+            refundsByCustomer = returnOrderItemService.getRefundsByCustomer();
+        }
+        
+        // Create a map of customer email/name to refund amount
+        Map<String, Double> refundMap = new HashMap<>();
+        for (Object[] refundData : refundsByCustomer) {
+            String customerEmail = (String) refundData[0];
+            Double refundAmount = ((Number) refundData[1]).doubleValue();
+            refundMap.put(customerEmail != null ? customerEmail : "Guest", refundAmount);
+        }
+        
         ObservableList<TopCustomerTm> observableList = FXCollections.observableArrayList();
         
         int rank = 1;
         for (Object[] data : topCustomersData) {
             String customerName = (String) data[0];
+            String customerKey = customerName != null ? customerName : "Guest";
             Integer orders = ((Number) data[1]).intValue();
             Double totalRevenue = ((Number) data[2]).doubleValue();
             
-            TopCustomerTm tm = new TopCustomerTm(rank++, customerName != null ? customerName : "Guest", orders, totalRevenue);
+            // Get refund amount for this customer
+            Double refundAmount = refundMap.getOrDefault(customerKey, 0.0);
+            Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            
+            TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, netRevenue);
             observableList.add(tm);
         }
         

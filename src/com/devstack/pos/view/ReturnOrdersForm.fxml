@@ -21,14 +21,14 @@
                   </font>
                </Text>
                <Region HBox.hgrow="ALWAYS" />
-               <JFXButton onAction="#btnRefresh" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
-                  <cursor>
-                     <Cursor fx:constant="HAND" />
-                  </cursor>
-               </JFXButton>
+<!--               <JFXButton onAction="#btnRefresh" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary">-->
+<!--                  <font>-->
+<!--                     <Font name="System Bold" size="13.0" />-->
+<!--                  </font>-->
+<!--                  <cursor>-->
+<!--                     <Cursor fx:constant="HAND" />-->
+<!--                  </cursor>-->
+<!--               </JFXButton>-->
                <JFXButton onAction="#btnBackToDashboard" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
                   <font>
                      <Font name="System Bold" size="13.0" />

@@ -100,19 +100,38 @@ public class OrderDetailsFormController extends BaseController {
         // Fix table to prevent extra column
         tblOrders.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
+        // Make table read-only (view-only)
+        tblOrders.setEditable(false);
+        
         // Initialize date pickers (default to last 30 days)
         dateFrom.setValue(LocalDate.now().minusDays(30));
         dateTo.setValue(LocalDate.now());
         
         // Configure table columns
         colOrderId.setCellValueFactory(new PropertyValueFactory<>("code"));
+        colOrderId.setEditable(false);
+        colOrderId.setSortable(false);
         colCustomerName.setCellValueFactory(new PropertyValueFactory<>("customerName"));
+        colCustomerName.setEditable(false);
+        colCustomerName.setSortable(false);
         colDate.setCellValueFactory(new PropertyValueFactory<>("dateFormatted"));
+        colDate.setEditable(false);
+        colDate.setSortable(false);
         colDiscount.setCellValueFactory(new PropertyValueFactory<>("discountFormatted"));
+        colDiscount.setEditable(false);
+        colDiscount.setSortable(false);
         colOperator.setCellValueFactory(new PropertyValueFactory<>("operatorEmail"));
+        colOperator.setEditable(false);
+        colOperator.setSortable(false);
         colTotal.setCellValueFactory(new PropertyValueFactory<>("totalFormatted"));
+        colTotal.setEditable(false);
+        colTotal.setSortable(false);
         colAction.setCellValueFactory(new PropertyValueFactory<>("viewButton"));
+        colAction.setEditable(false);
+        colAction.setSortable(false);
         colReturnOrders.setCellValueFactory(new PropertyValueFactory<>("returnOrdersButton"));
+        colReturnOrders.setEditable(false);
+        colReturnOrders.setSortable(false);
         
         // Load initial data
         loadOrders();

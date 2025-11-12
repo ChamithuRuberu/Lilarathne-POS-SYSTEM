@@ -29,14 +29,14 @@
                </Text>
                <Region HBox.hgrow="ALWAYS" />
                <HBox spacing="12" alignment="CENTER_RIGHT">
-                  <JFXButton onAction="#btnRefreshOnAction" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
+<!--                  <JFXButton onAction="#btnRefreshOnAction" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">-->
+<!--                     <font>-->
+<!--                        <Font name="System Bold" size="13.0" />-->
+<!--                     </font>-->
+<!--                     <cursor>-->
+<!--                        <Cursor fx:constant="HAND" />-->
+<!--                     </cursor>-->
+<!--                  </JFXButton>-->
                   <JFXButton onAction="#btnBackToHomeOnAction" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
                      <font>
                         <Font name="System Bold" size="13.0" />

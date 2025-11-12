@@ -30,14 +30,14 @@
                </Text>
                <Region HBox.hgrow="ALWAYS" />
                <HBox spacing="12" alignment="CENTER_RIGHT">
-                  <JFXButton onAction="#btnRefreshOnAction" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
+<!--                  <JFXButton onAction="#btnRefreshOnAction" text="🔄 Refresh" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0">-->
+<!--                     <font>-->
+<!--                        <Font name="System Bold" size="13.0" />-->
+<!--                     </font>-->
+<!--                     <cursor>-->
+<!--                        <Cursor fx:constant="HAND" />-->
+<!--                     </cursor>-->
+<!--                  </JFXButton>-->
                   <JFXButton onAction="#btnBackToHomeOnAction" text="Back to Home" buttonType="RAISED" styleClass="btn-secondary" prefWidth="140.0">
                      <font>
                         <Font name="System Bold" size="13.0" />
@@ -187,16 +187,16 @@
                   </Text>
                </HBox>
                
-               <TableView fx:id="tblOrders" styleClass="table-view-modern" VBox.vgrow="ALWAYS">
+               <TableView fx:id="tblOrders" editable="false" styleClass="table-view-modern" VBox.vgrow="ALWAYS">
                   <columns>
-                     <TableColumn fx:id="colOrderId" text="Order ID" prefWidth="100"/>
-                     <TableColumn fx:id="colCustomerName" text="Customer" prefWidth="150"/>
-                     <TableColumn fx:id="colDate" text="Date &amp; Time" prefWidth="160"/>
-                     <TableColumn fx:id="colDiscount" text="Discount" prefWidth="90"/>
-                     <TableColumn fx:id="colOperator" text="Operator" prefWidth="130"/>
-                     <TableColumn fx:id="colTotal" text="Total Amount" prefWidth="130"/>
-                     <TableColumn fx:id="colAction" text="View Order" prefWidth="110"/>
-                     <TableColumn fx:id="colReturnOrders" text="Return Orders" prefWidth="140"/>
+                     <TableColumn fx:id="colOrderId" text="Order ID" prefWidth="100" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colCustomerName" text="Customer" prefWidth="150" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colDate" text="Date &amp; Time" prefWidth="160" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colDiscount" text="Discount" prefWidth="90" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colOperator" text="Operator" prefWidth="130" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colTotal" text="Total Amount" prefWidth="130" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colAction" text="View Order" prefWidth="110" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colReturnOrders" text="Return Orders" prefWidth="140" editable="false" sortable="false"/>
                   </columns>
                </TableView>
             </VBox>

@@ -74,6 +74,7 @@
                <columnConstraints>
                   <ColumnConstraints hgrow="ALWAYS"/>
                   <ColumnConstraints hgrow="ALWAYS"/>
+                  <ColumnConstraints hgrow="ALWAYS"/>
                </columnConstraints>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="0">
                   <Text text="Today's Revenue" styleClass="kpi-label-light"/>
@@ -85,6 +86,18 @@
                   <Text fx:id="lblTotalCustomers" text="0" styleClass="kpi-value-light"/>
 <!--                  <Text fx:id="lblTotalProducts" text="Total Products: 0" styleClass="kpi-secondary-light"/>-->
                </VBox>
+               <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
+                  <Text text="Pending Payments" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblPendingPaymentsCount" text="0" styleClass="kpi-value-light"/>
+
+                 <Text fx:id="lblPendingPaymentsAmount" text="Total Products: 0" styleClass="kpi-secondary-light"/>
+               </VBox>
+<!--               <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">-->
+<!--                  <Text text="Pending Payments" styleClass="kpi-label-light"/>-->
+<!--                  <Text fx:id="lblPendingPaymentsCount" text="0" styleClass="kpi-value-light"/>-->
+<!--                  <Text fx:id="lblPendingPaymentsAmount" text="LKR 0.00" styleClass="kpi-secondary-light"/>-->
+<!--                  <Text fx:id="lblPendingPaymentsDetails" text="&#45;&#45;" styleClass="kpi-secondary-light" style="-fx-font-size: 11px;"/>-->
+<!--               </VBox>-->
             </GridPane>
 
             <HBox spacing="25" VBox.vgrow="ALWAYS">

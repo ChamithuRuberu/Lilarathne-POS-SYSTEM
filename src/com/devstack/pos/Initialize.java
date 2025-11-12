@@ -66,7 +66,6 @@ public class Initialize extends Application {
             primaryStage.setMinHeight(500);
 
             System.out.println("About to show window...");
-            primaryStage.centerOnScreen();
             primaryStage.show();
             primaryStage.toFront();
 

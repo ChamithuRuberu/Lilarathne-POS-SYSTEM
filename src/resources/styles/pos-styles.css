@@ -45,12 +45,12 @@
     -fx-font-weight: bold;
     -fx-padding: 12 24;
     -fx-cursor: hand;
-    -fx-effect: -fx-shadow-sm;
+    -fx-effect: none;
 }
 
 .btn-primary:hover {
     -fx-background-color: #1d4ed8;
-    -fx-effect: -fx-shadow-md;
+    -fx-effect: none;
 }
 
 .btn-primary:pressed {
@@ -129,10 +129,40 @@
     -fx-pref-height: 44;
 }
 
+/* Remove double borders from JFoenix components */
+.text-field-modern .jfx-text-field,
+.text-field-modern .jfx-password-field {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.text-field-modern .jfx-text-field .text-input,
+.text-field-modern .jfx-password-field .text-input {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.text-field-modern .jfx-text-field .jfx-rippler,
+.text-field-modern .jfx-password-field .jfx-rippler {
+    -fx-rippler-fill: transparent;
+}
+
+/* Remove JFoenix default borders */
+.jfx-text-field,
+.jfx-password-field {
+    -fx-prompt-text-fill: #94a3b8;
+}
+
+.text-field-modern .jfx-text-field .label,
+.text-field-modern .jfx-password-field .label {
+    -fx-text-fill: #94a3b8;
+}
+
 .text-field-modern:focused {
     -fx-border-color: -fx-primary-color;
     -fx-border-width: 2;
-    -fx-effect: -fx-shadow-sm;
+    -fx-effect: none;
 }
 
 /* Modern Labels */
@@ -326,10 +356,12 @@
 }
 
 .login-card {
-    -fx-background-radius: 0;
+    -fx-background-color: white;
+    -fx-background-radius: 12;
     -fx-effect: none;
     -fx-padding: 48;
     -fx-max-width: 420;
+    -fx-border-width: 0;
 }
 
 .login-title {

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +85,50 @@ public class ReturnOrderItemService {
     @Transactional(readOnly = true)
     public Double getTotalRefundByProduct(Integer productCode) {
         return returnOrderItemRepository.getTotalRefundByProduct(productCode);
+    }
+    
+    /**
+     * Get total refund amount for a product within date range
+     */
+    @Transactional(readOnly = true)
+    public Double getTotalRefundByProductAndDateRange(Integer productCode, LocalDateTime startDate, LocalDateTime endDate) {
+        return returnOrderItemRepository.getTotalRefundByProductAndDateRange(productCode, startDate, endDate);
+    }
+    
+    /**
+     * Get refund amounts and quantities grouped by product code within date range
+     * Returns list of Object[]: [productCode, totalRefundAmount, totalReturnedQuantity]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsAndQuantitiesByProductByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return returnOrderItemRepository.getRefundsAndQuantitiesByProductByDateRange(startDate, endDate);
+    }
+    
+    /**
+     * Get refund amounts and quantities grouped by product code (all time)
+     * Returns list of Object[]: [productCode, totalRefundAmount, totalReturnedQuantity]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsAndQuantitiesByProduct() {
+        return returnOrderItemRepository.getRefundsAndQuantitiesByProduct();
+    }
+    
+    /**
+     * Get refund amounts grouped by product code within date range
+     * Returns list of Object[]: [productCode, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByProductByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return returnOrderItemRepository.getRefundsByProductByDateRange(startDate, endDate);
+    }
+    
+    /**
+     * Get refund amounts grouped by product code (all time)
+     * Returns list of Object[]: [productCode, totalRefundAmount]
+     */
+    @Transactional(readOnly = true)
+    public List<Object[]> getRefundsByProduct() {
+        return returnOrderItemRepository.getRefundsByProduct();
     }
     
     /**

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -42,6 +43,58 @@ public interface ReturnOrderItemRepository extends JpaRepository<ReturnOrderItem
      */
     @Query("SELECT COALESCE(SUM(roi.refundAmount), 0.0) FROM ReturnOrderItem roi WHERE roi.productCode = :productCode")
     Double getTotalRefundByProduct(@Param("productCode") Integer productCode);
+    
+    /**
+     * Get total refund amount for a product within date range
+     */
+    @Query("SELECT COALESCE(SUM(roi.refundAmount), 0.0) FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "WHERE roi.productCode = :productCode AND ro.returnDate BETWEEN :startDate AND :endDate")
+    Double getTotalRefundByProductAndDateRange(@Param("productCode") Integer productCode,
+                                               @Param("startDate") LocalDateTime startDate,
+                                               @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get refund amounts and quantities grouped by product code (with date range)
+     * Returns: productCode, totalRefundAmount, totalReturnedQuantity
+     */
+    @Query("SELECT roi.productCode, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund, COALESCE(SUM(roi.returnQuantity), 0) as totalReturnedQty " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "WHERE ro.returnDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY roi.productCode")
+    List<Object[]> getRefundsAndQuantitiesByProductByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                                 @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get refund amounts and quantities grouped by product code (all time)
+     * Returns: productCode, totalRefundAmount, totalReturnedQuantity
+     */
+    @Query("SELECT roi.productCode, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund, COALESCE(SUM(roi.returnQuantity), 0) as totalReturnedQty " +
+           "FROM ReturnOrderItem roi " +
+           "GROUP BY roi.productCode")
+    List<Object[]> getRefundsAndQuantitiesByProduct();
+    
+    /**
+     * Get refund amounts grouped by product code (with date range)
+     * Returns: productCode, totalRefundAmount
+     */
+    @Query("SELECT roi.productCode, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "JOIN ReturnOrder ro ON roi.returnOrderId = ro.id " +
+           "WHERE ro.returnDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY roi.productCode")
+    List<Object[]> getRefundsByProductByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate);
+    
+    /**
+     * Get refund amounts grouped by product code (all time)
+     * Returns: productCode, totalRefundAmount
+     */
+    @Query("SELECT roi.productCode, COALESCE(SUM(roi.refundAmount), 0.0) as totalRefund " +
+           "FROM ReturnOrderItem roi " +
+           "GROUP BY roi.productCode")
+    List<Object[]> getRefundsByProduct();
     
     /**
      * Count items in a return order

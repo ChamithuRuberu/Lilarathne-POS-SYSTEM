@@ -6,6 +6,7 @@ import com.devstack.pos.repository.ProductRepository;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
+import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ReturnOrderService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -168,6 +169,7 @@ public class AnalysisPageController extends BaseController {
     private final ProductDetailRepository productDetailRepository;
     private final PDFReportService pdfReportService;
     private final ReturnOrderService returnOrderService;
+    private final ReturnOrderItemService returnOrderItemService;
     
     private LocalDateTime filterStartDate = null;
     private LocalDateTime filterEndDate = null;
@@ -227,6 +229,14 @@ public class AnalysisPageController extends BaseController {
         colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
         colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
+        
+        // Set CONSTRAINED_RESIZE_POLICY for all tables
+        tblSalesReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblTopProducts.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblSalesByCategory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblSalesByCashier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblProfitLoss.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tblTopCustomers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         
         // Load all data
         loadAllReports();
@@ -486,6 +496,27 @@ public class AnalysisPageController extends BaseController {
             topProductsData = orderItemService.getTopSellingProductsWithRevenue();
         }
         
+        // Get refunds and returned quantities by product
+        List<Object[]> refundsAndQuantitiesByProduct;
+        if (filterStartDate != null && filterEndDate != null) {
+            refundsAndQuantitiesByProduct = returnOrderItemService.getRefundsAndQuantitiesByProductByDateRange(filterStartDate, filterEndDate);
+        } else {
+            refundsAndQuantitiesByProduct = returnOrderItemService.getRefundsAndQuantitiesByProduct();
+        }
+        
+        // Create maps for quick lookup
+        Map<Integer, Double> refundMap = new HashMap<>();
+        Map<Integer, Integer> returnedQtyMap = new HashMap<>();
+        
+        for (Object[] refundData : refundsAndQuantitiesByProduct) {
+            Integer productCode = ((Number) refundData[0]).intValue();
+            Double refundAmount = ((Number) refundData[1]).doubleValue();
+            Integer returnedQty = ((Number) refundData[2]).intValue();
+            
+            refundMap.put(productCode, refundAmount);
+            returnedQtyMap.put(productCode, returnedQty);
+        }
+        
         ObservableList<TopProductTm> observableList = FXCollections.observableArrayList();
         
         int rank = 1;
@@ -495,16 +526,19 @@ public class AnalysisPageController extends BaseController {
             Integer qtySold = ((Number) data[2]).intValue();
             Double revenue = ((Number) data[3]).doubleValue();
             
-            // Account for refunds
-            Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(
-                filterStartDate != null ? filterStartDate : LocalDateTime.of(2000, 1, 1, 0, 0),
-                filterEndDate != null ? filterEndDate : LocalDateTime.now()
-            );
-            // Note: Refund calculation per product would require more complex query
-            // For now, we show gross revenue
+            // Get refund amount and returned quantity for this product
+            Double refundAmount = refundMap.getOrDefault(productCode, 0.0);
+            Integer returnedQty = returnedQtyMap.getOrDefault(productCode, 0);
             
-            TopProductTm tm = new TopProductTm(rank++, productName != null ? productName : "Unknown", qtySold, revenue);
-            observableList.add(tm);
+            // Calculate net values
+            Integer netQtySold = (qtySold != null ? qtySold : 0) - (returnedQty != null ? returnedQty : 0);
+            Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+            
+            // Only show products with net quantity > 0 or net revenue > 0
+            if (netQtySold > 0 || netRevenue > 0) {
+                TopProductTm tm = new TopProductTm(rank++, productName != null ? productName : "Unknown", netQtySold, netRevenue);
+                observableList.add(tm);
+            }
         }
         
         tblTopProducts.setItems(observableList);

@@ -12,19 +12,7 @@
 <VBox fx:id="context" alignment="CENTER" spacing="0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.SignupFormController" stylesheets="@styles/pos-styles.css" styleClass="login-container">
    <children>
       <VBox alignment="CENTER" spacing="0" styleClass="login-card">
-         <VBox alignment="CENTER_LEFT" spacing="16" style="-fx-padding: 0 0 40 0;">
-            <Text styleClass="login-title" text="Create Account">
-               <font>
-                  <Font name="System Bold" size="36.0" />
-               </font>
-            </Text>
-            <Text styleClass="login-subtitle" text="Sign up to get started with POS System">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Text>
-         </VBox>
-         
+
          <VBox spacing="20" style="-fx-padding: 0;">
             <VBox spacing="8">
                <Text text="Email" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;">

@@ -321,17 +321,15 @@
 
 /* Login Form Specific */
 .login-container {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #667eea 0%, #764ba2 100%);
-    -fx-padding: 40;
+    -fx-background-color: -fx-background-light;
+    -fx-padding: 0;
 }
 
 .login-card {
-    -fx-background-color: white;
-    -fx-background-radius: 20;
-    -fx-effect: -fx-shadow-lg;
+    -fx-background-radius: 0;
+    -fx-effect: none;
     -fx-padding: 48;
-    -fx-pref-width: 420;
-    -fx-pref-height: 520;
+    -fx-max-width: 420;
 }
 
 .login-title {

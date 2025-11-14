@@ -8,9 +8,11 @@ import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
+import com.devstack.pos.service.PDFReportService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.util.AuthorizationUtil;
+import com.devstack.pos.util.ReceiptPrinter;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.CartTm;
 import javafx.collections.FXCollections;
@@ -60,6 +62,8 @@ public class PlaceOrderFormController extends BaseController {
     private final ProductService productService;
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
+    private final PDFReportService pdfReportService;
+    private final ReceiptPrinter receiptPrinter;
 
 
     public void initialize() {
@@ -334,10 +338,27 @@ public class PlaceOrderFormController extends BaseController {
             // Only reduce stock if payment is CASH (PAID)
             // For CREDIT/CHEQUE (PENDING), stock will be reduced when payment is completed
             if ("PAID".equals(paymentStatus)) {
-            for (CartTm tm : tms) {
-                productDetailService.reduceStock(tm.getCode(), tm.getQty());
-            }
-            new Alert(Alert.AlertType.CONFIRMATION, "Order Completed Successfully!").show();
+                for (CartTm tm : tms) {
+                    productDetailService.reduceStock(tm.getCode(), tm.getQty());
+                }
+                
+                // Generate and print bill receipt
+                try {
+                    String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
+                    
+                    // Print receipt and open cash drawer
+                    receiptPrinter.printBillAndOpenDrawer(receiptPath);
+                    
+                    new Alert(Alert.AlertType.CONFIRMATION, 
+                        "Order Completed Successfully!\nReceipt saved to: " + receiptPath).show();
+                    
+                } catch (Exception receiptEx) {
+                    receiptEx.printStackTrace();
+                    // Order was successful, just receipt printing failed
+                    new Alert(Alert.AlertType.WARNING, 
+                        "Order completed but receipt printing failed: " + receiptEx.getMessage()).show();
+                }
+                
             } else {
                 new Alert(Alert.AlertType.INFORMATION, 
                     "Order created with " + paymentMethod + " payment. Status: PENDING. Stock will be reduced when payment is completed.").show();

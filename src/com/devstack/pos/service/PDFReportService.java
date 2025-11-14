@@ -28,9 +28,219 @@ public class PDFReportService {
     private final CustomerService customerService;
     private final SupplierService supplierService;
     private final ProductDetailService productDetailService;
+    private final OrderItemService orderItemService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    
+    /**
+     * Generate bill receipt PDF for a specific order
+     */
+    public String generateBillReceipt(Long orderId) throws FileNotFoundException {
+        // Get order details
+        OrderDetail orderDetail = orderDetailService.findOrderDetail(orderId);
+        if (orderDetail == null) {
+            throw new RuntimeException("Order not found: " + orderId);
+        }
+        
+        // Get order items
+        List<OrderItem> orderItems = orderItemService.findByOrderId(orderId);
+        
+        // Create directory structure: ~/POS_Receipts/[CashierName]/[CustomerName]/
+        String userHome = System.getProperty("user.home");
+        String cashierEmail = orderDetail.getOperatorEmail();
+        
+        // Extract cashier username from email (everything before @)
+        String cashierName = cashierEmail != null && cashierEmail.contains("@") 
+            ? cashierEmail.substring(0, cashierEmail.indexOf("@")) 
+            : (cashierEmail != null ? cashierEmail : "unknown");
+        
+        // Sanitize cashier name for file system (remove special characters)
+        cashierName = cashierName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        
+        // Get customer name - use "Guest" if null or empty
+        String customerName = orderDetail.getCustomerName();
+        if (customerName == null || customerName.trim().isEmpty() || "Guest".equalsIgnoreCase(customerName.trim())) {
+            customerName = "Guest";
+        }
+        
+        // Sanitize customer name for file system (remove special characters)
+        customerName = customerName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        
+        // Create nested directory path: ~/POS_Receipts/[CashierName]/[CustomerName]/
+        String receiptsDir = userHome + File.separator + "POS_Receipts" + File.separator + cashierName + File.separator + customerName;
+        File directory = new File(receiptsDir);
+        
+        // Create directory if it doesn't exist
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                System.err.println("Failed to create receipts directory: " + receiptsDir);
+                // Fallback to Downloads folder
+                receiptsDir = userHome + File.separator + "Downloads";
+            }
+        }
+        
+        // Create file name and path
+        String fileName = "Receipt_" + orderDetail.getCode() + "_" + System.currentTimeMillis() + ".pdf";
+        String filePath = receiptsDir + File.separator + fileName;
+        
+        // Create PDF
+        PdfWriter writer = new PdfWriter(filePath);
+        PdfDocument pdf = new PdfDocument(writer);
+        
+        // Use smaller page size for receipt (thermal printer format)
+        // PageSize customSize = new PageSize(226.77f, 566.93f); // 80mm width, 200mm height
+        Document document = new Document(pdf);
+        document.setMargins(20, 20, 20, 20);
+        
+        // Store/Company Header
+        Paragraph storeName = new Paragraph("LILARATHNE POS SYSTEM")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(18)
+            .setBold()
+            .setMarginBottom(5);
+        document.add(storeName);
+        
+        Paragraph storeAddress = new Paragraph("123 Main Street, Colombo\nTel: +94 11 234 5678")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(15);
+        document.add(storeAddress);
+        
+        // Divider line
+        document.add(new Paragraph("=" .repeat(50))
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(10));
+        
+        // Receipt Title
+        Paragraph receiptTitle = new Paragraph("SALES RECEIPT")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(14)
+            .setBold()
+            .setMarginBottom(15);
+        document.add(receiptTitle);
+        
+        // Order Information
+        document.add(new Paragraph("Receipt No: " + orderDetail.getCode())
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("Date: " + orderDetail.getIssuedDate().format(RECEIPT_DATE_FORMATTER))
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("Customer: " + orderDetail.getCustomerName())
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("Cashier: " + orderDetail.getOperatorEmail())
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("Payment Method: " + orderDetail.getPaymentMethod())
+            .setFontSize(10)
+            .setMarginBottom(10));
+        
+        // Divider line
+        document.add(new Paragraph("-" .repeat(50))
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(10));
+        
+        // Items Table
+        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1, 2, 2}))
+            .useAllAvailableWidth()
+            .setMarginBottom(10);
+        
+        // Table headers
+        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Item").setBold().setFontSize(10)));
+        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Qty").setBold().setFontSize(10)));
+        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Price").setBold().setFontSize(10)));
+        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Total").setBold().setFontSize(10)));
+        
+        // Table rows
+        for (OrderItem item : orderItems) {
+            itemsTable.addCell(new Cell().add(new Paragraph(item.getProductName()).setFontSize(9)));
+            itemsTable.addCell(new Cell().add(new Paragraph(String.valueOf(item.getQuantity())).setFontSize(9)));
+            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", item.getUnitPrice())).setFontSize(9)));
+            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", item.getLineTotal())).setFontSize(9)));
+            
+            // If there's a discount, show it
+            if (item.getDiscountPerUnit() != null && item.getDiscountPerUnit() > 0) {
+                itemsTable.addCell(new Cell(1, 4)
+                    .add(new Paragraph("   Discount: -" + String.format("%.2f", item.getTotalDiscount()))
+                    .setFontSize(8)
+                    .setFontColor(ColorConstants.RED)));
+            }
+        }
+        
+        document.add(itemsTable);
+        
+        // Divider line
+        document.add(new Paragraph("-" .repeat(50))
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(10));
+        
+        // Total section
+        double subtotal = orderItems.stream().mapToDouble(item -> 
+            item.getUnitPrice() * item.getQuantity()).sum();
+        double totalDiscount = orderDetail.getDiscount();
+        
+        document.add(new Paragraph("Subtotal: LKR " + String.format("%.2f", subtotal))
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setFontSize(11)
+            .setMarginBottom(3));
+        
+        if (totalDiscount > 0) {
+            document.add(new Paragraph("Total Discount: -LKR " + String.format("%.2f", totalDiscount))
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setFontSize(11)
+                .setFontColor(ColorConstants.RED)
+                .setMarginBottom(3));
+        }
+        
+        document.add(new Paragraph("=" .repeat(50))
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(5));
+        
+        document.add(new Paragraph("TOTAL: LKR " + String.format("%.2f", orderDetail.getTotalCost()))
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setFontSize(14)
+            .setBold()
+            .setMarginBottom(15));
+        
+        // Payment Status
+        String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 
+            "*** PAID ***" : "*** PAYMENT PENDING ***";
+        document.add(new Paragraph(paymentStatusText)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(12)
+            .setBold()
+            .setMarginBottom(20));
+        
+        // Footer
+        document.add(new Paragraph("Thank you for your business!")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(11)
+            .setMarginBottom(5));
+        
+        document.add(new Paragraph("Please come again!")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setMarginBottom(10));
+        
+        document.add(new Paragraph("=" .repeat(50))
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10));
+        
+        document.close();
+        return filePath;
+    }
     
     /**
      * Generate comprehensive sales report PDF

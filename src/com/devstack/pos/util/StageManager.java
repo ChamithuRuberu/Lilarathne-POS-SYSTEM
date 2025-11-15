@@ -42,7 +42,7 @@ public class StageManager {
         
         // Optional: Set title
         if (stage.getTitle() == null || stage.getTitle().isEmpty()) {
-            stage.setTitle("Lilarathne POS System");
+            stage.setTitle("Kumara Enterprises POS System");
         }
     }
     
@@ -57,7 +57,7 @@ public class StageManager {
         stage.centerOnScreen();
         
         if (stage.getTitle() == null || stage.getTitle().isEmpty()) {
-            stage.setTitle("Lilarathne POS System - Authentication");
+            stage.setTitle("Kumara Enterprises POS System - Authentication");
         }
     }
     
@@ -84,7 +84,7 @@ public class StageManager {
         stage.setY(0);
         
         if (stage.getTitle() == null || stage.getTitle().isEmpty()) {
-            stage.setTitle("Lilarathne POS System");
+            stage.setTitle("Kumara Enterprises POS System");
         }
     }
     

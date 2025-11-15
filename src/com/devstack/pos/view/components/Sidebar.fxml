@@ -15,7 +15,7 @@
     <children>
         <!-- Logo/Brand -->
         <VBox spacing="8" style="-fx-padding: 0 0 20 0;">
-            <Text text="🏪 Lilarathne POS" styleClass="sidebar-brand"/>
+            <Text text="🏪 Kumara Enterprises POS" styleClass="sidebar-brand"/>
             <Text text="Point of Sale System" styleClass="sidebar-subtitle"/>
         </VBox>
         

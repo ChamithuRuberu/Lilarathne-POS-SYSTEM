@@ -1,4 +1,4 @@
-# Lilarathne POS System
+# Kumara Enterprises POS System
 
 A modern Point of Sale (POS) system built with **Spring Boot 3.2.0**, **JavaFX 21**, and **JPA/Hibernate**.
 

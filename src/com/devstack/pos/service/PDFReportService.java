@@ -107,7 +107,7 @@ public class PDFReportService {
         // Store/Company Header - use business name from settings
         String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
             ? settings.getBusinessName().toUpperCase()
-            : "LILARATHNE POS SYSTEM";
+            : "KUMARA ENTERPRISES";
         Paragraph storeName = new Paragraph(businessName)
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(18)
@@ -503,7 +503,7 @@ public class PDFReportService {
         SystemSettings settings = systemSettingsService.getSystemSettings();
         String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
             ? settings.getBusinessName()
-            : "Lilarathne POS System";
+            : "Kumara Enterprises";
         
         Paragraph businessHeader = new Paragraph(businessName.toUpperCase())
                 .setFontSize(20)
@@ -1363,7 +1363,7 @@ public class PDFReportService {
         SystemSettings settings = systemSettingsService.getSystemSettings();
         String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
             ? settings.getBusinessName()
-            : "Lilarathne POS System";
+            : "Kumara Enterprises POS System";
         
         String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
             ? settings.getFooterMessage()

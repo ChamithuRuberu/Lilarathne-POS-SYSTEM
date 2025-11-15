@@ -15,7 +15,7 @@
     <groupId>com.devstack</groupId>
     <artifactId>pos</artifactId>
     <version>1.0.0</version>
-    <name>Lilarathne POS System</name>
+    <name>Kumara Enterprises POS System</name>
     <description>Point of Sale System built with Spring Boot and JavaFX</description>
 
     <properties>
@@ -231,4 +231,57 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Profile for Windows deployment -->
+        <profile>
+            <id>windows</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-windows</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <echo>Building Windows executable with jpackage...</echo>
+                                        <exec executable="jpackage" failonerror="false">
+                                            <arg value="--input"/>
+                                            <arg value="${project.build.directory}"/>
+                                            <arg value="--name"/>
+                                            <arg value="Kumara Enterprises POS System"/>
+                                            <arg value="--main-jar"/>
+                                            <arg value="${project.build.finalName}.jar"/>
+                                            <arg value="--main-class"/>
+                                            <arg value="com.devstack.pos.PosApplication"/>
+                                            <arg value="--type"/>
+                                            <arg value="exe"/>
+                                            <arg value="--dest"/>
+                                            <arg value="${project.build.directory}/windows-installer"/>
+                                            <arg value="--app-version"/>
+                                            <arg value="${project.version}"/>
+                                            <arg value="--vendor"/>
+                                            <arg value="DevStack"/>
+                                            <arg value="--description"/>
+                                            <arg value="${project.description}"/>
+                                            <arg value="--win-menu"/>
+                                            <arg value="--win-shortcut"/>
+                                            <arg value="--win-dir-chooser"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

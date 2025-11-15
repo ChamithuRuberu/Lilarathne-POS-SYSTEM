@@ -7,6 +7,9 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
@@ -60,14 +63,17 @@
                <Text text="Executive Dashboard" styleClass="header-title-light"/>
                <Region HBox.hgrow="ALWAYS"/>
                <Text fx:id="lblWelcomeMessage" text="Welcome back!" styleClass="welcome-text-light"/>
-               <JFXButton fx:id="btnLogout" text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="btn-secondary" prefWidth="120.0" style="-fx-margin: 0 0 0 12;">
-                  <font>
-                     <Font name="System Bold" size="13.0" />
-                  </font>
+               
+               <!-- User Menu Button -->
+               <MenuButton fx:id="btnUserMenu" text="👤" styleClass="user-menu-button" style="-fx-font-size: 20px; -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 12;">
+                  <items>
+                     <MenuItem fx:id="menuItemSettings" text="⚙️ Settings" />
+                     <MenuItem fx:id="menuItemLogout" text="🚪 Logout" />
+                  </items>
                   <cursor>
                      <Cursor fx:constant="HAND" />
                   </cursor>
-               </JFXButton>
+               </MenuButton>
             </HBox>
 
             <GridPane hgap="20">

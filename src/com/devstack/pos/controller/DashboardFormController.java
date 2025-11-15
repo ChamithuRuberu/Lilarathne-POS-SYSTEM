@@ -26,6 +26,8 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TableView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.text.Text;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -126,6 +128,15 @@ public class DashboardFormController extends BaseController {
     @FXML
     private Text lblPendingPaymentsDetails;
     
+    @FXML
+    private MenuButton btnUserMenu;
+    
+    @FXML
+    private MenuItem menuItemSettings;
+    
+    @FXML
+    private MenuItem menuItemLogout;
+    
     // Sidebar buttons for role-based visibility
     @FXML
     private JFXButton btnProduct;
@@ -152,6 +163,9 @@ public class DashboardFormController extends BaseController {
     public void initialize() {
         // Initialize sidebar with user info
         initializeSidebar();
+        
+        // Setup user menu actions
+        setupUserMenuActions();
         
         // Configure menu visibility based on user role
         configureMenuVisibility();
@@ -880,7 +894,25 @@ public class DashboardFormController extends BaseController {
         public String getDiscount() { return discount; }
         public void setDiscount(String discount) { this.discount = discount; }
         
-        public String getDate() { return date; }
+        public         String getDate() { return date; }
         public void setDate(String date) { this.date = date; }
+    }
+    
+    @FXML
+    public void btnSettingsOnAction(ActionEvent event) {
+        navigateTo("SettingsForm", false);
+    }
+    
+    /**
+     * Setup user menu item actions programmatically
+     * MenuItems don't support onAction in FXML, so we set them here
+     */
+    private void setupUserMenuActions() {
+        if (menuItemSettings != null) {
+            menuItemSettings.setOnAction(event -> btnSettingsOnAction(event));
+        }
+        if (menuItemLogout != null) {
+            menuItemLogout.setOnAction(event -> btnLogoutOnAction(event));
+        }
     }
 }

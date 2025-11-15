@@ -131,9 +131,9 @@ Don't worry! The system works fine without a cash drawer:
 
 ```
 ========================================
-    LILARATHNE POS SYSTEM
-    123 Main Street, Colombo
-    Tel: +94 11 234 5678
+    KUMARA ENTERPRISES
+    58k Gagabada Rd, Piliyandala
+    Tel: 077 781 5955
 ========================================
 
         SALES RECEIPT

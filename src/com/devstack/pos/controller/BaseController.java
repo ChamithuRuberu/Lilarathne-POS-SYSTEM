@@ -137,6 +137,11 @@ public abstract class BaseController {
     }
     
     @FXML
+    public void btnSettingsOnAction(ActionEvent event) {
+        navigateTo("SettingsForm", false);
+    }
+    
+    @FXML
     public void btnLogoutOnAction(ActionEvent event) {
         try {
             // Clear session data

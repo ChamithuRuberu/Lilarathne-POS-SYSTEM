@@ -69,9 +69,9 @@ public class ReturnOrderService {
     }
     
     @Transactional(readOnly = true)
-    public List<ReturnOrder> searchReturnOrders(String returnId, String customerEmail, String status, 
+    public List<ReturnOrder> searchReturnOrders(String searchText, Integer orderId, String status, 
                                                  LocalDateTime startDate, LocalDateTime endDate) {
-        return returnOrderRepository.searchReturnOrders(returnId, customerEmail, status, startDate, endDate);
+        return returnOrderRepository.searchReturnOrders(searchText, orderId, status, startDate, endDate);
     }
     
     @Transactional(readOnly = true)

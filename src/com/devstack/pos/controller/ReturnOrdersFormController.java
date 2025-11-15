@@ -68,6 +68,9 @@ public class ReturnOrdersFormController extends BaseController {
     private TableColumn<ReturnOrderTm, String> colCustomer;
     
     @FXML
+    private TableColumn<ReturnOrderTm, String> colProductNames;
+    
+    @FXML
     private TableColumn<ReturnOrderTm, String> colReturnDate;
     
     @FXML
@@ -108,6 +111,7 @@ public class ReturnOrdersFormController extends BaseController {
         colReturnId.setCellValueFactory(new PropertyValueFactory<>("returnId"));
         colOrderId.setCellValueFactory(new PropertyValueFactory<>("orderId"));
         colCustomer.setCellValueFactory(new PropertyValueFactory<>("customer"));
+        colProductNames.setCellValueFactory(new PropertyValueFactory<>("productNames"));
         colReturnDate.setCellValueFactory(new PropertyValueFactory<>("returnDate"));
         colReason.setCellValueFactory(new PropertyValueFactory<>("reason"));
         colAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
@@ -183,6 +187,12 @@ public class ReturnOrdersFormController extends BaseController {
             LocalDate fromDate = dateFrom.getValue();
             LocalDate toDate = dateTo.getValue();
             
+            // Validate dates
+            if (fromDate == null || toDate == null) {
+                new Alert(Alert.AlertType.WARNING, "Please select both From Date and To Date").showAndWait();
+                return;
+            }
+            
             // Convert dates to LocalDateTime
             LocalDateTime startDateTime = fromDate.atStartOfDay();
             LocalDateTime endDateTime = toDate.atTime(LocalTime.MAX);
@@ -192,9 +202,21 @@ public class ReturnOrdersFormController extends BaseController {
             if (searchText.isEmpty()) {
                 returnOrders = returnOrderService.findByReturnDateBetween(startDateTime, endDateTime);
             } else {
-                // Search by return ID or customer email
+                // Try to parse as Order ID (integer), otherwise search by return ID and customer email
+                Integer orderId = null;
+                try {
+                    orderId = Integer.parseInt(searchText);
+                } catch (NumberFormatException e) {
+                    // Not a number, will search by returnId and customerEmail
+                }
+                
+                // Search by return ID, customer email, or order ID
                 returnOrders = returnOrderService.searchReturnOrders(
-                    searchText, searchText, "All", startDateTime, endDateTime);
+                    searchText,      // searchText (searches in returnId and customerEmail)
+                    orderId,         // orderId (null if not a number, otherwise exact match)
+                    "All",           // status
+                    startDateTime, 
+                    endDateTime);
             }
             
             // Convert to table model
@@ -204,10 +226,21 @@ public class ReturnOrdersFormController extends BaseController {
                 viewBtn.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white;");
                 viewBtn.setOnAction(e -> viewReturnDetails(returnOrder));
                 
+                // Get product names for this return order
+                String productNames = returnOrderItemService.findByReturnOrderId(returnOrder.getId())
+                    .stream()
+                    .map(item -> item.getProductName() + " (x" + item.getReturnQuantity() + ")")
+                    .collect(java.util.stream.Collectors.joining(", "));
+                
+                if (productNames.isEmpty()) {
+                    productNames = "No products";
+                }
+                
                 data.add(new ReturnOrderTm(
                     returnOrder.getId(),
                     returnOrder.getOrderId(),
                     returnOrder.getCustomerEmail(),
+                    productNames,
                     returnOrder.getReturnDate().format(dateFormatter),
                     returnOrder.getReturnReason(),
                     returnOrder.getRefundAmount(),
@@ -351,6 +384,7 @@ public class ReturnOrdersFormController extends BaseController {
         private int returnId;
         private int orderId;
         private String customer;
+        private String productNames;
         private String returnDate;
         private String reason;
         private double amount;
@@ -358,11 +392,12 @@ public class ReturnOrdersFormController extends BaseController {
         private String processedBy;
         private JFXButton actionButton;
         
-        public ReturnOrderTm(int returnId, int orderId, String customer, String returnDate, 
+        public ReturnOrderTm(int returnId, int orderId, String customer, String productNames, String returnDate, 
                            String reason, double amount, String status, String processedBy, JFXButton actionButton) {
             this.returnId = returnId;
             this.orderId = orderId;
             this.customer = customer;
+            this.productNames = productNames;
             this.returnDate = returnDate;
             this.reason = reason;
             this.amount = amount;
@@ -379,6 +414,9 @@ public class ReturnOrdersFormController extends BaseController {
         
         public String getCustomer() { return customer; }
         public void setCustomer(String customer) { this.customer = customer; }
+        
+        public String getProductNames() { return productNames != null ? productNames : ""; }
+        public void setProductNames(String productNames) { this.productNames = productNames; }
         
         public String getReturnDate() { return returnDate; }
         public void setReturnDate(String returnDate) { this.returnDate = returnDate; }

@@ -153,17 +153,18 @@
                </JFXButton>
             </HBox>
             
-            <TableView fx:id="tblReturns" styleClass="table-view-modern" prefHeight="400.0">
+            <TableView fx:id="tblReturns" styleClass="table-view-modern" prefHeight="550.0">
                <columns>
                   <TableColumn fx:id="colReturnId" prefWidth="100.0" text="Return ID" />
                   <TableColumn fx:id="colOrderId" prefWidth="100.0" text="Order ID" />
-                  <TableColumn fx:id="colCustomer" prefWidth="200.0" text="Customer" />
+                  <TableColumn fx:id="colCustomer" prefWidth="150.0" text="Customer" />
+                  <TableColumn fx:id="colProductNames" prefWidth="210.0" text="Products" />
                   <TableColumn fx:id="colReturnDate" prefWidth="150.0" text="Return Date" />
-                  <TableColumn fx:id="colReason" prefWidth="200.0" text="Reason" />
+                  <TableColumn fx:id="colReason" prefWidth="220.0" text="Reason" />
                   <TableColumn fx:id="colAmount" prefWidth="120.0" text="Refund Amount" />
-                  <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
-                  <TableColumn fx:id="colProcessedBy" prefWidth="150.0" text="Processed By" />
-                  <TableColumn fx:id="colAction" prefWidth="150.0" text="Action" />
+                  <TableColumn fx:id="colStatus" prefWidth="140.0" text="Status" />
+                  <TableColumn fx:id="colProcessedBy" prefWidth="160.0" text="Processed By" />
+                  <TableColumn fx:id="colAction" prefWidth="140.0" text="Action" />
                </columns>
             </TableView>
          </VBox>

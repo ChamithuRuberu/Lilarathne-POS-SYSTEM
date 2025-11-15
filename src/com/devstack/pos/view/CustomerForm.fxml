@@ -120,9 +120,10 @@
                </columnResizePolicy>
                <columns>
                   <TableColumn fx:id="colId" prefWidth="80.0" text="ID" sortable="false" />
-                  <TableColumn fx:id="colName" prefWidth="300.0" text="Customer Name" sortable="false" />
-                  <TableColumn fx:id="colContact" prefWidth="200.0" text="Contact Number" sortable="false" />
-                  <TableColumn fx:id="colTotalSpent" prefWidth="200.0" text="Total Spent" sortable="false" />
+                  <TableColumn fx:id="colName" prefWidth="250.0" text="Customer Name" sortable="false" />
+                  <TableColumn fx:id="colContact" prefWidth="180.0" text="Contact Number" sortable="false" />
+                  <TableColumn fx:id="colTotalSpent" prefWidth="180.0" text="Total Spent" sortable="false" />
+                  <TableColumn fx:id="colPendingPayments" prefWidth="180.0" text="Pending Payments" sortable="false" />
                   <TableColumn fx:id="colOperate" prefWidth="150.0" text="Actions" sortable="false" />
                </columns>
             </TableView>

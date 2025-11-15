@@ -4,6 +4,7 @@ import com.jfoenix.controls.JFXButton;
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.ReturnOrder;
 import com.devstack.pos.service.OrderDetailService;
+import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.view.tm.OrderTm;
 import javafx.collections.FXCollections;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class OrderDetailsFormController extends BaseController {
     
     private final OrderDetailService orderDetailService;
+    private final OrderItemService orderItemService;
     private final ReturnOrderService returnOrderService;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -78,6 +80,9 @@ public class OrderDetailsFormController extends BaseController {
     private TableColumn<OrderTm, String> colCustomerName;
     
     @FXML
+    private TableColumn<OrderTm, String> colProductNames;
+    
+    @FXML
     private TableColumn<OrderTm, String> colDate;
     
     @FXML
@@ -88,6 +93,9 @@ public class OrderDetailsFormController extends BaseController {
     
     @FXML
     private TableColumn<OrderTm, String> colTotal;
+    
+    @FXML
+    private TableColumn<OrderTm, String> colOrderType;
     
     @FXML
     private TableColumn<OrderTm, JFXButton> colAction;
@@ -114,6 +122,9 @@ public class OrderDetailsFormController extends BaseController {
         colCustomerName.setCellValueFactory(new PropertyValueFactory<>("customerName"));
         colCustomerName.setEditable(false);
         colCustomerName.setSortable(false);
+        colProductNames.setCellValueFactory(new PropertyValueFactory<>("productNames"));
+        colProductNames.setEditable(false);
+        colProductNames.setSortable(false);
         colDate.setCellValueFactory(new PropertyValueFactory<>("dateFormatted"));
         colDate.setEditable(false);
         colDate.setSortable(false);
@@ -126,6 +137,9 @@ public class OrderDetailsFormController extends BaseController {
         colTotal.setCellValueFactory(new PropertyValueFactory<>("totalFormatted"));
         colTotal.setEditable(false);
         colTotal.setSortable(false);
+        colOrderType.setCellValueFactory(new PropertyValueFactory<>("orderTypeFormatted"));
+        colOrderType.setEditable(false);
+        colOrderType.setSortable(false);
         colAction.setCellValueFactory(new PropertyValueFactory<>("viewButton"));
         colAction.setEditable(false);
         colAction.setSortable(false);
@@ -224,13 +238,25 @@ public class OrderDetailsFormController extends BaseController {
                     returnOrdersBtn.setDisable(true);
                 }
                 
+                // Get product names for this order
+                String productNames = orderItemService.findByOrderId(order.getCode())
+                    .stream()
+                    .map(item -> item.getProductName() + " (x" + item.getQuantity() + ")")
+                    .collect(Collectors.joining(", "));
+                
+                if (productNames.isEmpty()) {
+                    productNames = "No products";
+                }
+                
                 OrderTm tm = new OrderTm();
                 tm.setCode(order.getCode());
                 tm.setCustomerName(order.getCustomerName() != null ? order.getCustomerName() : "Guest");
+                tm.setProductNames(productNames);
                 tm.setIssuedDate(order.getIssuedDate());
                 tm.setDiscount(order.getDiscount());
                 tm.setOperatorEmail(order.getOperatorEmail());
                 tm.setTotalCost(order.getTotalCost());
+                tm.setOrderType(order.getOrderType() != null ? order.getOrderType() : "HARDWARE");
                 tm.setViewButton(viewBtn);
                 tm.setReturnOrdersButton(returnOrdersBtn);
                 observableList.add(tm);

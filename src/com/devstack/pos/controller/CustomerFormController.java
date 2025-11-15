@@ -32,6 +32,7 @@ public class CustomerFormController extends BaseController {
     public TableColumn colName;
     public TableColumn colContact;
     public TableColumn colTotalSpent;
+    public TableColumn colPendingPayments;
     public TableColumn colOperate;
 
     private String searchText = "";
@@ -48,10 +49,24 @@ public class CustomerFormController extends BaseController {
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         colTotalSpent.setCellValueFactory(new PropertyValueFactory<>("totalSpent"));
+        colPendingPayments.setCellValueFactory(new PropertyValueFactory<>("pendingPayments"));
         colOperate.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
         
         // Format total spent column to show currency
         colTotalSpent.setCellFactory(column -> new javafx.scene.control.TableCell<CustomerTm, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("Rs. %.2f", item));
+                }
+            }
+        });
+        
+        // Format pending payments column to show currency
+        colPendingPayments.setCellFactory(column -> new javafx.scene.control.TableCell<CustomerTm, Double>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
                 super.updateItem(item, empty);
@@ -105,9 +120,12 @@ public class CustomerFormController extends BaseController {
             // Get total spent by this customer using optimized query
             double totalSpent = orderDetailService.getTotalSpentByCustomerId(customer.getId());
             
+            // Get pending payments total by this customer
+            double pendingPayments = orderDetailService.getPendingPaymentsTotalByCustomerId(customer.getId());
+            
             Button btn = new Button("Delete");
             CustomerTm tm = new CustomerTm(
-                    customer.getId(), customer.getName(), customer.getContact(), totalSpent, btn
+                    customer.getId(), customer.getName(), customer.getContact(), totalSpent, pendingPayments, btn
             );
             observableList.add(tm);
 

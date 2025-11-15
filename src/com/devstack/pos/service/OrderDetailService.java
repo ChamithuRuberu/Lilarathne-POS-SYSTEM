@@ -147,6 +147,12 @@ public class OrderDetailService {
         return orderDetailRepository.getPendingPaymentsByCustomerByDateRange(startDate, endDate);
     }
     
+    @Transactional(readOnly = true)
+    public Double getPendingPaymentsTotalByCustomerId(Long customerId) {
+        Double result = orderDetailRepository.getPendingPaymentsTotalByCustomerId(customerId);
+        return result != null ? result : 0.0;
+    }
+    
     @Transactional
     public boolean completePayment(Long orderCode) {
         OrderDetail order = findOrderDetail(orderCode);
@@ -156,6 +162,58 @@ public class OrderDetailService {
             return true;
         }
         return false;
+    }
+    
+    // Construction-specific methods
+    @Transactional(readOnly = true)
+    public Double getRevenueByOrderType(String orderType) {
+        Double revenue = orderDetailRepository.getRevenueByOrderType(orderType);
+        return revenue != null ? revenue : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getRevenueByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
+        Double revenue = orderDetailRepository.getRevenueByOrderTypeAndDateRange(orderType, startDate, endDate);
+        return revenue != null ? revenue : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getOrderCountByOrderType(String orderType) {
+        Long count = orderDetailRepository.getOrderCountByOrderType(orderType);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getOrderCountByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
+        Long count = orderDetailRepository.getOrderCountByOrderTypeAndDateRange(orderType, startDate, endDate);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getAverageOrderValueByOrderType(String orderType) {
+        Double avg = orderDetailRepository.getAverageOrderValueByOrderType(orderType);
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getAverageOrderValueByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
+        Double avg = orderDetailRepository.getAverageOrderValueByOrderTypeAndDateRange(orderType, startDate, endDate);
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public List<OrderDetail> findOrdersByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.findOrdersByOrderTypeAndDateRange(orderType, startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCashierByOrderType(String orderType) {
+        return orderDetailRepository.getSalesByCashierByOrderType(orderType);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getSalesByCashierByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getSalesByCashierByOrderTypeAndDateRange(orderType, startDate, endDate);
     }
 }
 

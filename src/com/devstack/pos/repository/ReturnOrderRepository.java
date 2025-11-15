@@ -31,13 +31,15 @@ public interface ReturnOrderRepository extends JpaRepository<ReturnOrder, Intege
                                                         @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT r FROM ReturnOrder r WHERE " +
-           "(:returnId IS NULL OR r.returnId LIKE %:returnId%) AND " +
-           "(:customerEmail IS NULL OR r.customerEmail LIKE %:customerEmail%) AND " +
+           "((:searchText IS NOT NULL AND :searchText != '' AND " +
+           "  (LOWER(r.returnId) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
+           "   LOWER(r.customerEmail) LIKE LOWER(CONCAT('%', :searchText, '%')))) OR " +
+           " (:orderId IS NOT NULL AND r.orderId = :orderId)) AND " +
            "(:status IS NULL OR :status = 'All' OR r.status = :status) AND " +
            "r.returnDate BETWEEN :startDate AND :endDate " +
            "ORDER BY r.returnDate DESC")
-    List<ReturnOrder> searchReturnOrders(@Param("returnId") String returnId,
-                                          @Param("customerEmail") String customerEmail,
+    List<ReturnOrder> searchReturnOrders(@Param("searchText") String searchText,
+                                          @Param("orderId") Integer orderId,
                                           @Param("status") String status,
                                           @Param("startDate") LocalDateTime startDate,
                                           @Param("endDate") LocalDateTime endDate);

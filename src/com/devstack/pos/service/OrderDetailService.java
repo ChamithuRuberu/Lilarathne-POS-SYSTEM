@@ -147,6 +147,12 @@ public class OrderDetailService {
         return orderDetailRepository.getPendingPaymentsByCustomerByDateRange(startDate, endDate);
     }
     
+    @Transactional(readOnly = true)
+    public Double getPendingPaymentsTotalByCustomerId(Long customerId) {
+        Double result = orderDetailRepository.getPendingPaymentsTotalByCustomerId(customerId);
+        return result != null ? result : 0.0;
+    }
+    
     @Transactional
     public boolean completePayment(Long orderCode) {
         OrderDetail order = findOrderDetail(orderCode);

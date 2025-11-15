@@ -78,6 +78,10 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     @Query("SELECT o.customerName, COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.customerName IS NOT NULL AND o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.customerName")
     List<Object[]> getPendingPaymentsByCustomerByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
+    // Get pending payments total by customer ID
+    @Query("SELECT COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.customerId = :customerId AND o.paymentStatus = 'PENDING'")
+    Double getPendingPaymentsTotalByCustomerId(@Param("customerId") Long customerId);
+    
     // Construction-specific queries
     @Query("SELECT SUM(o.totalCost) FROM OrderDetail o WHERE o.orderType = :orderType AND o.paymentStatus = 'PAID'")
     Double getRevenueByOrderType(@Param("orderType") String orderType);

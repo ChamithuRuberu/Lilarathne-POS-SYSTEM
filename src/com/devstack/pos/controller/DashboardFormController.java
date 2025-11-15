@@ -210,7 +210,7 @@ public class DashboardFormController extends BaseController {
     /**
      * Configure menu visibility based on user role
      * Normal users: Customers, POS/Orders, Return Orders, All Orders
-     * Admin users: All features including Products, Supplier
+     * Admin users: All features including Products, Supplier, Settings
      */
     private void configureMenuVisibility() {
         boolean isAdmin = AuthorizationUtil.isAdmin();
@@ -245,6 +245,11 @@ public class DashboardFormController extends BaseController {
         if (btnReports != null) {
             btnReports.setVisible(isAdmin);
             btnReports.setManaged(isAdmin);
+        }
+        
+        // Settings menu item - Admin only
+        if (menuItemSettings != null) {
+            menuItemSettings.setVisible(isAdmin);
         }
     }
     
@@ -331,16 +336,9 @@ public class DashboardFormController extends BaseController {
             LocalDateTime now = LocalDateTime.now();
             int hour = now.getHour();
             String shift = "08:00 - 17:00"; // Default shift
+
             
-            if (hour >= 8 && hour < 17) {
-                shift = "08:00 - 17:00";
-            } else if (hour >= 17 && hour < 22) {
-                shift = "17:00 - 22:00";
-            } else {
-                shift = "22:00 - 08:00";
-            }
-            
-            String welcomeText = String.format("Welcome back, %s (%s) | Shift: %s", 
+            String welcomeText = String.format("Welcome back, %s ",
                 userName, role, shift);
             
             if (lblWelcomeMessage != null) {
@@ -900,7 +898,11 @@ public class DashboardFormController extends BaseController {
     
     @FXML
     public void btnSettingsOnAction(ActionEvent event) {
-        navigateTo("SettingsForm", false);
+        if (AuthorizationUtil.canAccessSettings()) {
+            navigateTo("SettingsForm", false);
+        } else {
+            AuthorizationUtil.showAdminOnlyAlert();
+        }
     }
     
     /**

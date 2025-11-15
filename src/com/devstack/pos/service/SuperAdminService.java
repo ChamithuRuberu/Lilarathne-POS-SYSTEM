@@ -33,14 +33,14 @@ public class SuperAdminService implements CommandLineRunner {
         public CommandLineRunner createSuperAdmin() {
 
             return args -> {
-                if (!userRepository.existsByEmail(("admin@example.com"))) {
+                if (!userRepository.existsByEmail(("admin"))) {
 
                     Role superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN")
                             .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_SUPER_ADMIN").build()));
 
                     AppUser appUser = AppUser.builder()
                             .password(passwordEncoder.encode("ADMIN")) // Encode the password
-                            .email("admin@example.com") // Provide a valid email
+                            .email("admin") // Provide a valid email
                             .status("ACTIVE")
                             .roles(Set.of(superAdminRole)) // Assign the role as a Set
                             .build();

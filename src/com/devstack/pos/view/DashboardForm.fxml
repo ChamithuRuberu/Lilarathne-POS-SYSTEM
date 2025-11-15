@@ -65,7 +65,7 @@
                <Text fx:id="lblWelcomeMessage" text="Welcome back!" styleClass="welcome-text-light"/>
                
                <!-- User Menu Button -->
-               <MenuButton fx:id="btnUserMenu" text="👤" styleClass="user-menu-button" style="-fx-font-size: 20px; -fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 12;">
+               <MenuButton fx:id="btnUserMenu" text="👤" styleClass="user-menu-button" style="-fx-font-size: 18px;  -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 2 6;">
                   <items>
                      <MenuItem fx:id="menuItemSettings" text="⚙️ Settings" />
                      <MenuItem fx:id="menuItemLogout" text="🚪 Logout" />

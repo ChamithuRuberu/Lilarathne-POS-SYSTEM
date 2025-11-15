@@ -52,20 +52,9 @@
          </children>
       </VBox>
       
-      <!-- Main Content Area (Shared between tabs) -->
+      <!-- Main Content Area -->
       <ScrollPane fitToWidth="true" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" style="-fx-background: transparent; -fx-border-width: 0;">
          <VBox spacing="12" style="-fx-padding: 20;">
-            <!-- TabPane with Hardware and Construction Sections -->
-            <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" styleClass="tab-pane-custom" style="-fx-tab-min-width: 150px; -fx-tab-max-width: 200px;">
-               <tabs>
-                  <!-- Hardware Tab -->
-                  <Tab text="🔧 Hardware" closable="false" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                  
-                  <!-- Construction Tab -->
-                  <Tab text="🏗️ Construction" closable="false" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-               </tabs>
-            </TabPane>
-            
             <!-- Customer Details Section -->
             <HBox styleClass="form-section" alignment="CENTER_LEFT" style="-fx-padding: 12;">
                <Text text="Customer:" styleClass="form-label" style="-fx-font-size: 13px;">

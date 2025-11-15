@@ -43,7 +43,7 @@ public class OrderDetail {
     private String paymentStatus = "PAID";
     
     @Column(name = "order_type", length = 20)
-    private String orderType = "HARDWARE"; // HARDWARE or CONSTRUCTION
+    private String orderType = "HARDWARE";
     
     // Note: We use customerId instead of @ManyToOne relationship to avoid lazy loading issues
     // and to support guest orders (where customerId can be null)

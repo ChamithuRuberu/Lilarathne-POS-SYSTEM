@@ -24,11 +24,11 @@
     -fx-background-radius: 0;
 }
 
-/* Custom TabPane - Remove black bar and soft tabs */
+/* Custom TabPane - Remove black bar and clean, visible tabs */
 .tab-pane-custom {
     -fx-background-color: transparent !important;
-    -fx-tab-min-width: 150px;
-    -fx-tab-max-width: 200px;
+    -fx-tab-min-width: 180px;
+    -fx-tab-max-width: 220px;
 }
 
 /* Remove black bar - target all possible header elements */
@@ -55,27 +55,35 @@
     -fx-background-color: transparent !important;
 }
 
-/* Soft tab styling */
+/* Clean, visible tab styling - Unselected tabs */
 .tab-pane-custom .tab {
-    -fx-background-color: #e2e8f0 !important;
-    -fx-background-radius: 12 12 0 0 !important;
-    -fx-padding: 12 24 !important;
+    -fx-background-color: #f1f5f9 !important;
+    -fx-background-radius: 10 10 0 0 !important;
+    -fx-padding: 14 28 !important;
     -fx-font-weight: bold !important;
-    -fx-font-size: 13px !important;
-    -fx-border-color: transparent !important;
-    -fx-border-width: 0 !important;
+    -fx-font-size: 14px !important;
+    -fx-text-fill: #64748b !important;
+    -fx-border-color: #e2e8f0 !important;
+    -fx-border-width: 1 1 0 1 !important;
     -fx-background-insets: 0 !important;
+    -fx-cursor: hand !important;
 }
 
 .tab-pane-custom .tab:hover {
-    -fx-background-color: #cbd5e1 !important;
+    -fx-background-color: #e2e8f0 !important;
+    -fx-text-fill: #475569 !important;
 }
 
+/* Selected tab - very clear and prominent */
 .tab-pane-custom .tab:selected {
     -fx-background-color: white !important;
-    -fx-background-radius: 12 12 0 0 !important;
+    -fx-background-radius: 10 10 0 0 !important;
+    -fx-text-fill: #2563eb !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 15px !important;
     -fx-border-color: #3b82f6 !important;
-    -fx-border-width: 0 0 3 0 !important;
+    -fx-border-width: 2 2 0 2 !important;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.3), 4, 0, 0, 2) !important;
 }
 
 .tab-pane-custom .tab-content-area {

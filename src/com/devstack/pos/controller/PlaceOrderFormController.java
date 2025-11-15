@@ -159,7 +159,13 @@ public class PlaceOrderFormController extends BaseController {
     private String getCurrentOrderType() {
         if (tabPane != null && tabPane.getSelectionModel().getSelectedItem() != null) {
             String tabText = tabPane.getSelectionModel().getSelectedItem().getText();
-            if ("Construction".equalsIgnoreCase(tabText)) {
+            // Check if tab text contains "Construction" (handles emoji prefix)
+            if (tabText != null && tabText.toLowerCase().contains("construction")) {
+                return "CONSTRUCTION";
+            }
+            // Alternatively, check by tab index (index 0 = Hardware, index 1 = Construction)
+            int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
+            if (selectedIndex == 1) {
                 return "CONSTRUCTION";
             }
         }

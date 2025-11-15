@@ -191,6 +191,7 @@
                   <columns>
                      <TableColumn fx:id="colOrderId" text="Order ID" prefWidth="100" editable="false" sortable="false"/>
                      <TableColumn fx:id="colCustomerName" text="Customer" prefWidth="150" editable="false" sortable="false"/>
+                     <TableColumn fx:id="colProductNames" text="Products" prefWidth="200" editable="false" sortable="false"/>
                      <TableColumn fx:id="colDate" text="Date &amp; Time" prefWidth="160" editable="false" sortable="false"/>
                      <TableColumn fx:id="colDiscount" text="Discount" prefWidth="90" editable="false" sortable="false"/>
                      <TableColumn fx:id="colOperator" text="Operator" prefWidth="130" editable="false" sortable="false"/>

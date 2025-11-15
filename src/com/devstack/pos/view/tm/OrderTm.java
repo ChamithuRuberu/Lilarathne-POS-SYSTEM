@@ -21,6 +21,7 @@ public class OrderTm {
     private String operatorEmail;
     private double totalCost;
     private String orderType; // HARDWARE or CONSTRUCTION
+    private String productNames; // Comma-separated list of product names
     private JFXButton viewButton;
     private JFXButton returnOrdersButton;
     
@@ -61,5 +62,10 @@ public class OrderTm {
     // Getter for return orders button text (for display)
     public String getReturnOrdersText() {
         return returnOrdersButton != null ? "View Returns" : "No Returns";
+    }
+    
+    // Getter for product names (for display)
+    public String getProductNames() {
+        return productNames != null ? productNames : "";
     }
 }

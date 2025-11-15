@@ -77,5 +77,33 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     // Get pending payments total by customer (with date range)
     @Query("SELECT o.customerName, COALESCE(SUM(o.totalCost), 0.0) FROM OrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.customerName IS NOT NULL AND o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.customerName")
     List<Object[]> getPendingPaymentsByCustomerByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Construction-specific queries
+    @Query("SELECT SUM(o.totalCost) FROM OrderDetail o WHERE o.orderType = :orderType AND o.paymentStatus = 'PAID'")
+    Double getRevenueByOrderType(@Param("orderType") String orderType);
+    
+    @Query("SELECT SUM(o.totalCost) FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate AND o.paymentStatus = 'PAID'")
+    Double getRevenueByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(o) FROM OrderDetail o WHERE o.orderType = :orderType")
+    Long getOrderCountByOrderType(@Param("orderType") String orderType);
+    
+    @Query("SELECT COUNT(o) FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate")
+    Long getOrderCountByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT AVG(o.totalCost) FROM OrderDetail o WHERE o.orderType = :orderType AND o.paymentStatus = 'PAID'")
+    Double getAverageOrderValueByOrderType(@Param("orderType") String orderType);
+    
+    @Query("SELECT AVG(o.totalCost) FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate AND o.paymentStatus = 'PAID'")
+    Double getAverageOrderValueByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT o FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate")
+    List<OrderDetail> findOrdersByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT o.operatorEmail, COUNT(o), SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) FROM OrderDetail o WHERE o.orderType = :orderType GROUP BY o.operatorEmail ORDER BY SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) DESC")
+    List<Object[]> getSalesByCashierByOrderType(@Param("orderType") String orderType);
+    
+    @Query("SELECT o.operatorEmail, COUNT(o), SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.operatorEmail ORDER BY SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) DESC")
+    List<Object[]> getSalesByCashierByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
 

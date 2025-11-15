@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -167,6 +168,14 @@ public class PDFReportService {
             .setMarginBottom(3));
         
         document.add(new Paragraph("Payment Method: " + orderDetail.getPaymentMethod())
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        // Order Type
+        String orderTypeDisplay = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
+            ? "Construction" 
+            : "Hardware";
+        document.add(new Paragraph("Order Type: " + orderTypeDisplay)
             .setFontSize(10)
             .setMarginBottom(10));
         
@@ -448,6 +457,37 @@ public class PDFReportService {
         
         // Supplier Analysis
         addSupplierAnalysisSection(document);
+        
+        // Footer
+        addFooter(document);
+        
+        document.close();
+        return filePath;
+    }
+    
+    /**
+     * Generate construction-specific report PDF
+     */
+    public String generateConstructionReportPDF(LocalDateTime startDate, LocalDateTime endDate) 
+            throws FileNotFoundException {
+        String fileName = "Construction_Report_" + System.currentTimeMillis() + ".pdf";
+        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        
+        PdfWriter writer = new PdfWriter(filePath);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf);
+        
+        // Header
+        addHeader(document, "Construction Orders Report", startDate, endDate);
+        
+        // Construction Summary
+        addConstructionSummarySection(document, startDate, endDate);
+        
+        // Construction Sales by Period
+        addConstructionSalesByPeriodSection(document, startDate, endDate);
+        
+        // Construction Sales by Cashier
+        addConstructionSalesByCashierSection(document, startDate, endDate);
         
         // Footer
         addFooter(document);
@@ -1337,6 +1377,123 @@ public class PDFReportService {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setItalic();
         document.add(footer);
+    }
+    
+    private void addConstructionSummarySection(Document document, LocalDateTime startDate, LocalDateTime endDate) {
+        document.add(new Paragraph("🏗️ CONSTRUCTION ORDERS SUMMARY")
+                .setFontSize(16)
+                .setBold()
+                .setMarginTop(10)
+                .setMarginBottom(10));
+        
+        Double revenue = startDate != null && endDate != null
+                ? orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDate, endDate)
+                : orderDetailService.getRevenueByOrderType("CONSTRUCTION");
+        Long orders = startDate != null && endDate != null
+                ? orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDate, endDate)
+                : orderDetailService.getOrderCountByOrderType("CONSTRUCTION");
+        Double avgOrder = startDate != null && endDate != null
+                ? orderDetailService.getAverageOrderValueByOrderTypeAndDateRange("CONSTRUCTION", startDate, endDate)
+                : orderDetailService.getAverageOrderValueByOrderType("CONSTRUCTION");
+        
+        double revenueVal = revenue != null ? revenue : 0.0;
+        long ordersVal = orders != null ? orders : 0;
+        double avgOrderVal = avgOrder != null ? avgOrder : 0.0;
+        
+        Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{2, 2}));
+        summaryTable.setWidth(UnitValue.createPercentValue(100));
+        
+        summaryTable.addHeaderCell(new Cell().add(new Paragraph("Metric").setBold()).setPadding(8));
+        summaryTable.addHeaderCell(new Cell().add(new Paragraph("Value").setBold()).setPadding(8));
+        
+        summaryTable.addCell(new Cell().add(new Paragraph("Total Revenue")).setPadding(8));
+        summaryTable.addCell(new Cell().add(new Paragraph(String.format("%.2f /=", revenueVal))).setPadding(8));
+        
+        summaryTable.addCell(new Cell().add(new Paragraph("Total Orders")).setPadding(8));
+        summaryTable.addCell(new Cell().add(new Paragraph(String.valueOf(ordersVal))).setPadding(8));
+        
+        summaryTable.addCell(new Cell().add(new Paragraph("Average Order Value")).setPadding(8));
+        summaryTable.addCell(new Cell().add(new Paragraph(String.format("%.2f /=", avgOrderVal))).setPadding(8));
+        
+        document.add(summaryTable);
+        document.add(new Paragraph().setMarginBottom(15));
+    }
+    
+    private void addConstructionSalesByPeriodSection(Document document, LocalDateTime startDate, LocalDateTime endDate) {
+        document.add(new Paragraph("📅 CONSTRUCTION SALES BY PERIOD")
+                .setFontSize(16)
+                .setBold()
+                .setMarginTop(10)
+                .setMarginBottom(10));
+        
+        // Get monthly data for last 12 months
+        LocalDate now = LocalDate.now();
+        Table periodTable = new Table(UnitValue.createPercentArray(new float[]{3, 2, 2, 2}));
+        periodTable.setWidth(UnitValue.createPercentValue(100));
+        
+        periodTable.addHeaderCell(new Cell().add(new Paragraph("Period").setBold()).setPadding(8));
+        periodTable.addHeaderCell(new Cell().add(new Paragraph("Orders").setBold()).setPadding(8));
+        periodTable.addHeaderCell(new Cell().add(new Paragraph("Revenue").setBold()).setPadding(8));
+        periodTable.addHeaderCell(new Cell().add(new Paragraph("Avg Order").setBold()).setPadding(8));
+        
+        for (int i = 11; i >= 0; i--) {
+            LocalDate monthStart = now.minusMonths(i).with(TemporalAdjusters.firstDayOfMonth());
+            LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
+            
+            LocalDateTime monthStartDateTime = monthStart.atStartOfDay();
+            LocalDateTime monthEndDateTime = monthEnd.atTime(23, 59, 59);
+            
+            Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", monthStartDateTime, monthEndDateTime);
+            Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", monthStartDateTime, monthEndDateTime);
+            Double avgOrder = orders != null && orders > 0 ? (revenue != null ? revenue : 0.0) / orders : 0.0;
+            
+            String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+            
+            periodTable.addCell(new Cell().add(new Paragraph(period)).setPadding(6));
+            periodTable.addCell(new Cell().add(new Paragraph(String.valueOf(orders != null ? orders : 0))).setPadding(6));
+            periodTable.addCell(new Cell().add(new Paragraph(String.format("%.2f /=", revenue != null ? revenue : 0.0))).setPadding(6));
+            periodTable.addCell(new Cell().add(new Paragraph(String.format("%.2f /=", avgOrder))).setPadding(6));
+        }
+        
+        document.add(periodTable);
+        document.add(new Paragraph().setMarginBottom(15));
+    }
+    
+    private void addConstructionSalesByCashierSection(Document document, LocalDateTime startDate, LocalDateTime endDate) {
+        document.add(new Paragraph("👤 CONSTRUCTION SALES BY CASHIER")
+                .setFontSize(16)
+                .setBold()
+                .setMarginTop(10)
+                .setMarginBottom(10));
+        
+        List<Object[]> cashierData = startDate != null && endDate != null
+                ? orderDetailService.getSalesByCashierByOrderTypeAndDateRange("CONSTRUCTION", startDate, endDate)
+                : orderDetailService.getSalesByCashierByOrderType("CONSTRUCTION");
+        
+        if (cashierData == null || cashierData.isEmpty()) {
+            document.add(new Paragraph("No construction sales data available.").setFontSize(10));
+            return;
+        }
+        
+        Table cashierTable = new Table(UnitValue.createPercentArray(new float[]{3, 2, 2}));
+        cashierTable.setWidth(UnitValue.createPercentValue(100));
+        
+        cashierTable.addHeaderCell(new Cell().add(new Paragraph("Cashier").setBold()).setPadding(8));
+        cashierTable.addHeaderCell(new Cell().add(new Paragraph("Orders").setBold()).setPadding(8));
+        cashierTable.addHeaderCell(new Cell().add(new Paragraph("Revenue").setBold()).setPadding(8));
+        
+        for (Object[] data : cashierData) {
+            String cashierName = (String) data[0];
+            Long orderCount = ((Number) data[1]).longValue();
+            Double revenueAmount = ((Number) data[2]).doubleValue();
+            
+            cashierTable.addCell(new Cell().add(new Paragraph(cashierName != null ? cashierName : "Unknown")).setPadding(6));
+            cashierTable.addCell(new Cell().add(new Paragraph(String.valueOf(orderCount != null ? orderCount : 0))).setPadding(6));
+            cashierTable.addCell(new Cell().add(new Paragraph(String.format("%.2f /=", revenueAmount != null ? revenueAmount : 0.0))).setPadding(6));
+        }
+        
+        document.add(cashierTable);
+        document.add(new Paragraph().setMarginBottom(15));
     }
 }
 

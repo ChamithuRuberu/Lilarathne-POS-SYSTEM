@@ -24,6 +24,83 @@
     -fx-background-radius: 0;
 }
 
+/* Custom TabPane - Remove black bar and soft tabs */
+.tab-pane-custom {
+    -fx-background-color: transparent !important;
+    -fx-tab-min-width: 150px;
+    -fx-tab-max-width: 200px;
+}
+
+/* Remove black bar - target all possible header elements */
+.tab-pane-custom .tab-header-area {
+    -fx-background-color: transparent !important;
+    -fx-padding: 0 !important;
+    -fx-background-insets: 0 !important;
+    -fx-opacity: 1 !important;
+}
+
+.tab-pane-custom .tab-header-background {
+    -fx-background-color: transparent !important;
+    -fx-background-insets: 0 !important;
+    -fx-opacity: 0 !important;
+    -fx-pref-height: 0 !important;
+    -fx-max-height: 0 !important;
+}
+
+.tab-pane-custom .headers-region {
+    -fx-background-color: transparent !important;
+}
+
+.tab-pane-custom .control-buttons-tab {
+    -fx-background-color: transparent !important;
+}
+
+/* Soft tab styling */
+.tab-pane-custom .tab {
+    -fx-background-color: #e2e8f0 !important;
+    -fx-background-radius: 12 12 0 0 !important;
+    -fx-padding: 12 24 !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 13px !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+    -fx-background-insets: 0 !important;
+}
+
+.tab-pane-custom .tab:hover {
+    -fx-background-color: #cbd5e1 !important;
+}
+
+.tab-pane-custom .tab:selected {
+    -fx-background-color: white !important;
+    -fx-background-radius: 12 12 0 0 !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 0 0 3 0 !important;
+}
+
+.tab-pane-custom .tab-content-area {
+    -fx-background-color: transparent !important;
+}
+
+/* Aggressive selectors to force remove black bar */
+.tab-pane-custom > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent !important;
+    -fx-opacity: 0 !important;
+    -fx-pref-height: 0 !important;
+    -fx-max-height: 0 !important;
+    -fx-min-height: 0 !important;
+}
+
+.tab-pane-custom > .tab-header-area > .headers-region {
+    -fx-background-color: transparent !important;
+}
+
+/* Target any StackPane or Region in header */
+.tab-pane-custom .tab-header-area .stack-pane,
+.tab-pane-custom .tab-header-area .region {
+    -fx-background-color: transparent !important;
+}
+
 /* Modern Cards */
 .card {
     -fx-background-color: -fx-background-white;

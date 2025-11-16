@@ -42,7 +42,7 @@ public class PDFReportService {
     
     /**
      * Generate plain text bill receipt for thermal printer
-     * This format works perfectly with ESC/POS thermal printers
+     * Matches the format shown in the sample receipt
      */
     public String generatePlainTextReceipt(Long orderId) {
         try {
@@ -66,80 +66,106 @@ public class PDFReportService {
                 : "KUMARA ENTERPRISES";
             receipt.append(centerText(businessName, 48)).append("\n");
             
-            // Address
+            // Address (multi-line if needed)
             if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
                 receipt.append(centerText(settings.getAddress(), 48)).append("\n");
+            } else {
+                receipt.append(centerText("No. 58/K, Gangabada Road,", 48)).append("\n");
+                receipt.append(centerText("Wewala, Piliyandala", 48)).append("\n");
             }
+            
+            // Contact numbers
             if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
-                receipt.append(centerText("Tel: " + settings.getContactNumber(), 48)).append("\n");
+                receipt.append(centerText(settings.getContactNumber(), 48)).append("\n");
+            } else {
+                receipt.append(centerText("077 781 5955 / 011 261 3606", 48)).append("\n");
             }
             
-            receipt.append("================================================\n");
-            receipt.append(centerText("SALES RECEIPT", 48)).append("\n");
-            receipt.append("================================================\n\n");
+            receipt.append("\n");
             
-            // Order information
-            receipt.append(String.format("Receipt No: %d\n", orderDetail.getCode()));
-            receipt.append(String.format("Date: %s\n", orderDetail.getIssuedDate().format(RECEIPT_DATE_FORMATTER)));
-            receipt.append(String.format("Customer: %s\n", orderDetail.getCustomerName()));
-            receipt.append(String.format("Cashier: %s\n", orderDetail.getOperatorEmail()));
-            receipt.append(String.format("Payment: %s\n", orderDetail.getPaymentMethod()));
+            // Invoice number and date (left and right aligned)
+            String invoiceLine = String.format("Invoice                 %s",
+                orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            receipt.append(invoiceLine).append("\n");
             
-            String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
-                ? "Construction" : "Hardware";
-            receipt.append(String.format("Type: %s\n\n", orderType));
+            String codeLine = String.format("%-24d%s",
+                orderDetail.getCode(),
+                orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+            receipt.append(codeLine).append("\n");
             
-            receipt.append("------------------------------------------------\n");
+            // Customer name
+            receipt.append(String.format("Customer : %s\n", orderDetail.getCustomerName()));
             
-            // Items header
-            receipt.append(String.format("%-20s %5s %10s %10s\n", "Item", "Qty", "Price", "Total"));
-            receipt.append("------------------------------------------------\n");
+            receipt.append("................................................\n");
+            
+            // Items header - matching the format from the image
+            receipt.append(String.format("%-16s %6s %6s %6s %8s",
+                "Item", "Price", "Qty", "Disc", "Total"));
+            receipt.append("................................................\n");
             
             // Items
             for (OrderItem item : orderItems) {
                 String itemName = item.getProductName();
-                if (itemName.length() > 20) {
-                    itemName = itemName.substring(0, 17) + "...";
+                if (itemName.length() > 16) {
+                    itemName = itemName.substring(0, 13) + "...";
                 }
-                receipt.append(String.format("%-20s %5d %10.2f %10.2f\n",
-                    itemName,
-                    item.getQuantity(),
+                
+                double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
+                
+                receipt.append(String.format("%-16s\n", itemName));
+                receipt.append(String.format("%6.2f %6.2f x%-2d %6.2f %8.2f\n",
                     item.getUnitPrice(),
+                    item.getUnitPrice(),
+                    item.getQuantity(),
+                    discount,
                     item.getLineTotal()
                 ));
-                
-                // Show discount if any
-                if (item.getDiscountPerUnit() != null && item.getDiscountPerUnit() > 0) {
-                    receipt.append(String.format("  Discount: -%.2f\n", item.getTotalDiscount()));
-                }
             }
             
-            receipt.append("------------------------------------------------\n");
+            receipt.append("................................................\n");
             
-            // Totals
+            // Totals section
             double subtotal = orderItems.stream().mapToDouble(item -> 
                 item.getUnitPrice() * item.getQuantity()).sum();
             double totalDiscount = orderDetail.getDiscount();
             
-            receipt.append(String.format("%-30s %17.2f\n", "Subtotal:", subtotal));
-            if (totalDiscount > 0) {
-                receipt.append(String.format("%-30s %17.2f\n", "Total Discount:", -totalDiscount));
-            }
-            receipt.append("================================================\n");
-            receipt.append(String.format("%-30s %17.2f\n", "TOTAL:", orderDetail.getTotalCost()));
-            receipt.append("================================================\n\n");
+            receipt.append(String.format("%-30s %17.2f\n", "Subtotal", subtotal));
+            receipt.append(String.format("%-30s %17.2f\n", "Total Discount", totalDiscount));
+            receipt.append(String.format("%-30s %17.2f\n", "Items", (double)orderItems.size()));
+            receipt.append("------------------------------------------------\n");
+            receipt.append(String.format("%-30s %17.2f\n", "TOTAL", orderDetail.getTotalCost()));
+            receipt.append(String.format("%-30s %17.2f\n", 
+                "Payment: " + orderDetail.getPaymentMethod(), 
+                orderDetail.getTotalCost()));
             
             // Payment status
-            String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 
-                "*** PAID ***" : "*** PAYMENT PENDING ***";
-            receipt.append(centerText(paymentStatusText, 48)).append("\n\n");
+            if ("PAID".equals(orderDetail.getPaymentStatus())) {
+                receipt.append(String.format("%-30s %17.2f\n", "Change", 0.00));
+            }
             
-            // Footer
+            receipt.append("------------------------------------------------\n");
+            
+            // Order type
+            String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
+                ? "Construction" : "Hardware";
+            receipt.append(String.format("Type: %s\n", orderType));
+            
+            receipt.append("------------------------------------------------\n");
+            
+            // Balance
+            receipt.append(String.format("%-30s %17.2f\n", "Balance", 0.00));
+            receipt.append("................................................\n");
+            
+            // Footer message
             String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
                 ? settings.getFooterMessage()
                 : "Thank you for your business!";
             receipt.append(centerText(footerMessage, 48)).append("\n");
-            receipt.append("================================================\n");
+            receipt.append("................................................\n");
+            
+            // Software info
+            receipt.append(centerText("Green Code Solutions", 48)).append("\n");
+            receipt.append(centerText("078 150 8252 | 076 724 3647", 48)).append("\n");
             
             return receipt.toString();
             

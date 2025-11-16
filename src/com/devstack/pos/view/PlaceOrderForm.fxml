@@ -166,8 +166,20 @@
                   
                   <Region HBox.hgrow="ALWAYS" />
                
-               <!-- Total and Complete Order -->
-                  <VBox alignment="CENTER_RIGHT" spacing="8">
+               <!-- Customer Paid, Total, Balance and Complete Order -->
+                  <VBox alignment="CENTER_RIGHT" spacing="6">
+                     <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Text text="Customer Paid:" style="-fx-font-size: 14px; -fx-fill: #64748b;">
+                           <font>
+                              <Font name="System" size="14.0" />
+                           </font>
+                        </Text>
+                        <JFXTextField fx:id="txtCustomerPaid" promptText="0.00" styleClass="text-field-modern" prefWidth="120.0" prefHeight="32.0" onKeyReleased="#calculateBalance">
+                           <font>
+                              <Font name="System" size="14.0" />
+                           </font>
+                        </JFXTextField>
+                     </HBox>
                      <Text text="Total Cost:" style="-fx-font-size: 18px; -fx-fill: #64748b;">
                         <font>
                            <Font name="System" size="18.0" />
@@ -178,15 +190,37 @@
                            <Font name="System Bold" size="32.0" />
                         </font>
                      </Text>
+                     <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Text text="Balance:" style="-fx-font-size: 18px; -fx-fill: #64748b;">
+                           <font>
+                              <Font name="System" size="18.0" />
+                           </font>
+                        </Text>
+                        <Text fx:id="txtBalance" text="0.00 /=" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;">
+                           <font>
+                              <Font name="System Bold" size="24.0" />
+                           </font>
+                        </Text>
+                     </HBox>
                   </VBox>
-                  <JFXButton onAction="#btnCompleteOrder" text="Complete Order" buttonType="RAISED" styleClass="btn-success" prefWidth="200.0" prefHeight="56.0" style="-fx-font-size: 18px; -fx-font-weight: bold;">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
+                  <VBox spacing="8" alignment="CENTER">
+                     <JFXButton onAction="#btnCompleteOrder" text="Complete Order" buttonType="RAISED" styleClass="btn-success" prefWidth="200.0" prefHeight="56.0" style="-fx-font-size: 18px; -fx-font-weight: bold;">
+                        <font>
+                           <Font name="System Bold" size="18.0" />
+                        </font>
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                     <JFXButton fx:id="btnPrint" onAction="#btnPrintReceipt" text="🖨️ Print" buttonType="RAISED" styleClass="btn-outline" prefWidth="200.0" prefHeight="36.0" style="-fx-font-size: 14px;">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                  </VBox>
                </HBox>
             </VBox>
          </VBox>

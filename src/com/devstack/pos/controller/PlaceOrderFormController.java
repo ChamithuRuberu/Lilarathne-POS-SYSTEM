@@ -24,6 +24,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Text;
 import com.jfoenix.controls.JFXComboBox;
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTextField;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.animation.KeyFrame;
@@ -58,11 +60,15 @@ public class PlaceOrderFormController extends BaseController {
     public TableColumn colSelTotal;
     public TableColumn colSelOperation;
     public Text txtTotal;
+    public Text txtBalance;
+    public JFXTextField txtCustomerPaid;
+    public JFXButton btnPrint;
     public JFXComboBox<String> cmbPaymentMethod;
     @FXML
     public TabPane tabPane;
 
     private Long selectedCustomerId = null;
+    private Long lastCompletedOrderCode = null;
     private final CustomerService customerService;
     private final ProductDetailService productDetailService;
     private final ProductService productService;
@@ -101,6 +107,17 @@ public class PlaceOrderFormController extends BaseController {
         if (cmbPaymentMethod != null) {
             cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
             cmbPaymentMethod.setValue("Cash"); // Set default to Cash
+        }
+        
+        // Initialize balance display
+        if (txtBalance != null) {
+            txtBalance.setText("0.00 /=");
+            txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+        }
+        
+        // Disable print button initially (no order to print yet)
+        if (btnPrint != null) {
+            btnPrint.setDisable(true);
         }
         
         // Setup barcode scanner detection for automatic product loading
@@ -456,6 +473,36 @@ public class PlaceOrderFormController extends BaseController {
             total += tm.getTotalCost();
         }
         txtTotal.setText(total + " /=");
+        calculateBalance();
+    }
+    
+    public void calculateBalance(javafx.scene.input.KeyEvent keyEvent) {
+        calculateBalance();
+    }
+    
+    private void calculateBalance() {
+        try {
+            double total = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
+            double customerPaid = 0.0;
+            String paidText = txtCustomerPaid.getText() == null ? "" : txtCustomerPaid.getText().trim();
+            if (!paidText.isEmpty()) {
+                customerPaid = Double.parseDouble(paidText);
+            }
+            double balance = customerPaid - total;
+            txtBalance.setText(String.format("%.2f /=", balance));
+            
+            // Change color based on balance (red for negative, green for positive)
+            if (balance < 0) {
+                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+            } else if (balance > 0) {
+                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #16a34a;");
+            } else {
+                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #64748b;");
+            }
+        } catch (Exception e) {
+            txtBalance.setText("0.00 /=");
+            txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+        }
     }
 
     public void btnCompleteOrder(ActionEvent actionEvent) {
@@ -528,52 +575,49 @@ public class PlaceOrderFormController extends BaseController {
                 }
             }
             
-            // Generate and print bill receipt for ALL orders (automatic printing with cut)
+            // Store the order code for printing later
+            lastCompletedOrderCode = savedOrder.getCode();
+            
+            // Enable print button after order is completed
+            if (btnPrint != null) {
+                btnPrint.setDisable(false);
+            }
+            
+            // Generate PDF for record keeping (no automatic printing)
             try {
-                // Generate plain text receipt for thermal printer (no PDF)
-                String receiptText = pdfReportService.generatePlainTextReceipt(savedOrder.getCode());
-                
-                // Print receipt directly to thermal printer using ESC/POS commands
-                boolean printed = receiptPrinter.printRawText(receiptText);
-                
-                // Also generate PDF for record keeping
                 String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
                 
                 if ("PAID".equals(paymentStatus)) {
-                    if (printed) {
-                        new Alert(Alert.AlertType.CONFIRMATION, 
-                            "Order Completed Successfully!\nReceipt printed on thermal printer.\nPDF saved to: " + receiptPath).show();
-                    } else {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Order completed but printing failed.\nPDF saved to: " + receiptPath).show();
-                    }
+                    new Alert(Alert.AlertType.CONFIRMATION, 
+                        "Order Completed Successfully!\nPDF saved to: " + receiptPath + 
+                        "\nClick Print button to print receipt.").show();
                 } else {
-                    if (printed) {
-                        new Alert(Alert.AlertType.INFORMATION, 
-                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt printed on thermal printer.\nPDF saved to: " + receiptPath + 
-                            "\nStock will be reduced when payment is completed.").show();
-                    } else {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Order created but printing failed.\nPDF saved to: " + receiptPath + 
-                            "\nStock will be reduced when payment is completed.").show();
-                    }
+                    new Alert(Alert.AlertType.INFORMATION, 
+                        "Order created with " + paymentMethod + " payment. Status: PENDING.\nPDF saved to: " + receiptPath + 
+                        "\nStock will be reduced when payment is completed.\nClick Print button to print receipt.").show();
                 }
                 
             } catch (Exception receiptEx) {
                 receiptEx.printStackTrace();
-                // Order was successful, just receipt printing failed
+                // Order was successful, just PDF generation failed
                 if ("PAID".equals(paymentStatus)) {
                     new Alert(Alert.AlertType.WARNING, 
-                        "Order completed but receipt printing failed: " + receiptEx.getMessage()).show();
+                        "Order completed but PDF generation failed: " + receiptEx.getMessage()).show();
                 } else {
                     new Alert(Alert.AlertType.WARNING, 
-                        "Order created but receipt printing failed: " + receiptEx.getMessage()).show();
+                        "Order created but PDF generation failed: " + receiptEx.getMessage()).show();
                 }
             }
             clearFields();
             tms.clear();
             tblCart.setItems(tms);
             setTotal();
+            
+            // Disable print button after clearing (new order)
+            if (btnPrint != null) {
+                btnPrint.setDisable(true);
+            }
+            lastCompletedOrderCode = null;
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.WARNING, "Error completing order: " + e.getMessage()).show();
@@ -590,10 +634,37 @@ public class PlaceOrderFormController extends BaseController {
         txtQtyOnHand.clear();
         txtBuyingPrice.clear();
         txtQty.clear();
+        txtCustomerPaid.clear();
+        txtBalance.setText("0.00 /=");
+        txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
         selectedCustomerId = null;
         // Reset payment method to Cash
         if (cmbPaymentMethod != null) {
             cmbPaymentMethod.setValue("Cash");
+        }
+    }
+    
+    public void btnPrintReceipt(ActionEvent actionEvent) {
+        try {
+            if (lastCompletedOrderCode == null) {
+                new Alert(Alert.AlertType.WARNING, "No order to print! Please complete an order first.").show();
+                return;
+            }
+            
+            // Generate plain text receipt for thermal printer
+            String receiptText = pdfReportService.generatePlainTextReceipt(lastCompletedOrderCode);
+            
+            // Print receipt directly to thermal printer using ESC/POS commands
+            boolean printed = receiptPrinter.printRawText(receiptText);
+            
+            if (printed) {
+                new Alert(Alert.AlertType.INFORMATION, "Receipt printed successfully!").show();
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Printing failed. Please check printer connection.").show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error printing receipt: " + e.getMessage()).show();
         }
     }
 }

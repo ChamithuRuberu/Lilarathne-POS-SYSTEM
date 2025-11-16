@@ -2,6 +2,9 @@ package com.devstack.pos.service;
 
 import com.devstack.pos.entity.*;
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -60,19 +64,20 @@ public class PDFReportService {
             
             StringBuilder receipt = new StringBuilder();
             
-            // Business name
+            // Business name (double width/height for emphasis)
             String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
                 ? settings.getBusinessName().toUpperCase()
                 : "KUMARA ENTERPRISES";
-            receipt.append(centerText(businessName, 48)).append("\n");
+            receipt.append((char) 0x1B).append("!").append((char) 0x30); // ESC ! 0x30 = double width & height
+            receipt.append(centerText(businessName, 26)).append("\n");    // Use half width when text is doubled
+            receipt.append((char) 0x1B).append("!").append((char) 0x00); // Reset to normal size
             
-            // Address (multi-line if needed)
-            if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
-                receipt.append(centerText(settings.getAddress(), 48)).append("\n");
-            } else {
-                receipt.append(centerText("No. 58/K, Gangabada Road,", 48)).append("\n");
-                receipt.append(centerText("Wewala, Piliyandala", 48)).append("\n");
-            }
+            // Address (multi-line fallback with Wewala second line)
+            
+                receipt.append(centerText("No 58k Gagabada Rd,", 48)).append("\n");
+                receipt.append(centerText("Wewala,Piliyandala", 48)).append("\n");
+            
+
             
             // Contact numbers
             if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
@@ -99,22 +104,22 @@ public class PDFReportService {
             receipt.append("................................................\n");
             
             // Items header - matching the format from the image (all on one line)
-            receipt.append(String.format("%-10s %10s %5s %8s %10s\n",
+            receipt.append(String.format("%-14s %9s %5s %6s %9s\n",
                 "Item", "Price", "Qty", "Disc", "Total"));
             receipt.append("................................................\n");
             
             // Items - all details on one line, properly aligned
             for (OrderItem item : orderItems) {
                 String itemName = item.getProductName();
-                if (itemName.length() > 18) {
-                    itemName = itemName.substring(0, 15) + "...";
+                if (itemName.length() > 14) {
+                    itemName = itemName.substring(0, 11) + "...";
                 }
                 
                 double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
                 
-                // Format: Item (18 chars, left) | Price (10 chars, right) | Qty with x (5 chars) | Disc (8 chars, right) | Total (10 chars, right)
+                // Format: Item (14 chars, left) | Price (9 chars, right, 1 decimal) | Qty with x (5 chars) | Disc (6 chars, right) | Total (9 chars, right)
                 // All on ONE line to match the correct format
-                receipt.append(String.format("%-10s %10.2f x%-3d %8.2f %10.2f\n",
+                receipt.append(String.format("%-14s %9.1f x%-3d %6.2f %9.2f\n",
                     itemName,
                     item.getUnitPrice(),
                     item.getQuantity(),
@@ -201,7 +206,7 @@ public class PDFReportService {
     /**
      * Generate bill receipt PDF for a specific order
      */
-    public String generateBillReceipt(Long orderId) throws FileNotFoundException {
+    public String generateBillReceipt(Long orderId) throws IOException {
         // Get order details
         OrderDetail orderDetail = orderDetailService.findOrderDetail(orderId);
         if (orderDetail == null) {
@@ -268,24 +273,35 @@ public class PDFReportService {
             : "KUMARA ENTERPRISES";
         Paragraph storeName = new Paragraph(businessName)
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(18)
+            .setFontSize(22)
             .setBold()
             .setMarginBottom(5);
         document.add(storeName);
         
-        // Store Address - use address and contact from settings
+        // Store Address - use address and contact from settings (matching plain text format)
         StringBuilder addressText = new StringBuilder();
         if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
             addressText.append(settings.getAddress());
+            if (!settings.getAddress().toLowerCase().contains("wewala")) {
+                addressText.append("\nWewala,Piliyandala");
+            }
+        } else {
+            // Default address format split into two lines
+            addressText.append("58k Gagabada Rd,");
+            addressText.append("\nWewala,Piliyandala");
         }
+        
         if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
             if (addressText.length() > 0) {
                 addressText.append("\n");
             }
-            addressText.append("Tel: ").append(settings.getContactNumber());
-        }
-        if (addressText.length() == 0) {
-            addressText.append("123 Main Street, Colombo\nTel: +94 11 234 5678"); // Default fallback
+            addressText.append(settings.getContactNumber());
+        } else {
+            // Default contact matching plain text receipt
+            if (addressText.length() > 0) {
+                addressText.append("\n");
+            }
+            addressText.append("077 781 5955 / 011 261 3606");
         }
         
         Paragraph storeAddress = new Paragraph(addressText.toString())
@@ -343,34 +359,45 @@ public class PDFReportService {
             .setFontSize(10)
             .setMarginBottom(10));
         
-        // Items Table
-        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1, 2, 2}))
-            .useAllAvailableWidth()
-            .setMarginBottom(10);
+        // Items header - matching plain text format exactly
+        Paragraph itemsHeader = new Paragraph(String.format("%-14s %9s %5s %6s %9s",
+            "Item", "Price", "Qty", "Disc", "Total"))
+            .setFontSize(10)
+            .setBold()
+            .setMarginBottom(3);
+        document.add(itemsHeader);
         
-        // Table headers
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Item").setBold().setFontSize(10)));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Qty").setBold().setFontSize(10)));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Price").setBold().setFontSize(10)));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Total").setBold().setFontSize(10)));
+        // Divider line
+        document.add(new Paragraph("." .repeat(48))
+            .setFontSize(10)
+            .setMarginBottom(5));
         
-        // Table rows
+        // Items - matching plain text format exactly (all on one line per item)
         for (OrderItem item : orderItems) {
-            itemsTable.addCell(new Cell().add(new Paragraph(item.getProductName()).setFontSize(9)));
-            itemsTable.addCell(new Cell().add(new Paragraph(String.valueOf(item.getQuantity())).setFontSize(9)));
-            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", item.getUnitPrice())).setFontSize(9)));
-            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", item.getLineTotal())).setFontSize(9)));
-            
-            // If there's a discount, show it
-            if (item.getDiscountPerUnit() != null && item.getDiscountPerUnit() > 0) {
-                itemsTable.addCell(new Cell(1, 4)
-                    .add(new Paragraph("   Discount: -" + String.format("%.2f", item.getTotalDiscount()))
-                    .setFontSize(8)
-                    .setFontColor(ColorConstants.RED)));
+            String itemName = item.getProductName();
+            if (itemName.length() > 14) {
+                itemName = itemName.substring(0, 11) + "...";
             }
+            
+            double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
+            
+            // Format: Item (14 chars, left) | Price (9 chars, right, 1 decimal) | Qty with x (5 chars) | Disc (6 chars, right) | Total (9 chars, right)
+            Paragraph itemLine = new Paragraph(String.format("%-14s %9.1f x%-3d %6.2f %9.2f",
+                itemName,
+                item.getUnitPrice(),
+                item.getQuantity(),
+                discount,
+                item.getLineTotal()))
+                .setFontSize(9)
+                .setFont(PdfFontFactory.createFont(StandardFonts.COURIER))
+                .setMarginBottom(2);
+            document.add(itemLine);
         }
         
-        document.add(itemsTable);
+        // Divider line after items
+        document.add(new Paragraph("." .repeat(48))
+            .setFontSize(10)
+            .setMarginBottom(10));
         
         // Divider line
         document.add(new Paragraph("-" .repeat(50))
@@ -378,62 +405,84 @@ public class PDFReportService {
             .setFontSize(10)
             .setMarginBottom(10));
         
-        // Total section
+        // Total section - matching plain text format exactly
         double subtotal = orderItems.stream().mapToDouble(item -> 
             item.getUnitPrice() * item.getQuantity()).sum();
         double totalDiscount = orderDetail.getDiscount();
         
-        document.add(new Paragraph("Subtotal: LKR " + String.format("%.2f", subtotal))
-            .setTextAlignment(TextAlignment.RIGHT)
-            .setFontSize(11)
+        // Use monospace font for proper alignment
+        PdfFont monospaceFont = PdfFontFactory.createFont(StandardFonts.COURIER);
+        
+        // Format: Label (30 chars left) | Value (17 chars right) - matching plain text
+        document.add(new Paragraph(String.format("%-30s %17.2f", "Subtotal", subtotal))
+            .setFont(monospaceFont)
+            .setFontSize(10)
             .setMarginBottom(3));
         
-        if (totalDiscount > 0) {
-            document.add(new Paragraph("Total Discount: -LKR " + String.format("%.2f", totalDiscount))
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setFontSize(11)
-                .setFontColor(ColorConstants.RED)
-                .setMarginBottom(3));
-        }
-        
-        document.add(new Paragraph("=" .repeat(50))
-            .setTextAlignment(TextAlignment.CENTER)
+        document.add(new Paragraph(String.format("%-30s %17.2f", "Total Discount", totalDiscount))
+            .setFont(monospaceFont)
             .setFontSize(10)
-            .setMarginBottom(5));
+            .setMarginBottom(3));
         
-        document.add(new Paragraph("TOTAL: LKR " + String.format("%.2f", orderDetail.getTotalCost()))
-            .setTextAlignment(TextAlignment.RIGHT)
-            .setFontSize(14)
+        document.add(new Paragraph(String.format("%-30s %17.2f", "Items", (double)orderItems.size()))
+            .setFont(monospaceFont)
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("-" .repeat(48))
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph(String.format("%-30s %17.2f", "TOTAL", orderDetail.getTotalCost()))
+            .setFont(monospaceFont)
+            .setFontSize(12)
             .setBold()
-            .setMarginBottom(5));
+            .setMarginBottom(3));
         
         // Customer Paid
         double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
-        document.add(new Paragraph("Customer Paid: LKR " + String.format("%.2f", customerPaid))
-            .setTextAlignment(TextAlignment.RIGHT)
-            .setFontSize(11)
+        document.add(new Paragraph(String.format("%-30s %17.2f", "Customer Paid", customerPaid))
+            .setFont(monospaceFont)
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        // Payment method
+        document.add(new Paragraph(String.format("%-30s %17s", "Payment: " + orderDetail.getPaymentMethod(), ""))
+            .setFont(monospaceFont)
+            .setFontSize(10)
             .setMarginBottom(3));
         
         // Change (if customer paid more than total)
         if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
             double change = customerPaid - orderDetail.getTotalCost();
-            document.add(new Paragraph("Change: LKR " + String.format("%.2f", change))
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setFontSize(11)
-                .setFontColor(ColorConstants.GREEN)
-                .setMarginBottom(5));
+            document.add(new Paragraph(String.format("%-30s %17.2f", "Change", change))
+                .setFont(monospaceFont)
+                .setFontSize(10)
+                .setMarginBottom(3));
         }
         
-        // Balance (if customer paid less than total)
+        document.add(new Paragraph("-" .repeat(48))
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        // Order Type
+        String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
+            ? "Construction" : "Hardware";
+        document.add(new Paragraph(String.format("Type: %s", orderType))
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        document.add(new Paragraph("-" .repeat(48))
+            .setFontSize(10)
+            .setMarginBottom(3));
+        
+        // Balance - always show (even if 0.00)
         double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
-        if (balance != 0.00) {
-            document.add(new Paragraph("Balance: LKR " + String.format("%.2f", balance))
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setFontSize(11)
-                .setFontColor(ColorConstants.RED)
-                .setBold()
-                .setMarginBottom(5));
-        }
+        document.add(new Paragraph(String.format("%-30s %17.2f", "Balance", balance))
+            .setFont(monospaceFont)
+            .setFontSize(10)
+            .setBold()
+            .setMarginBottom(5));
         
         // Payment Status
         String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 

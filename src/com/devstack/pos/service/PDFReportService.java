@@ -98,23 +98,24 @@ public class PDFReportService {
             
             receipt.append("................................................\n");
             
-            // Items header - matching the format from the image
-            receipt.append(String.format("%-16s %6s %6s %6s %8s",
+            // Items header - matching the format from the image (all on one line)
+            receipt.append(String.format("%-18s %10s %5s %8s %10s\n",
                 "Item", "Price", "Qty", "Disc", "Total"));
             receipt.append("................................................\n");
             
-            // Items
+            // Items - all details on one line, properly aligned
             for (OrderItem item : orderItems) {
                 String itemName = item.getProductName();
-                if (itemName.length() > 16) {
-                    itemName = itemName.substring(0, 13) + "...";
+                if (itemName.length() > 18) {
+                    itemName = itemName.substring(0, 15) + "...";
                 }
                 
                 double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
                 
-                receipt.append(String.format("%-16s\n", itemName));
-                receipt.append(String.format("%6.2f %6.2f x%-2d %6.2f %8.2f\n",
-                    item.getUnitPrice(),
+                // Format: Item (18 chars, left) | Price (10 chars, right) | Qty with x (5 chars) | Disc (8 chars, right) | Total (10 chars, right)
+                // All on ONE line to match the correct format
+                receipt.append(String.format("%-18s %10.2f x%-3d %8.2f %10.2f\n",
+                    itemName,
                     item.getUnitPrice(),
                     item.getQuantity(),
                     discount,
@@ -134,13 +135,19 @@ public class PDFReportService {
             receipt.append(String.format("%-30s %17.2f\n", "Items", (double)orderItems.size()));
             receipt.append("------------------------------------------------\n");
             receipt.append(String.format("%-30s %17.2f\n", "TOTAL", orderDetail.getTotalCost()));
-            receipt.append(String.format("%-30s %17.2f\n", 
-                "Payment: " + orderDetail.getPaymentMethod(), 
-                orderDetail.getTotalCost()));
             
-            // Payment status
-            if ("PAID".equals(orderDetail.getPaymentStatus())) {
-                receipt.append(String.format("%-30s %17.2f\n", "Change", 0.00));
+            // Customer Paid
+            double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
+            receipt.append(String.format("%-30s %17.2f\n", "Customer Paid", customerPaid));
+            
+            // Payment method
+            receipt.append(String.format("%-30s %17s\n", 
+                "Payment: " + orderDetail.getPaymentMethod(), ""));
+            
+            // Change (if customer paid more than total)
+            if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
+                double change = customerPaid - orderDetail.getTotalCost();
+                receipt.append(String.format("%-30s %17.2f\n", "Change", change));
             }
             
             receipt.append("------------------------------------------------\n");
@@ -152,8 +159,13 @@ public class PDFReportService {
             
             receipt.append("------------------------------------------------\n");
             
-            // Balance
-            receipt.append(String.format("%-30s %17.2f\n", "Balance", 0.00));
+            // Balance (if customer paid less than total)
+            double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
+            if (balance != 0.00) {
+                receipt.append(String.format("%-30s %17.2f\n", "Balance", balance));
+            } else {
+                receipt.append(String.format("%-30s %17.2f\n", "Balance", 0.00));
+            }
             receipt.append("................................................\n");
             
             // Footer message
@@ -393,7 +405,35 @@ public class PDFReportService {
             .setTextAlignment(TextAlignment.RIGHT)
             .setFontSize(14)
             .setBold()
-            .setMarginBottom(15));
+            .setMarginBottom(5));
+        
+        // Customer Paid
+        double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
+        document.add(new Paragraph("Customer Paid: LKR " + String.format("%.2f", customerPaid))
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setFontSize(11)
+            .setMarginBottom(3));
+        
+        // Change (if customer paid more than total)
+        if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
+            double change = customerPaid - orderDetail.getTotalCost();
+            document.add(new Paragraph("Change: LKR " + String.format("%.2f", change))
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setFontSize(11)
+                .setFontColor(ColorConstants.GREEN)
+                .setMarginBottom(5));
+        }
+        
+        // Balance (if customer paid less than total)
+        double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
+        if (balance != 0.00) {
+            document.add(new Paragraph("Balance: LKR " + String.format("%.2f", balance))
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setFontSize(11)
+                .setFontColor(ColorConstants.RED)
+                .setBold()
+                .setMarginBottom(5));
+        }
         
         // Payment Status
         String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 

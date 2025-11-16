@@ -535,10 +535,23 @@ public class PlaceOrderFormController extends BaseController {
                 paymentStatus = "PENDING";
             }
             
+            // Get customer paid amount and calculate balance
+            double customerPaid = 0.0;
+            String paidText = txtCustomerPaid.getText() == null ? "" : txtCustomerPaid.getText().trim();
+            if (!paidText.isEmpty()) {
+                try {
+                    customerPaid = Double.parseDouble(paidText);
+                } catch (NumberFormatException e) {
+                    customerPaid = 0.0;
+                }
+            }
+            double totalCost = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
+            double balance = customerPaid - totalCost;
+            
             // Create order detail
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setIssuedDate(LocalDateTime.now());
-            orderDetail.setTotalCost(Double.parseDouble(txtTotal.getText().split(" /=")[0]));
+            orderDetail.setTotalCost(totalCost);
             orderDetail.setCustomerId(selectedCustomerId);
             orderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
             orderDetail.setDiscount(totalDiscount);
@@ -546,6 +559,8 @@ public class PlaceOrderFormController extends BaseController {
             orderDetail.setPaymentMethod(paymentMethod);
             orderDetail.setPaymentStatus(paymentStatus);
             orderDetail.setOrderType(getCurrentOrderType()); // Set order type based on active tab
+            orderDetail.setCustomerPaid(customerPaid);
+            orderDetail.setBalance(balance);
             
             // Save order
             OrderDetail savedOrder = orderDetailService.saveOrderDetail(orderDetail);

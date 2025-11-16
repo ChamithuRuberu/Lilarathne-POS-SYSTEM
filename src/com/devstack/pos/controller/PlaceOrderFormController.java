@@ -528,29 +528,33 @@ public class PlaceOrderFormController extends BaseController {
                 }
             }
             
-            // Generate and print bill receipt for ALL orders (automatic printing)
+            // Generate and print bill receipt for ALL orders (automatic printing with cut)
             try {
-                String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
+                // Generate plain text receipt for thermal printer (no PDF)
+                String receiptText = pdfReportService.generatePlainTextReceipt(savedOrder.getCode());
                 
-                // Print receipt automatically to XPrinter for ALL orders
-                boolean printed = receiptPrinter.printPDF(receiptPath);
+                // Print receipt directly to thermal printer using ESC/POS commands
+                boolean printed = receiptPrinter.printRawText(receiptText);
+                
+                // Also generate PDF for record keeping
+                String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
                 
                 if ("PAID".equals(paymentStatus)) {
                     if (printed) {
                         new Alert(Alert.AlertType.CONFIRMATION, 
-                            "Order Completed Successfully!\nReceipt automatically printed to XPrinter.\nSaved to: " + receiptPath).show();
+                            "Order Completed Successfully!\nReceipt printed on thermal printer.\nPDF saved to: " + receiptPath).show();
                     } else {
                         new Alert(Alert.AlertType.WARNING, 
-                            "Order Completed Successfully!\nReceipt saved but printing failed. Please print manually from: " + receiptPath).show();
+                            "Order completed but printing failed.\nPDF saved to: " + receiptPath).show();
                     }
                 } else {
                     if (printed) {
                         new Alert(Alert.AlertType.INFORMATION, 
-                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt automatically printed to XPrinter.\nSaved to: " + receiptPath + 
+                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt printed on thermal printer.\nPDF saved to: " + receiptPath + 
                             "\nStock will be reduced when payment is completed.").show();
                     } else {
                         new Alert(Alert.AlertType.WARNING, 
-                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt saved but printing failed. Please print manually from: " + receiptPath + 
+                            "Order created but printing failed.\nPDF saved to: " + receiptPath + 
                             "\nStock will be reduced when payment is completed.").show();
                     }
                 }

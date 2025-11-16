@@ -41,6 +41,126 @@ public class PDFReportService {
     private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
     /**
+     * Generate plain text bill receipt for thermal printer
+     * This format works perfectly with ESC/POS thermal printers
+     */
+    public String generatePlainTextReceipt(Long orderId) {
+        try {
+            // Get order details
+            OrderDetail orderDetail = orderDetailService.findOrderDetail(orderId);
+            if (orderDetail == null) {
+                return "Error: Order not found";
+            }
+            
+            // Get order items
+            List<OrderItem> orderItems = orderItemService.findByOrderId(orderId);
+            
+            // Get system settings
+            SystemSettings settings = systemSettingsService.getSystemSettings();
+            
+            StringBuilder receipt = new StringBuilder();
+            
+            // Business name
+            String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
+                ? settings.getBusinessName().toUpperCase()
+                : "KUMARA ENTERPRISES";
+            receipt.append(centerText(businessName, 48)).append("\n");
+            
+            // Address
+            if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
+                receipt.append(centerText(settings.getAddress(), 48)).append("\n");
+            }
+            if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
+                receipt.append(centerText("Tel: " + settings.getContactNumber(), 48)).append("\n");
+            }
+            
+            receipt.append("================================================\n");
+            receipt.append(centerText("SALES RECEIPT", 48)).append("\n");
+            receipt.append("================================================\n\n");
+            
+            // Order information
+            receipt.append(String.format("Receipt No: %d\n", orderDetail.getCode()));
+            receipt.append(String.format("Date: %s\n", orderDetail.getIssuedDate().format(RECEIPT_DATE_FORMATTER)));
+            receipt.append(String.format("Customer: %s\n", orderDetail.getCustomerName()));
+            receipt.append(String.format("Cashier: %s\n", orderDetail.getOperatorEmail()));
+            receipt.append(String.format("Payment: %s\n", orderDetail.getPaymentMethod()));
+            
+            String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
+                ? "Construction" : "Hardware";
+            receipt.append(String.format("Type: %s\n\n", orderType));
+            
+            receipt.append("------------------------------------------------\n");
+            
+            // Items header
+            receipt.append(String.format("%-20s %5s %10s %10s\n", "Item", "Qty", "Price", "Total"));
+            receipt.append("------------------------------------------------\n");
+            
+            // Items
+            for (OrderItem item : orderItems) {
+                String itemName = item.getProductName();
+                if (itemName.length() > 20) {
+                    itemName = itemName.substring(0, 17) + "...";
+                }
+                receipt.append(String.format("%-20s %5d %10.2f %10.2f\n",
+                    itemName,
+                    item.getQuantity(),
+                    item.getUnitPrice(),
+                    item.getLineTotal()
+                ));
+                
+                // Show discount if any
+                if (item.getDiscountPerUnit() != null && item.getDiscountPerUnit() > 0) {
+                    receipt.append(String.format("  Discount: -%.2f\n", item.getTotalDiscount()));
+                }
+            }
+            
+            receipt.append("------------------------------------------------\n");
+            
+            // Totals
+            double subtotal = orderItems.stream().mapToDouble(item -> 
+                item.getUnitPrice() * item.getQuantity()).sum();
+            double totalDiscount = orderDetail.getDiscount();
+            
+            receipt.append(String.format("%-30s %17.2f\n", "Subtotal:", subtotal));
+            if (totalDiscount > 0) {
+                receipt.append(String.format("%-30s %17.2f\n", "Total Discount:", -totalDiscount));
+            }
+            receipt.append("================================================\n");
+            receipt.append(String.format("%-30s %17.2f\n", "TOTAL:", orderDetail.getTotalCost()));
+            receipt.append("================================================\n\n");
+            
+            // Payment status
+            String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 
+                "*** PAID ***" : "*** PAYMENT PENDING ***";
+            receipt.append(centerText(paymentStatusText, 48)).append("\n\n");
+            
+            // Footer
+            String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
+                ? settings.getFooterMessage()
+                : "Thank you for your business!";
+            receipt.append(centerText(footerMessage, 48)).append("\n");
+            receipt.append("================================================\n");
+            
+            return receipt.toString();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error generating receipt: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * Center text for thermal printer (48 characters wide for 80mm)
+     */
+    private String centerText(String text, int width) {
+        if (text.length() >= width) {
+            return text.substring(0, width);
+        }
+        int padding = (width - text.length()) / 2;
+        return " ".repeat(padding) + text;
+    }
+    
+    /**
      * Generate bill receipt PDF for a specific order
      */
     public String generateBillReceipt(Long orderId) throws FileNotFoundException {

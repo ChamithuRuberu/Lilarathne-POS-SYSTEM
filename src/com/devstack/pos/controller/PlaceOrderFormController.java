@@ -112,7 +112,7 @@ public class PlaceOrderFormController extends BaseController {
         // Initialize balance display
         if (txtBalance != null) {
             txtBalance.setText("0.00 /=");
-            txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+            txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
         }
         
         // Disable print button initially (no order to print yet)
@@ -415,6 +415,11 @@ public class PlaceOrderFormController extends BaseController {
         if (effectiveUnitPrice < 0) effectiveUnitPrice = 0.0;
         double totalCost = qty * effectiveUnitPrice;
 
+        // Disable print button when starting a new order (first item added to empty cart)
+        if (btnPrint != null && tms.isEmpty()) {
+            btnPrint.setDisable(true);
+            lastCompletedOrderCode = null;
+        }
 
         CartTm selectedCartTm = isExists(txtBarcode.getText());
         if (selectedCartTm != null) {
@@ -493,15 +498,15 @@ public class PlaceOrderFormController extends BaseController {
             
             // Change color based on balance (red for negative, green for positive)
             if (balance < 0) {
-                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
             } else if (balance > 0) {
-                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #16a34a;");
+                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #16a34a;");
             } else {
-                txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #64748b;");
+                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #64748b;");
             }
         } catch (Exception e) {
             txtBalance.setText("0.00 /=");
-            txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+            txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
         }
     }
 
@@ -578,11 +583,6 @@ public class PlaceOrderFormController extends BaseController {
             // Store the order code for printing later
             lastCompletedOrderCode = savedOrder.getCode();
             
-            // Enable print button after order is completed
-            if (btnPrint != null) {
-                btnPrint.setDisable(false);
-            }
-            
             // Generate PDF for record keeping (no automatic printing)
             try {
                 String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
@@ -608,16 +608,16 @@ public class PlaceOrderFormController extends BaseController {
                         "Order created but PDF generation failed: " + receiptEx.getMessage()).show();
                 }
             }
+            
+            // Enable print button after order is completed (keep it enabled for printing)
+            if (btnPrint != null) {
+                btnPrint.setDisable(false);
+            }
+            
             clearFields();
             tms.clear();
             tblCart.setItems(tms);
             setTotal();
-            
-            // Disable print button after clearing (new order)
-            if (btnPrint != null) {
-                btnPrint.setDisable(true);
-            }
-            lastCompletedOrderCode = null;
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.WARNING, "Error completing order: " + e.getMessage()).show();
@@ -636,7 +636,7 @@ public class PlaceOrderFormController extends BaseController {
         txtQty.clear();
         txtCustomerPaid.clear();
         txtBalance.setText("0.00 /=");
-        txtBalance.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+        txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
         selectedCustomerId = null;
         // Reset payment method to Cash
         if (cmbPaymentMethod != null) {

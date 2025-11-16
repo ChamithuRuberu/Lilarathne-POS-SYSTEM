@@ -526,27 +526,45 @@ public class PlaceOrderFormController extends BaseController {
                 for (CartTm tm : tms) {
                     productDetailService.reduceStock(tm.getCode(), tm.getQty());
                 }
+            }
+            
+            // Generate and print bill receipt for ALL orders (automatic printing)
+            try {
+                String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
                 
-                // Generate and print bill receipt
-                try {
-                    String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
-                    
-                    // Print receipt and open cash drawer
-                    receiptPrinter.printBillAndOpenDrawer(receiptPath);
-                    
-                    new Alert(Alert.AlertType.CONFIRMATION, 
-                        "Order Completed Successfully!\nReceipt saved to: " + receiptPath).show();
-                    
-                } catch (Exception receiptEx) {
-                    receiptEx.printStackTrace();
-                    // Order was successful, just receipt printing failed
-                    new Alert(Alert.AlertType.WARNING, 
-                        "Order completed but receipt printing failed: " + receiptEx.getMessage()).show();
+                // Print receipt automatically to XPrinter for ALL orders
+                boolean printed = receiptPrinter.printPDF(receiptPath);
+                
+                if ("PAID".equals(paymentStatus)) {
+                    if (printed) {
+                        new Alert(Alert.AlertType.CONFIRMATION, 
+                            "Order Completed Successfully!\nReceipt automatically printed to XPrinter.\nSaved to: " + receiptPath).show();
+                    } else {
+                        new Alert(Alert.AlertType.WARNING, 
+                            "Order Completed Successfully!\nReceipt saved but printing failed. Please print manually from: " + receiptPath).show();
+                    }
+                } else {
+                    if (printed) {
+                        new Alert(Alert.AlertType.INFORMATION, 
+                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt automatically printed to XPrinter.\nSaved to: " + receiptPath + 
+                            "\nStock will be reduced when payment is completed.").show();
+                    } else {
+                        new Alert(Alert.AlertType.WARNING, 
+                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nReceipt saved but printing failed. Please print manually from: " + receiptPath + 
+                            "\nStock will be reduced when payment is completed.").show();
+                    }
                 }
                 
-            } else {
-                new Alert(Alert.AlertType.INFORMATION, 
-                    "Order created with " + paymentMethod + " payment. Status: PENDING. Stock will be reduced when payment is completed.").show();
+            } catch (Exception receiptEx) {
+                receiptEx.printStackTrace();
+                // Order was successful, just receipt printing failed
+                if ("PAID".equals(paymentStatus)) {
+                    new Alert(Alert.AlertType.WARNING, 
+                        "Order completed but receipt printing failed: " + receiptEx.getMessage()).show();
+                } else {
+                    new Alert(Alert.AlertType.WARNING, 
+                        "Order created but receipt printing failed: " + receiptEx.getMessage()).show();
+                }
             }
             clearFields();
             tms.clear();

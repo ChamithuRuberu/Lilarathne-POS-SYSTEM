@@ -219,17 +219,24 @@ public class ProductMainPageController extends BaseController {
                     System.out.println("[BARCODE DEBUG] Detection info - Change count: " + barcodeInputChangeCount + ", Has focus: " + txtBarcode.isFocused() + ", Length: " + barcode.length());
                     
                     // Update the text field to remove newlines if any
+                    // This ensures the barcode field always contains the clean value
                     String currentText = txtBarcode.getText().replace("\n", "").replace("\r", "").trim();
                     if (!currentText.equals(txtBarcode.getText())) {
                         System.out.println("[BARCODE DEBUG] Cleaning text field - removing newlines");
+                        System.out.println("[BARCODE DEBUG] Original: '" + txtBarcode.getText() + "', Cleaned: '" + currentText + "'");
                         isUpdatingBarcodeProgrammatically = true;
                         try {
                             txtBarcode.setText(currentText);
+                            System.out.println("[BARCODE DEBUG] Barcode field updated with clean value: '" + currentText + "'");
                         } finally {
                             javafx.application.Platform.runLater(() -> {
-                                isUpdatingBarcodeProgrammatically = false;
+                                javafx.application.Platform.runLater(() -> {
+                                    isUpdatingBarcodeProgrammatically = false;
+                                });
                             });
                         }
+                    } else {
+                        System.out.println("[BARCODE DEBUG] Barcode field already clean: '" + currentText + "'");
                     }
                     // Reset counter
                     barcodeInputChangeCount = 0;
@@ -521,8 +528,30 @@ public class ProductMainPageController extends BaseController {
 
     public void btnNewProductOnAction(ActionEvent actionEvent) {
         try {
+            // Get barcode value directly from field - ensure we get the actual current value
+            String rawBarcode = txtBarcode.getText();
+            System.out.println("[BARCODE DEBUG] ========== SAVE PRODUCT ==========");
+            System.out.println("[BARCODE DEBUG] Raw barcode from field: '" + rawBarcode + "'");
+            System.out.println("[BARCODE DEBUG] Raw barcode length: " + (rawBarcode != null ? rawBarcode.length() : 0));
+            
+            // Clean barcode value (remove any newlines/carriage returns)
+            String barcodeValue = rawBarcode;
+            if (barcodeValue != null) {
+                String beforeClean = barcodeValue;
+                barcodeValue = barcodeValue.replace("\n", "").replace("\r", "").trim();
+                if (!barcodeValue.equals(beforeClean)) {
+                    System.out.println("[BARCODE DEBUG] Cleaned barcode - Before: '" + beforeClean + "', After: '" + barcodeValue + "'");
+                }
+            } else {
+                barcodeValue = "";
+            }
+            
+            System.out.println("[BARCODE DEBUG] Final barcode value to save: '" + barcodeValue + "'");
+            System.out.println("[BARCODE DEBUG] Barcode value length: " + barcodeValue.length());
+            
             // Validate inputs
-            if (txtBarcode.getText().trim().isEmpty()) {
+            if (barcodeValue.isEmpty()) {
+                System.out.println("[BARCODE DEBUG] ERROR: Barcode is empty!");
                 new Alert(Alert.AlertType.WARNING, "Please enter or scan a barcode!").show();
                 return;
             }
@@ -539,7 +568,10 @@ public class ProductMainPageController extends BaseController {
 
             Product product = new Product();
             product.setDescription(txtProductDescription.getText().trim());
-            product.setBarcode(txtBarcode.getText().trim());
+            product.setBarcode(barcodeValue); // Use cleaned barcode value
+            
+            System.out.println("[BARCODE DEBUG] Product object barcode set to: '" + product.getBarcode() + "'");
+            System.out.println("[BARCODE DEBUG] About to call productService.saveProduct()");
 
             // Set category
             Category category = categoryService.findCategoryByName(cmbCategory.getValue());
@@ -548,7 +580,13 @@ public class ProductMainPageController extends BaseController {
             }
 
             if (btnSaveUpdate.getText().equals("Save Product")) {
+                System.out.println("[BARCODE DEBUG] Calling productService.saveProduct()");
+                System.out.println("[BARCODE DEBUG] Product barcode before save: '" + product.getBarcode() + "'");
                 Product savedProduct = productService.saveProduct(product);
+                System.out.println("[BARCODE DEBUG] Product saved successfully!");
+                System.out.println("[BARCODE DEBUG] Saved product barcode: '" + (savedProduct.getBarcode() != null ? savedProduct.getBarcode() : "NULL") + "'");
+                System.out.println("[BARCODE DEBUG] Saved product code: " + savedProduct.getCode());
+                
                 new Alert(Alert.AlertType.CONFIRMATION,
                         "Product Saved Successfully!\nBarcode: " + savedProduct.getBarcode()).show();
 
@@ -561,14 +599,18 @@ public class ProductMainPageController extends BaseController {
                 loadAllProducts(searchText);
             } else {
                 // Update existing product
+                System.out.println("[BARCODE DEBUG] Updating existing product (Code: " + currentProductCode + ")");
+                System.out.println("[BARCODE DEBUG] Product barcode before update: '" + product.getBarcode() + "'");
                 if (currentProductCode != null) {
                     product.setCode(currentProductCode);
                 if (productService.updateProduct(product)) {
+                    System.out.println("[BARCODE DEBUG] Product updated successfully!");
                     new Alert(Alert.AlertType.CONFIRMATION, "Product Updated!").show();
                     clearFields();
                     loadAllProducts(searchText);
                     btnSaveUpdate.setText("Save Product");
                 } else {
+                    System.out.println("[BARCODE DEBUG] Product update failed!");
                     new Alert(Alert.AlertType.WARNING, "Try Again!").show();
                     }
                 }

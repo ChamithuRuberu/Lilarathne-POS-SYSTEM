@@ -19,25 +19,41 @@ public class ProductService {
     private final ProductRepository productRepository;
     
     public Product saveProduct(Product product) {
+        System.out.println("[PRODUCT SERVICE DEBUG] ========== saveProduct() called ==========");
+        System.out.println("[PRODUCT SERVICE DEBUG] Product barcode: '" + (product.getBarcode() != null ? product.getBarcode() : "NULL") + "'");
+        System.out.println("[PRODUCT SERVICE DEBUG] Product description: '" + product.getDescription() + "'");
+        System.out.println("[PRODUCT SERVICE DEBUG] Product code: " + product.getCode());
+        
         if (product.getStatus() == null) {
             product.setStatus(Status.ACTIVE);
         }
         
         // Validate barcode
         if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
+            System.out.println("[PRODUCT SERVICE DEBUG] ERROR: Barcode is null or empty!");
             throw new IllegalArgumentException("Barcode is required. Please scan or enter a barcode.");
         }
         
+        System.out.println("[PRODUCT SERVICE DEBUG] Barcode validation passed: '" + product.getBarcode() + "'");
+        
         if (!BarcodeGenerator.isValidBarcode(product.getBarcode())) {
+            System.out.println("[PRODUCT SERVICE DEBUG] ERROR: Invalid barcode format!");
             throw new IllegalArgumentException("Invalid barcode format. Use alphanumeric characters only.");
         }
         
         // Check if barcode already exists (only for new products)
         if (product.getCode() == null && productRepository.existsByBarcode(product.getBarcode())) {
+            System.out.println("[PRODUCT SERVICE DEBUG] ERROR: Barcode already exists!");
             throw new IllegalArgumentException("Barcode already exists in the system.");
         }
         
-        return productRepository.save(product);
+        System.out.println("[PRODUCT SERVICE DEBUG] About to save product to repository...");
+        Product savedProduct = productRepository.save(product);
+        System.out.println("[PRODUCT SERVICE DEBUG] Product saved to repository!");
+        System.out.println("[PRODUCT SERVICE DEBUG] Saved product barcode: '" + (savedProduct.getBarcode() != null ? savedProduct.getBarcode() : "NULL") + "'");
+        System.out.println("[PRODUCT SERVICE DEBUG] Saved product code: " + savedProduct.getCode());
+        
+        return savedProduct;
     }
     
     public boolean updateProduct(Product product) {

@@ -99,7 +99,7 @@ public class PDFReportService {
             receipt.append("................................................\n");
             
             // Items header - matching the format from the image (all on one line)
-            receipt.append(String.format("%-18s %10s %5s %8s %10s\n",
+            receipt.append(String.format("%-10s %10s %5s %8s %10s\n",
                 "Item", "Price", "Qty", "Disc", "Total"));
             receipt.append("................................................\n");
             
@@ -114,7 +114,7 @@ public class PDFReportService {
                 
                 // Format: Item (18 chars, left) | Price (10 chars, right) | Qty with x (5 chars) | Disc (8 chars, right) | Total (10 chars, right)
                 // All on ONE line to match the correct format
-                receipt.append(String.format("%-18s %10.2f x%-3d %8.2f %10.2f\n",
+                receipt.append(String.format("%-10s %10.2f x%-3d %8.2f %10.2f\n",
                     itemName,
                     item.getUnitPrice(),
                     item.getQuantity(),

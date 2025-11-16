@@ -1,8 +1,12 @@
 package com.devstack.pos.controller;
 
+import com.devstack.pos.entity.Customer;
+import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
+import com.devstack.pos.repository.CustomerRepository;
 import com.devstack.pos.repository.ProductDetailRepository;
 import com.devstack.pos.repository.ProductRepository;
+import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
@@ -254,6 +258,107 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<ConstructionCashierTm, Double> colConstructionCashierRevenue;
     
+    // Customer Purchase History Tab
+    @FXML
+    private javafx.scene.control.ComboBox<Customer> cmbCustomerHistory;
+    
+    @FXML
+    private Text lblCustomerTotalOrders;
+    
+    @FXML
+    private Text lblCustomerTotalSpent;
+    
+    @FXML
+    private Text lblCustomerAvgOrder;
+    
+    @FXML
+    private Text lblCustomerLastPurchase;
+    
+    @FXML
+    private TableView<CustomerHistoryTm> tblCustomerHistory;
+    
+    @FXML
+    private TableColumn<CustomerHistoryTm, Long> colHistoryOrderId;
+    
+    @FXML
+    private TableColumn<CustomerHistoryTm, String> colHistoryDate;
+    
+    @FXML
+    private TableColumn<CustomerHistoryTm, Double> colHistoryAmount;
+    
+    @FXML
+    private TableColumn<CustomerHistoryTm, String> colHistoryPaymentMethod;
+    
+    @FXML
+    private TableColumn<CustomerHistoryTm, String> colHistoryPaymentStatus;
+    
+    @FXML
+    private TableView<FavoriteProductTm> tblCustomerFavoriteProducts;
+    
+    @FXML
+    private TableColumn<FavoriteProductTm, String> colFavProductName;
+    
+    @FXML
+    private TableColumn<FavoriteProductTm, Integer> colFavProductQty;
+    
+    @FXML
+    private TableColumn<FavoriteProductTm, Double> colFavProductRevenue;
+    
+    @FXML
+    private TableView<FavoriteCategoryTm> tblCustomerFavoriteCategories;
+    
+    @FXML
+    private TableColumn<FavoriteCategoryTm, String> colFavCategoryName;
+    
+    @FXML
+    private TableColumn<FavoriteCategoryTm, Integer> colFavCategoryQty;
+    
+    @FXML
+    private TableColumn<FavoriteCategoryTm, Double> colFavCategoryRevenue;
+    
+    // Product Performance Tab
+    @FXML
+    private javafx.scene.control.ComboBox<Product> cmbProductPerformance;
+    
+    @FXML
+    private Text lblProductTotalSold;
+    
+    @FXML
+    private Text lblProductTotalRevenue;
+    
+    @FXML
+    private Text lblProductUniqueCustomers;
+    
+    @FXML
+    private Text lblProductAvgQty;
+    
+    @FXML
+    private TableView<ProductSalesHistoryTm> tblProductSalesHistory;
+    
+    @FXML
+    private TableColumn<ProductSalesHistoryTm, Long> colProductOrderId;
+    
+    @FXML
+    private TableColumn<ProductSalesHistoryTm, String> colProductSaleDate;
+    
+    @FXML
+    private TableColumn<ProductSalesHistoryTm, Integer> colProductQty;
+    
+//    @FXML
+//    private TableColumn<ProductSalesHistoryTm, Double> colProductRevenue;
+    
+    @FXML
+    private TableView<ProductSalesTrendTm> tblProductSalesTrend;
+    
+    @FXML
+    private TableColumn<ProductSalesTrendTm, String> colTrendDate;
+    
+    @FXML
+    private TableColumn<ProductSalesTrendTm, Integer> colTrendQty;
+    
+    @FXML
+    private TableColumn<ProductSalesTrendTm, Double> colTrendRevenue;
+    
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final ProductRepository productRepository;
@@ -261,6 +366,8 @@ public class AnalysisPageController extends BaseController {
     private final PDFReportService pdfReportService;
     private final ReturnOrderService returnOrderService;
     private final ReturnOrderItemService returnOrderItemService;
+    private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
     
     private LocalDateTime filterStartDate = null;
     private LocalDateTime filterEndDate = null;
@@ -405,6 +512,128 @@ public class AnalysisPageController extends BaseController {
         // Load construction data
         loadConstructionSummary();
         loadWeeklyConstruction(null);
+        
+        // Initialize Customer Purchase History Tab
+        initializeCustomerHistoryTab();
+        
+        // Initialize Product Performance Tab
+        initializeProductPerformanceTab();
+    }
+    
+    private void initializeCustomerHistoryTab() {
+        // Load customers into combo box
+        if (cmbCustomerHistory != null) {
+            ObservableList<Customer> customers = FXCollections.observableArrayList(
+                customerService.findAllCustomers()
+            );
+            cmbCustomerHistory.setItems(customers);
+            
+            cmbCustomerHistory.setCellFactory(param -> new javafx.scene.control.ListCell<Customer>() {
+                @Override
+                protected void updateItem(Customer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName() + " (" + item.getContact() + ")");
+                    }
+                }
+            });
+            
+            cmbCustomerHistory.setButtonCell(new javafx.scene.control.ListCell<Customer>() {
+                @Override
+                protected void updateItem(Customer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName() + " (" + item.getContact() + ")");
+                    }
+                }
+            });
+        }
+        
+        // Configure customer history table
+        if (colHistoryOrderId != null) {
+            colHistoryOrderId.setCellValueFactory(new PropertyValueFactory<>("orderId"));
+            colHistoryDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+            colHistoryAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+            colHistoryPaymentMethod.setCellValueFactory(new PropertyValueFactory<>("paymentMethod"));
+            colHistoryPaymentStatus.setCellValueFactory(new PropertyValueFactory<>("paymentStatus"));
+            formatCurrencyColumn(colHistoryAmount);
+            tblCustomerHistory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+        
+        // Configure favorite products table
+        if (colFavProductName != null) {
+            colFavProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
+            colFavProductQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            colFavProductRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+            formatCurrencyColumn(colFavProductRevenue);
+            tblCustomerFavoriteProducts.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+        
+        // Configure favorite categories table
+        if (colFavCategoryName != null) {
+            colFavCategoryName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
+            colFavCategoryQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            colFavCategoryRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+            formatCurrencyColumn(colFavCategoryRevenue);
+            tblCustomerFavoriteCategories.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+    }
+    
+    private void initializeProductPerformanceTab() {
+        // Load products into combo box
+        if (cmbProductPerformance != null) {
+            ObservableList<Product> products = FXCollections.observableArrayList(
+                productRepository.findAll()
+            );
+            cmbProductPerformance.setItems(products);
+            
+            cmbProductPerformance.setCellFactory(param -> new javafx.scene.control.ListCell<Product>() {
+                @Override
+                protected void updateItem(Product item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getCode() + " - " + item.getDescription());
+                    }
+                }
+            });
+            
+            cmbProductPerformance.setButtonCell(new javafx.scene.control.ListCell<Product>() {
+                @Override
+                protected void updateItem(Product item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getCode() + " - " + item.getDescription());
+                    }
+                }
+            });
+        }
+        
+        // Configure product sales history table
+        if (colProductOrderId != null) {
+            colProductOrderId.setCellValueFactory(new PropertyValueFactory<>("orderId"));
+            colProductSaleDate.setCellValueFactory(new PropertyValueFactory<>("saleDate"));
+            colProductQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            colProductRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+            formatCurrencyColumn(colProductRevenue);
+            tblProductSalesHistory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+        
+        // Configure product sales trend table
+        if (colTrendDate != null) {
+            colTrendDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+            colTrendQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            colTrendRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
+            formatCurrencyColumn(colTrendRevenue);
+            tblProductSalesTrend.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
     }
     
     @FXML
@@ -1331,5 +1560,253 @@ public class AnalysisPageController extends BaseController {
         public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
         public double getPendingPayments() { return pendingPayments; }
         public void setPendingPayments(double pendingPayments) { this.pendingPayments = pendingPayments; }
+    }
+    
+    // Customer Purchase History Methods
+    @FXML
+    public void loadCustomerHistory(ActionEvent event) {
+        Customer selectedCustomer = cmbCustomerHistory.getValue();
+        if (selectedCustomer == null) {
+            showErrorAlert("No Customer Selected", "Please select a customer to view purchase history.");
+            return;
+        }
+        
+        Long customerId = selectedCustomer.getId();
+        
+        // Load summary statistics
+        Long totalOrders = orderDetailService.getCustomerTotalOrders(customerId);
+        Double totalSpent = orderDetailService.getTotalSpentByCustomerId(customerId);
+        Double avgOrderValue = orderDetailService.getCustomerAverageOrderValue(customerId);
+        LocalDateTime lastPurchaseDate = orderDetailService.getCustomerLastPurchaseDate(customerId);
+        
+        if (lblCustomerTotalOrders != null) {
+            lblCustomerTotalOrders.setText(String.valueOf(totalOrders != null ? totalOrders : 0));
+        }
+        if (lblCustomerTotalSpent != null) {
+            lblCustomerTotalSpent.setText(String.format("%.2f /=", totalSpent != null ? totalSpent : 0.0));
+        }
+        if (lblCustomerAvgOrder != null) {
+            lblCustomerAvgOrder.setText(String.format("%.2f /=", avgOrderValue != null ? avgOrderValue : 0.0));
+        }
+        if (lblCustomerLastPurchase != null) {
+            if (lastPurchaseDate != null) {
+                lblCustomerLastPurchase.setText(lastPurchaseDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            } else {
+                lblCustomerLastPurchase.setText("N/A");
+            }
+        }
+        
+        // Load purchase history
+        List<OrderDetail> purchaseHistory = orderDetailService.getCustomerPurchaseHistory(customerId);
+        ObservableList<CustomerHistoryTm> historyList = FXCollections.observableArrayList();
+        for (OrderDetail order : purchaseHistory) {
+            historyList.add(new CustomerHistoryTm(
+                order.getCode(),
+                order.getIssuedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                order.getTotalCost(),
+                order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A",
+                order.getPaymentStatus() != null ? order.getPaymentStatus() : "N/A"
+            ));
+        }
+        tblCustomerHistory.setItems(historyList);
+        
+        // Load favorite products
+        List<Object[]> favoriteProducts = orderItemService.getCustomerFavoriteProducts(customerId);
+        ObservableList<FavoriteProductTm> favProductsList = FXCollections.observableArrayList();
+        for (Object[] data : favoriteProducts) {
+            Integer productCode = ((Number) data[0]).intValue();
+            String productName = (String) data[1];
+            Integer qty = ((Number) data[2]).intValue();
+            Double revenue = ((Number) data[3]).doubleValue();
+            favProductsList.add(new FavoriteProductTm(productName, qty, revenue));
+        }
+        tblCustomerFavoriteProducts.setItems(favProductsList);
+        
+        // Load favorite categories
+        List<Object[]> favoriteCategories = orderItemService.getCustomerFavoriteCategories(customerId);
+        ObservableList<FavoriteCategoryTm> favCategoriesList = FXCollections.observableArrayList();
+        for (Object[] data : favoriteCategories) {
+            String categoryName = (String) data[0];
+            Integer qty = ((Number) data[1]).intValue();
+            Double revenue = ((Number) data[2]).doubleValue();
+            favCategoriesList.add(new FavoriteCategoryTm(categoryName, qty, revenue));
+        }
+        tblCustomerFavoriteCategories.setItems(favCategoriesList);
+    }
+    
+    // Product Performance Methods
+    @FXML
+    public void loadProductPerformance(ActionEvent event) {
+        Product selectedProduct = cmbProductPerformance.getValue();
+        if (selectedProduct == null) {
+            showErrorAlert("No Product Selected", "Please select a product to view performance analytics.");
+            return;
+        }
+        
+        Integer productCode = selectedProduct.getCode();
+        
+        // Load summary statistics
+        Integer totalSold = orderItemService.getTotalQuantitySoldByProduct(productCode);
+        Double totalRevenue = orderItemService.getTotalRevenueByProduct(productCode);
+        Long uniqueCustomers = orderItemService.getProductUniqueCustomers(productCode);
+        Double avgQtyPerOrder = orderItemService.getProductAverageQuantityPerOrder(productCode);
+        
+        if (lblProductTotalSold != null) {
+            lblProductTotalSold.setText(String.valueOf(totalSold != null ? totalSold : 0));
+        }
+        if (lblProductTotalRevenue != null) {
+            lblProductTotalRevenue.setText(String.format("%.2f /=", totalRevenue != null ? totalRevenue : 0.0));
+        }
+        if (lblProductUniqueCustomers != null) {
+            lblProductUniqueCustomers.setText(String.valueOf(uniqueCustomers != null ? uniqueCustomers : 0));
+        }
+        if (lblProductAvgQty != null) {
+            lblProductAvgQty.setText(String.format("%.2f", avgQtyPerOrder != null ? avgQtyPerOrder : 0.0));
+        }
+        
+        // Load sales history
+        List<Object[]> salesHistory = orderItemService.getProductSalesHistory(productCode);
+        ObservableList<ProductSalesHistoryTm> historyList = FXCollections.observableArrayList();
+        for (Object[] data : salesHistory) {
+            Long orderId = ((Number) data[0]).longValue();
+            LocalDateTime saleDate = (LocalDateTime) data[1];
+            Integer qty = ((Number) data[2]).intValue();
+            Double revenue = ((Number) data[3]).doubleValue();
+            historyList.add(new ProductSalesHistoryTm(
+                orderId,
+                saleDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                qty,
+                revenue
+            ));
+        }
+        tblProductSalesHistory.setItems(historyList);
+        
+        // Load sales trend
+        List<Object[]> salesTrend = orderItemService.getProductSalesTrendByDate(productCode);
+        ObservableList<ProductSalesTrendTm> trendList = FXCollections.observableArrayList();
+        for (Object[] data : salesTrend) {
+            Object dateObj = data[0];
+            String dateStr;
+            if (dateObj instanceof java.sql.Date) {
+                dateStr = ((java.sql.Date) dateObj).toString();
+            } else if (dateObj instanceof java.util.Date) {
+                dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format((java.util.Date) dateObj);
+            } else {
+                dateStr = dateObj != null ? dateObj.toString() : "N/A";
+            }
+            Integer qty = data[1] != null ? ((Number) data[1]).intValue() : 0;
+            Double revenue = data[2] != null ? ((Number) data[2]).doubleValue() : 0.0;
+            trendList.add(new ProductSalesTrendTm(dateStr, qty, revenue));
+        }
+        tblProductSalesTrend.setItems(trendList);
+    }
+    
+    // Table Model Classes for Customer Purchase History
+    public static class CustomerHistoryTm {
+        private Long orderId;
+        private String date;
+        private double amount;
+        private String paymentMethod;
+        private String paymentStatus;
+        
+        public CustomerHistoryTm(Long orderId, String date, double amount, String paymentMethod, String paymentStatus) {
+            this.orderId = orderId;
+            this.date = date;
+            this.amount = amount;
+            this.paymentMethod = paymentMethod;
+            this.paymentStatus = paymentStatus;
+        }
+        
+        public Long getOrderId() { return orderId; }
+        public void setOrderId(Long orderId) { this.orderId = orderId; }
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+        public double getAmount() { return amount; }
+        public void setAmount(double amount) { this.amount = amount; }
+        public String getPaymentMethod() { return paymentMethod; }
+        public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+        public String getPaymentStatus() { return paymentStatus; }
+        public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    }
+    
+    public static class FavoriteProductTm {
+        private String productName;
+        private int quantity;
+        private double revenue;
+        
+        public FavoriteProductTm(String productName, int quantity, double revenue) {
+            this.productName = productName;
+            this.quantity = quantity;
+            this.revenue = revenue;
+        }
+        
+        public String getProductName() { return productName; }
+        public void setProductName(String productName) { this.productName = productName; }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public double getRevenue() { return revenue; }
+        public void setRevenue(double revenue) { this.revenue = revenue; }
+    }
+    
+    public static class FavoriteCategoryTm {
+        private String categoryName;
+        private int quantity;
+        private double revenue;
+        
+        public FavoriteCategoryTm(String categoryName, int quantity, double revenue) {
+            this.categoryName = categoryName;
+            this.quantity = quantity;
+            this.revenue = revenue;
+        }
+        
+        public String getCategoryName() { return categoryName; }
+        public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public double getRevenue() { return revenue; }
+        public void setRevenue(double revenue) { this.revenue = revenue; }
+    }
+    
+    // Table Model Classes for Product Performance
+    public static class ProductSalesHistoryTm {
+        private Long orderId;
+        private String saleDate;
+        private int quantity;
+        private double revenue;
+        
+        public ProductSalesHistoryTm(Long orderId, String saleDate, int quantity, double revenue) {
+            this.orderId = orderId;
+            this.saleDate = saleDate;
+            this.quantity = quantity;
+            this.revenue = revenue;
+        }
+        
+        public Long getOrderId() { return orderId; }
+        public void setOrderId(Long orderId) { this.orderId = orderId; }
+        public String getSaleDate() { return saleDate; }
+        public void setSaleDate(String saleDate) { this.saleDate = saleDate; }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public double getRevenue() { return revenue; }
+        public void setRevenue(double revenue) { this.revenue = revenue; }
+    }
+    
+    public static class ProductSalesTrendTm {
+        private String date;
+        private int quantity;
+        private double revenue;
+        
+        public ProductSalesTrendTm(String date, int quantity, double revenue) {
+            this.date = date;
+            this.quantity = quantity;
+            this.revenue = revenue;
+        }
+        
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public double getRevenue() { return revenue; }
+        public void setRevenue(double revenue) { this.revenue = revenue; }
     }
 }

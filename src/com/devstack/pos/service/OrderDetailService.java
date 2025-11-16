@@ -215,5 +215,60 @@ public class OrderDetailService {
     public List<Object[]> getSalesByCashierByOrderTypeAndDateRange(String orderType, LocalDateTime startDate, LocalDateTime endDate) {
         return orderDetailRepository.getSalesByCashierByOrderTypeAndDateRange(orderType, startDate, endDate);
     }
+    
+    // Customer Purchase History Analysis Methods
+    @Transactional(readOnly = true)
+    public List<OrderDetail> getCustomerPurchaseHistory(Long customerId) {
+        return orderDetailRepository.getCustomerPurchaseHistory(customerId);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<OrderDetail> getCustomerPurchaseHistoryByDateRange(Long customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getCustomerPurchaseHistoryByDateRange(customerId, startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getCustomerTotalOrders(Long customerId) {
+        Long count = orderDetailRepository.getCustomerTotalOrders(customerId);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getCustomerTotalOrdersByDateRange(Long customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        Long count = orderDetailRepository.getCustomerTotalOrdersByDateRange(customerId, startDate, endDate);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public LocalDateTime getCustomerFirstPurchaseDate(Long customerId) {
+        return orderDetailRepository.getCustomerFirstPurchaseDate(customerId);
+    }
+    
+    @Transactional(readOnly = true)
+    public LocalDateTime getCustomerLastPurchaseDate(Long customerId) {
+        return orderDetailRepository.getCustomerLastPurchaseDate(customerId);
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getCustomerAverageOrderValue(Long customerId) {
+        Double avg = orderDetailRepository.getCustomerAverageOrderValue(customerId);
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getCustomerAverageOrderValueByDateRange(Long customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        Double avg = orderDetailRepository.getCustomerAverageOrderValueByDateRange(customerId, startDate, endDate);
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getCustomerPurchaseTrendByDate(Long customerId) {
+        return orderDetailRepository.getCustomerPurchaseTrendByDate(customerId);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getCustomerPurchaseTrendByDateRange(Long customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderDetailRepository.getCustomerPurchaseTrendByDateRange(customerId, startDate, endDate);
+    }
 }
 

@@ -109,5 +109,44 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
     
     @Query("SELECT o.operatorEmail, COUNT(o), SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) FROM OrderDetail o WHERE o.orderType = :orderType AND o.issuedDate BETWEEN :startDate AND :endDate GROUP BY o.operatorEmail ORDER BY SUM(CASE WHEN o.paymentStatus = 'PAID' THEN o.totalCost ELSE 0 END) DESC")
     List<Object[]> getSalesByCashierByOrderTypeAndDateRange(@Param("orderType") String orderType, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Customer Purchase History Analysis Queries
+    @Query("SELECT o FROM OrderDetail o WHERE o.customerId = :customerId ORDER BY o.issuedDate DESC")
+    List<OrderDetail> getCustomerPurchaseHistory(@Param("customerId") Long customerId);
+    
+    @Query("SELECT o FROM OrderDetail o WHERE o.customerId = :customerId AND o.issuedDate BETWEEN :startDate AND :endDate ORDER BY o.issuedDate DESC")
+    List<OrderDetail> getCustomerPurchaseHistoryByDateRange(@Param("customerId") Long customerId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(o) FROM OrderDetail o WHERE o.customerId = :customerId")
+    Long getCustomerTotalOrders(@Param("customerId") Long customerId);
+    
+    @Query("SELECT COUNT(o) FROM OrderDetail o WHERE o.customerId = :customerId AND o.issuedDate BETWEEN :startDate AND :endDate")
+    Long getCustomerTotalOrdersByDateRange(@Param("customerId") Long customerId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT MIN(o.issuedDate) FROM OrderDetail o WHERE o.customerId = :customerId")
+    LocalDateTime getCustomerFirstPurchaseDate(@Param("customerId") Long customerId);
+    
+    @Query("SELECT MAX(o.issuedDate) FROM OrderDetail o WHERE o.customerId = :customerId")
+    LocalDateTime getCustomerLastPurchaseDate(@Param("customerId") Long customerId);
+    
+    @Query("SELECT AVG(o.totalCost) FROM OrderDetail o WHERE o.customerId = :customerId AND o.paymentStatus = 'PAID'")
+    Double getCustomerAverageOrderValue(@Param("customerId") Long customerId);
+    
+    @Query("SELECT AVG(o.totalCost) FROM OrderDetail o WHERE o.customerId = :customerId AND o.paymentStatus = 'PAID' AND o.issuedDate BETWEEN :startDate AND :endDate")
+    Double getCustomerAverageOrderValueByDateRange(@Param("customerId") Long customerId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query(value = "SELECT DATE(o.issued_date) as purchaseDate, SUM(o.total_cost) as totalAmount " +
+           "FROM order_detail o " +
+           "WHERE o.customer_id = :customerId AND o.payment_status = 'PAID' " +
+           "GROUP BY DATE(o.issued_date) " +
+           "ORDER BY DATE(o.issued_date) DESC", nativeQuery = true)
+    List<Object[]> getCustomerPurchaseTrendByDate(@Param("customerId") Long customerId);
+    
+    @Query(value = "SELECT DATE(o.issued_date) as purchaseDate, SUM(o.total_cost) as totalAmount " +
+           "FROM order_detail o " +
+           "WHERE o.customer_id = :customerId AND o.payment_status = 'PAID' AND o.issued_date BETWEEN :startDate AND :endDate " +
+           "GROUP BY DATE(o.issued_date) " +
+           "ORDER BY DATE(o.issued_date) DESC", nativeQuery = true)
+    List<Object[]> getCustomerPurchaseTrendByDateRange(@Param("customerId") Long customerId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }
 

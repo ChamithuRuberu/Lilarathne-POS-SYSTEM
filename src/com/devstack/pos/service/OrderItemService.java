@@ -147,5 +147,61 @@ public class OrderItemService {
     public void deleteOrderItem(Long id) {
         orderItemRepository.deleteById(id);
     }
+    
+    // Customer Purchase History Methods
+    @Transactional(readOnly = true)
+    public List<Object[]> getCustomerFavoriteProducts(Long customerId) {
+        return orderItemRepository.getCustomerFavoriteProducts(customerId);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getCustomerFavoriteCategories(Long customerId) {
+        return orderItemRepository.getCustomerFavoriteCategories(customerId);
+    }
+    
+    // Product Performance Analytics Methods
+    @Transactional(readOnly = true)
+    public List<Object[]> getProductSalesHistory(Integer productCode) {
+        return orderItemRepository.getProductSalesHistory(productCode);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getProductSalesHistoryByDateRange(Integer productCode, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderItemRepository.getProductSalesHistoryByDateRange(productCode, startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getProductSalesTrendByDate(Integer productCode) {
+        return orderItemRepository.getProductSalesTrendByDate(productCode);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Object[]> getProductSalesTrendByDateRange(Integer productCode, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderItemRepository.getProductSalesTrendByDateRange(productCode, startDate, endDate);
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getProductUniqueCustomers(Integer productCode) {
+        Long count = orderItemRepository.getProductUniqueCustomers(productCode);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Long getProductUniqueCustomersByDateRange(Integer productCode, LocalDateTime startDate, LocalDateTime endDate) {
+        Long count = orderItemRepository.getProductUniqueCustomersByDateRange(productCode, startDate, endDate);
+        return count != null ? count : 0L;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getProductAverageQuantityPerOrder(Integer productCode) {
+        Double avg = orderItemRepository.getProductAverageQuantityPerOrder(productCode);
+        return avg != null ? avg : 0.0;
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getProductAverageQuantityPerOrderByDateRange(Integer productCode, LocalDateTime startDate, LocalDateTime endDate) {
+        Double avg = orderItemRepository.getProductAverageQuantityPerOrderByDateRange(productCode, startDate, endDate);
+        return avg != null ? avg : 0.0;
+    }
 }
 

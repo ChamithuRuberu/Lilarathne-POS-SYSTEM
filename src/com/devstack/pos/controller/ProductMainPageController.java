@@ -24,6 +24,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -71,6 +74,10 @@ public class ProductMainPageController extends BaseController {
     private Integer currentProductCode = null;
     private FilteredList<ProductTm> filteredProducts;
     private ObservableList<ProductTm> allProducts;
+    private Timeline barcodeDebounceTimeline;
+    private boolean isUpdatingBarcodeProgrammatically = false;
+    private long lastBarcodeInputTime = 0;
+    private int barcodeInputChangeCount = 0;
 
     public void initialize() {
         // Initialize sidebar
@@ -126,7 +133,152 @@ public class ProductMainPageController extends BaseController {
 
         // Setup barcode scanner listener - when user presses Enter in barcode field
         txtBarcode.setOnAction(event -> {
+            System.out.println("[BARCODE DEBUG] Enter key pressed - triggering handleBarcodeInput()");
             handleBarcodeInput();
+        });
+        
+        // Also listen for key events as backup (some scanners send Tab or other keys)
+        txtBarcode.setOnKeyPressed(event -> {
+            System.out.println("[BARCODE DEBUG] ========== KEY PRESSED ==========");
+            System.out.println("[BARCODE DEBUG] Key code: " + event.getCode());
+            System.out.println("[BARCODE DEBUG] Key text: " + event.getText());
+            System.out.println("[BARCODE DEBUG] Current field text: '" + txtBarcode.getText() + "'");
+        });
+        
+        // Listen for key typed events (captures actual characters)
+        txtBarcode.setOnKeyTyped(event -> {
+            System.out.println("[BARCODE DEBUG] ========== KEY TYPED ==========");
+            System.out.println("[BARCODE DEBUG] Character: '" + event.getCharacter() + "'");
+            System.out.println("[BARCODE DEBUG] Current field text: '" + txtBarcode.getText() + "'");
+        });
+        
+        // Listen for input method events (some scanners use input methods)
+        txtBarcode.setOnInputMethodTextChanged(event -> {
+            System.out.println("[BARCODE DEBUG] ========== INPUT METHOD TEXT CHANGED ==========");
+            System.out.println("[BARCODE DEBUG] Committed text: '" + event.getCommitted() + "'");
+            System.out.println("[BARCODE DEBUG] Current field text: '" + txtBarcode.getText() + "'");
+        });
+        
+        // Ensure field can receive input from barcode scanners
+        javafx.application.Platform.runLater(() -> {
+            // Request focus when page loads to make it ready for scanning
+            txtBarcode.requestFocus();
+            System.out.println("[BARCODE DEBUG] Barcode field initialized and focused");
+            System.out.println("[BARCODE DEBUG] Field is editable: " + txtBarcode.isEditable());
+            System.out.println("[BARCODE DEBUG] Field is disabled: " + txtBarcode.isDisabled());
+            System.out.println("[BARCODE DEBUG] Field is visible: " + txtBarcode.isVisible());
+            System.out.println("[BARCODE DEBUG] Field has focus: " + txtBarcode.isFocused());
+            System.out.println("[BARCODE DEBUG] Field is managed: " + txtBarcode.isManaged());
+            
+            // Add a focus listener to track focus changes
+            txtBarcode.focusedProperty().addListener((observable, oldValue, newValue) -> {
+                System.out.println("[BARCODE DEBUG] Focus changed: " + oldValue + " -> " + newValue);
+            });
+            
+            // Verify listeners are attached
+            System.out.println("[BARCODE DEBUG] All listeners attached and ready for barcode input");
+            System.out.println("[BARCODE DEBUG] ==========================================");
+            System.out.println("[BARCODE DEBUG] TEST: Try typing manually in the barcode field to verify listeners work");
+            System.out.println("[BARCODE DEBUG] Then try scanning a barcode...");
+            System.out.println("[BARCODE DEBUG] ==========================================");
+            
+            // Test if manual typing works (to verify listeners are functioning)
+            // This will help us determine if the issue is with the scanner or the listeners
+            System.out.println("[BARCODE DEBUG] If you see this message but NO events when typing/scanning,");
+            System.out.println("[BARCODE DEBUG] the field might not be receiving input. Check:");
+            System.out.println("[BARCODE DEBUG] 1. Is the barcode field visible on screen?");
+            System.out.println("[BARCODE DEBUG] 2. Is the barcode scanner configured correctly?");
+            System.out.println("[BARCODE DEBUG] 3. Does the scanner send data as keyboard input?");
+        });
+        
+        // Setup debounced text change listener for barcode scanners
+        // Barcode scanners typically send data very quickly (all at once), so we use a delay
+        // to ensure we capture the complete barcode before processing
+        // Reduced delay to 200ms for faster response while still capturing complete barcode
+        barcodeDebounceTimeline = new Timeline(new KeyFrame(Duration.millis(200), e -> {
+            System.out.println("[BARCODE DEBUG] Debounce timer fired");
+            // Don't trigger if we're updating the barcode programmatically
+            if (isUpdatingBarcodeProgrammatically) {
+                System.out.println("[BARCODE DEBUG] Skipping - updating programmatically");
+                return;
+            }
+            String barcode = txtBarcode.getText();
+            System.out.println("[BARCODE DEBUG] Current barcode text: '" + barcode + "' (length: " + (barcode != null ? barcode.length() : 0) + ")");
+            if (barcode != null && !barcode.trim().isEmpty()) {
+                // Remove any newline/carriage return characters that barcode scanners might append
+                String originalBarcode = barcode;
+                barcode = barcode.replace("\n", "").replace("\r", "").trim();
+                if (!barcode.equals(originalBarcode)) {
+                    System.out.println("[BARCODE DEBUG] Removed newline characters. Original: '" + originalBarcode + "', Cleaned: '" + barcode + "'");
+                }
+                if (!barcode.isEmpty()) {
+                    // SIMPLIFIED: Always process barcode after debounce delay (300ms)
+                    // This ensures we capture complete barcode from scanner
+                    // The debounce delay itself is enough to distinguish scanner input from manual typing
+                    System.out.println("[BARCODE DEBUG] ✓ Processing barcode automatically!");
+                    System.out.println("[BARCODE DEBUG] Detection info - Change count: " + barcodeInputChangeCount + ", Has focus: " + txtBarcode.isFocused() + ", Length: " + barcode.length());
+                    
+                    // Update the text field to remove newlines if any
+                    String currentText = txtBarcode.getText().replace("\n", "").replace("\r", "").trim();
+                    if (!currentText.equals(txtBarcode.getText())) {
+                        System.out.println("[BARCODE DEBUG] Cleaning text field - removing newlines");
+                        isUpdatingBarcodeProgrammatically = true;
+                        try {
+                            txtBarcode.setText(currentText);
+                        } finally {
+                            javafx.application.Platform.runLater(() -> {
+                                isUpdatingBarcodeProgrammatically = false;
+                            });
+                        }
+                    }
+                    // Reset counter
+                    barcodeInputChangeCount = 0;
+                    System.out.println("[BARCODE DEBUG] Calling handleBarcodeInput() with barcode: '" + barcode + "'");
+                    handleBarcodeInput();
+                } else {
+                    System.out.println("[BARCODE DEBUG] Barcode is empty after cleaning");
+                }
+            } else {
+                System.out.println("[BARCODE DEBUG] Barcode is null or empty");
+            }
+        }));
+        barcodeDebounceTimeline.setCycleCount(1);
+        
+        // Add a more comprehensive listener that will definitely catch scanner input
+        txtBarcode.textProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("[BARCODE DEBUG] ========== TEXT PROPERTY CHANGED ==========");
+            System.out.println("[BARCODE DEBUG] Old value: '" + (oldValue != null ? oldValue : "null") + "'");
+            System.out.println("[BARCODE DEBUG] New value: '" + (newValue != null ? newValue : "null") + "'");
+            System.out.println("[BARCODE DEBUG] Is updating programmatically: " + isUpdatingBarcodeProgrammatically);
+            
+            // Don't start debounce timer if we're updating programmatically
+            if (isUpdatingBarcodeProgrammatically) {
+                System.out.println("[BARCODE DEBUG] Skipping - updating programmatically");
+                return;
+            }
+            
+            System.out.println("[BARCODE DEBUG] Processing text change...");
+            
+            // Track input changes to detect barcode scanner (rapid input = many changes quickly)
+            long currentTime = System.currentTimeMillis();
+            long timeSinceLastInput = currentTime - lastBarcodeInputTime;
+            if (timeSinceLastInput < 100) {
+                // Rapid input detected (changes within 100ms) - likely barcode scanner
+                barcodeInputChangeCount++;
+                System.out.println("[BARCODE DEBUG] Rapid input detected! Time since last: " + timeSinceLastInput + "ms, Change count: " + barcodeInputChangeCount);
+            } else {
+                // Reset counter if input slowed down
+                barcodeInputChangeCount = 1;
+                System.out.println("[BARCODE DEBUG] Normal input speed. Time since last: " + timeSinceLastInput + "ms, Reset count to: " + barcodeInputChangeCount);
+            }
+            lastBarcodeInputTime = currentTime;
+            
+            // Reset and restart the debounce timer when text changes
+            if (barcodeDebounceTimeline != null) {
+                System.out.println("[BARCODE DEBUG] Restarting debounce timer (200ms delay)");
+                barcodeDebounceTimeline.stop();
+                barcodeDebounceTimeline.playFromStart();
+            }
         });
 
         tbl.getSelectionModel()
@@ -513,13 +665,24 @@ public class ProductMainPageController extends BaseController {
     }
 
     private void clearFields() {
-        txtProductDescription.clear();
-        txtBarcode.clear();
-        cmbCategory.setValue(null);
-        imgBarcode.setImage(null);
-        barcodeImageContainer.setVisible(false);
-        barcodeImageContainer.setManaged(false);
-        currentProductCode = null;
+        // Set flag to prevent debounce timer from triggering during programmatic clear
+        isUpdatingBarcodeProgrammatically = true;
+        try {
+            txtProductDescription.clear();
+            txtBarcode.clear();
+            cmbCategory.setValue(null);
+            imgBarcode.setImage(null);
+            barcodeImageContainer.setVisible(false);
+            barcodeImageContainer.setManaged(false);
+            currentProductCode = null;
+        } finally {
+            // Reset flag after a short delay
+            javafx.application.Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
+                    isUpdatingBarcodeProgrammatically = false;
+                });
+            });
+        }
     }
 
     public void btnAddNewOnAction(ActionEvent actionEvent) {
@@ -798,23 +961,19 @@ public class ProductMainPageController extends BaseController {
      * Handles barcode input from scanner or manual entry
      */
     private void handleBarcodeInput() {
+        System.out.println("[BARCODE DEBUG] ========== handleBarcodeInput() called ==========");
         String barcode = txtBarcode.getText().trim();
+        System.out.println("[BARCODE DEBUG] Barcode value: '" + barcode + "' (length: " + barcode.length() + ")");
         if (!barcode.isEmpty()) {
+            System.out.println("[BARCODE DEBUG] Looking up product by barcode...");
             // Try to find existing product by barcode
             Product existingProduct = productService.findProductByBarcode(barcode);
+            System.out.println("[BARCODE DEBUG] Product lookup result: " + (existingProduct != null ? "FOUND (Code: " + existingProduct.getCode() + ")" : "NOT FOUND"));
 
             if (existingProduct != null) {
-                // Product exists, show confirmation
-                Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                        "Product found with this barcode!\nCode: " + existingProduct.getCode() +
-                                "\nDescription: " + existingProduct.getDescription() +
-                                "\n\nDo you want to load this product?",
-                        ButtonType.YES, ButtonType.NO);
-                alert.showAndWait().ifPresent(response -> {
-                    if (response == ButtonType.YES) {
-                        loadExistingProduct(existingProduct);
-                    }
-                });
+                // Product exists - AUTO-LOAD without confirmation for better UX with barcode scanners
+                System.out.println("[BARCODE DEBUG] Product found - auto-loading product data");
+                loadExistingProduct(existingProduct);
             } else {
                 // New barcode, validate and show preview
                 if (BarcodeGenerator.isValidBarcode(barcode)) {
@@ -838,16 +997,42 @@ public class ProductMainPageController extends BaseController {
      * Loads existing product data into the form
      */
     private void loadExistingProduct(Product product) {
-        currentProductCode = product.getCode();
-        txtProductDescription.setText(product.getDescription());
-        txtBarcode.setText(product.getBarcode());
-        if (product.getCategory() != null) {
-            cmbCategory.setValue(product.getCategory().getName());
-        }
-        btnSaveUpdate.setText("Update Product");
+        // Set flag to prevent debounce timer from triggering during programmatic update
+        isUpdatingBarcodeProgrammatically = true;
+        
+        try {
+            currentProductCode = product.getCode();
+            txtProductDescription.setText(product.getDescription());
+            txtBarcode.setText(product.getBarcode());
+            if (product.getCategory() != null) {
+                cmbCategory.setValue(product.getCategory().getName());
+            }
+            btnSaveUpdate.setText("Update Product");
 
-        if (product.getBarcode() != null) {
-            displayBarcode(product.getBarcode());
+            if (product.getBarcode() != null) {
+                displayBarcode(product.getBarcode());
+            }
+            
+            // Find and select the product in the table to update "Selected Product" section
+            if (tbl != null && tbl.getItems() != null) {
+                for (ProductTm tm : tbl.getItems()) {
+                    if (tm.getCode() == product.getCode()) {
+                        // Select the product in the table, which will trigger setData() and update the selected product section
+                        javafx.application.Platform.runLater(() -> {
+                            tbl.getSelectionModel().select(tm);
+                            tbl.scrollTo(tm);
+                        });
+                        break;
+                    }
+                }
+            }
+        } finally {
+            // Reset flag after a short delay to allow the text change to complete
+            javafx.application.Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
+                    isUpdatingBarcodeProgrammatically = false;
+                });
+            });
         }
     }
 
@@ -861,7 +1046,17 @@ public class ProductMainPageController extends BaseController {
             // If no barcode entered, generate a random one
             if (barcodeValue.isEmpty()) {
                 barcodeValue = BarcodeGenerator.generateNumeric(12);
-                txtBarcode.setText(barcodeValue);
+                // Set flag to prevent debounce timer from triggering during programmatic set
+                isUpdatingBarcodeProgrammatically = true;
+                try {
+                    txtBarcode.setText(barcodeValue);
+                } finally {
+                    javafx.application.Platform.runLater(() -> {
+                        javafx.application.Platform.runLater(() -> {
+                            isUpdatingBarcodeProgrammatically = false;
+                        });
+                    });
+                }
             }
 
             // Validate barcode
@@ -892,10 +1087,21 @@ public class ProductMainPageController extends BaseController {
      * Clears barcode field and image
      */
     public void btnClearBarcodeOnAction(ActionEvent actionEvent) {
-        txtBarcode.clear();
-        imgBarcode.setImage(null);
-        barcodeImageContainer.setVisible(false);
-        barcodeImageContainer.setManaged(false);
+        // Set flag to prevent debounce timer from triggering during programmatic clear
+        isUpdatingBarcodeProgrammatically = true;
+        try {
+            txtBarcode.clear();
+            imgBarcode.setImage(null);
+            barcodeImageContainer.setVisible(false);
+            barcodeImageContainer.setManaged(false);
+        } finally {
+            // Reset flag after a short delay
+            javafx.application.Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
+                    isUpdatingBarcodeProgrammatically = false;
+                });
+            });
+        }
     }
 
     /**

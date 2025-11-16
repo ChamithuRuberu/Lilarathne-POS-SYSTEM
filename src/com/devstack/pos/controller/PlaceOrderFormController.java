@@ -26,6 +26,9 @@ import javafx.scene.text.Text;
 import com.jfoenix.controls.JFXComboBox;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +70,8 @@ public class PlaceOrderFormController extends BaseController {
     private final OrderItemService orderItemService;
     private final PDFReportService pdfReportService;
     private final ReceiptPrinter receiptPrinter;
+    private Timeline barcodeDebounceTimeline;
+    private boolean isUpdatingBarcodeProgrammatically = false;
 
 
     public void initialize() {
@@ -97,6 +102,9 @@ public class PlaceOrderFormController extends BaseController {
             cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
             cmbPaymentMethod.setValue("Cash"); // Set default to Cash
         }
+        
+        // Setup barcode scanner detection for automatic product loading
+        setupBarcodeScannerDetection();
         
         // Track tab changes to determine order type
         if (tabPane != null) {
@@ -231,6 +239,96 @@ public class PlaceOrderFormController extends BaseController {
         }
     }
 
+    /**
+     * Sets up barcode scanner detection with debounced text change listener
+     * This allows barcode scanners to automatically trigger product loading
+     */
+    private void setupBarcodeScannerDetection() {
+        // Add comprehensive event listeners for debugging
+        txtBarcode.setOnKeyPressed(event -> {
+            System.out.println("[PLACE ORDER DEBUG] ========== KEY PRESSED ==========");
+            System.out.println("[PLACE ORDER DEBUG] Key code: " + event.getCode());
+            System.out.println("[PLACE ORDER DEBUG] Key text: " + event.getText());
+            System.out.println("[PLACE ORDER DEBUG] Current field text: '" + txtBarcode.getText() + "'");
+        });
+        
+        txtBarcode.setOnKeyTyped(event -> {
+            System.out.println("[PLACE ORDER DEBUG] ========== KEY TYPED ==========");
+            System.out.println("[PLACE ORDER DEBUG] Character: '" + event.getCharacter() + "'");
+            System.out.println("[PLACE ORDER DEBUG] Current field text: '" + txtBarcode.getText() + "'");
+        });
+        
+        // Setup debounced text change listener for barcode scanners
+        // Barcode scanners typically send data very quickly (all at once), so we use a delay
+        // to ensure we capture the complete barcode before processing
+        barcodeDebounceTimeline = new Timeline(new KeyFrame(Duration.millis(200), e -> {
+            System.out.println("[PLACE ORDER DEBUG] Debounce timer fired");
+            // Don't trigger if we're updating the barcode programmatically
+            if (isUpdatingBarcodeProgrammatically) {
+                System.out.println("[PLACE ORDER DEBUG] Skipping - updating programmatically");
+                return;
+            }
+            String barcode = txtBarcode.getText();
+            System.out.println("[PLACE ORDER DEBUG] Current barcode text: '" + barcode + "' (length: " + (barcode != null ? barcode.length() : 0) + ")");
+            if (barcode != null && !barcode.trim().isEmpty()) {
+                // Remove any newline/carriage return characters that barcode scanners might append
+                String originalBarcode = barcode;
+                barcode = barcode.replace("\n", "").replace("\r", "").trim();
+                if (!barcode.equals(originalBarcode)) {
+                    System.out.println("[PLACE ORDER DEBUG] Removed newline characters. Original: '" + originalBarcode + "', Cleaned: '" + barcode + "'");
+                }
+                if (!barcode.isEmpty()) {
+                    // Auto-trigger product loading after debounce delay
+                    // This ensures we capture complete barcode from scanner
+                    System.out.println("[PLACE ORDER DEBUG] ✓ Auto-loading product for barcode: " + barcode);
+                    loadProduct(null); // Call loadProduct automatically
+                } else {
+                    System.out.println("[PLACE ORDER DEBUG] Barcode is empty after cleaning");
+                }
+            } else {
+                System.out.println("[PLACE ORDER DEBUG] Barcode is null or empty");
+            }
+        }));
+        barcodeDebounceTimeline.setCycleCount(1);
+        
+        // Listen for text changes to restart debounce timer
+        txtBarcode.textProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("[PLACE ORDER DEBUG] ========== TEXT PROPERTY CHANGED ==========");
+            System.out.println("[PLACE ORDER DEBUG] Old value: '" + (oldValue != null ? oldValue : "null") + "'");
+            System.out.println("[PLACE ORDER DEBUG] New value: '" + (newValue != null ? newValue : "null") + "'");
+            System.out.println("[PLACE ORDER DEBUG] Is updating programmatically: " + isUpdatingBarcodeProgrammatically);
+            
+            // Don't start debounce timer if we're updating programmatically
+            if (isUpdatingBarcodeProgrammatically) {
+                System.out.println("[PLACE ORDER DEBUG] Skipping - updating programmatically");
+                return;
+            }
+            
+            System.out.println("[PLACE ORDER DEBUG] Processing text change...");
+            
+            // Reset and restart the debounce timer when text changes
+            if (barcodeDebounceTimeline != null) {
+                System.out.println("[PLACE ORDER DEBUG] Restarting debounce timer (200ms delay)");
+                barcodeDebounceTimeline.stop();
+                barcodeDebounceTimeline.playFromStart();
+            }
+        });
+        
+        // Auto-focus barcode field when form loads
+        javafx.application.Platform.runLater(() -> {
+            txtBarcode.requestFocus();
+            System.out.println("[PLACE ORDER DEBUG] Barcode field focused and ready for scanning");
+            System.out.println("[PLACE ORDER DEBUG] Field is editable: " + txtBarcode.isEditable());
+            System.out.println("[PLACE ORDER DEBUG] Field is disabled: " + txtBarcode.isDisabled());
+            System.out.println("[PLACE ORDER DEBUG] Field is visible: " + txtBarcode.isVisible());
+            System.out.println("[PLACE ORDER DEBUG] Field has focus: " + txtBarcode.isFocused());
+            System.out.println("[PLACE ORDER DEBUG] ==========================================");
+            System.out.println("[PLACE ORDER DEBUG] TEST: Try typing manually in the barcode field first");
+            System.out.println("[PLACE ORDER DEBUG] Then try scanning a barcode...");
+            System.out.println("[PLACE ORDER DEBUG] ==========================================");
+        });
+    }
+
     public void loadProduct(ActionEvent actionEvent) {
         try {
             String input = txtBarcode.getText() == null ? "" : txtBarcode.getText().trim();
@@ -262,7 +360,17 @@ public class PlaceOrderFormController extends BaseController {
                     txtDescription.setText(product.getDescription());
                 }
                 // Ensure barcode field holds the batch code used for stock reduction
-                txtBarcode.setText(productDetail.getCode());
+                // Set flag to prevent debounce timer from triggering during programmatic update
+                isUpdatingBarcodeProgrammatically = true;
+                try {
+                    txtBarcode.setText(productDetail.getCode());
+                } finally {
+                    javafx.application.Platform.runLater(() -> {
+                        javafx.application.Platform.runLater(() -> {
+                            isUpdatingBarcodeProgrammatically = false;
+                        });
+                    });
+                }
                 txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
                 txtQtyOnHand.setText(String.valueOf(productDetail.getQtyOnHand()));
                 txtBuyingPrice.setText(String.valueOf(productDetail.getBuyingPrice()));

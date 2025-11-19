@@ -10,13 +10,10 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ContextMenu?>
-<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.XYChart?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.scene.chart.PieChart.Data?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
@@ -110,11 +107,15 @@
                <VBox spacing="20" HBox.hgrow="ALWAYS">
                   <!-- Top Selling Products Chart -->
                   <VBox styleClass="chart-container-light" VBox.vgrow="ALWAYS">
-                     <Text text="Top Selling Products (Last 30 Days)" styleClass="chart-title-light"/>
-                     <PieChart fx:id="pieChartTopProducts" animated="true" VBox.vgrow="ALWAYS" styleClass="animated-pie-chart-light">
-                        <data>
-                        </data>
-                     </PieChart>
+                     <Text text="Top 20 Products (Current Month)" styleClass="chart-title-light"/>
+                     <BarChart fx:id="barChartTopProducts" animated="true" legendVisible="false" VBox.vgrow="ALWAYS" styleClass="animated-pie-chart-light">
+                        <xAxis>
+                           <CategoryAxis fx:id="topProductsCategoryAxis" label="Product"/>
+                        </xAxis>
+                        <yAxis>
+                           <NumberAxis fx:id="topProductsNumberAxis" label="Units Sold"/>
+                        </yAxis>
+                     </BarChart>
                   </VBox>
                   
                   <!-- Monthly Income Chart -->

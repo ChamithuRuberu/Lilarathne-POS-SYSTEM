@@ -17,13 +17,11 @@ import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.CategoryService;
 import com.jfoenix.controls.JFXButton;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TableView;
 import javafx.scene.control.MenuButton;
@@ -72,7 +70,13 @@ public class DashboardFormController extends BaseController {
     private Text lblWelcomeMessage;
     
     @FXML
-    private PieChart pieChartTopProducts;
+    private BarChart<String, Number> barChartTopProducts;
+    
+    @FXML
+    private CategoryAxis topProductsCategoryAxis;
+    
+    @FXML
+    private NumberAxis topProductsNumberAxis;
     
     @FXML
     private BarChart<String, Number> barChartMonthlyIncome;
@@ -428,82 +432,87 @@ public class DashboardFormController extends BaseController {
     
     private void loadTopSellingProductsChart() {
         try {
-            if (pieChartTopProducts == null) {
+            if (barChartTopProducts == null) {
                 return;
             }
             
-            // Get top selling products from last 30 days
-            LocalDateTime endDate = LocalDateTime.now();
-            LocalDateTime startDate = endDate.minusDays(30);
+            barChartTopProducts.getData().clear();
+            barChartTopProducts.setTitle(null);
+            
+            // Get top selling products for current month
+            LocalDate today = LocalDate.now();
+            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+            LocalDateTime startDate = firstDayOfMonth.atStartOfDay();
+            LocalDateTime endDate = today.atTime(23, 59, 59);
             
             List<Object[]> topProducts = orderItemService.getTopSellingProductsByQuantity(startDate, endDate);
             
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-            
             if (topProducts.isEmpty()) {
-                pieChartData.add(new PieChart.Data("No Sales Data", 100.0));
-            } else {
-                // Get all return orders in the date range to calculate net sales
-                List<ReturnOrder> returnOrdersInRange = returnOrderService.findAllReturnOrders().stream()
-                    .filter(ro -> ro.getReturnDate() != null && 
-                           !ro.getReturnDate().isBefore(startDate) && 
-                           !ro.getReturnDate().isAfter(endDate))
-                    .collect(Collectors.toList());
-                
-                // Create a map of product code to returned quantity
-                Map<Integer, Long> returnedQuantitiesByProduct = new java.util.HashMap<>();
-                for (ReturnOrder returnOrder : returnOrdersInRange) {
-                    List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrder.getId());
-                    for (ReturnOrderItem returnItem : returnItems) {
-                        Integer productCode = returnItem.getProductCode();
-                        Long returnedQty = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
-                        returnedQuantitiesByProduct.put(productCode, returnedQty + returnItem.getReturnQuantity());
-                    }
-                }
-                
-                // Calculate net sales (sold - returned) for each product
-                List<ProductNetSales> netSalesList = new ArrayList<>();
-                for (Object[] product : topProducts) {
-                    Integer productCode = ((Number) product[0]).intValue();
-                    String productName = (String) product[1];
-                    if (productName == null || productName.isEmpty()) {
-                        productName = "Product #" + productCode;
-                    }
-                    long soldQuantity = ((Number) product[2]).longValue();
-                    long returnedQuantity = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
-                    long netQuantity = soldQuantity - returnedQuantity;
-                    
-                    // Only include products with positive net sales
-                    if (netQuantity > 0) {
-                        netSalesList.add(new ProductNetSales(productCode, productName, netQuantity));
-                    }
-                }
-                
-                // Sort by net quantity descending
-                netSalesList.sort(Comparator.comparing(ProductNetSales::getNetQuantity).reversed());
-                
-                // Calculate total net quantity for percentage
-                long totalNetQuantity = netSalesList.stream()
-                    .mapToLong(ProductNetSales::getNetQuantity)
-                    .sum();
-                
-                if (totalNetQuantity == 0) {
-                    pieChartData.add(new PieChart.Data("No Net Sales Data", 100.0));
-                } else {
-                    // Add top 5 products to pie chart (by net sales)
-                    netSalesList.stream()
-                        .limit(5)
-                        .forEach(product -> {
-                            double percentage = (product.getNetQuantity() * 100.0 / totalNetQuantity);
-                            pieChartData.add(new PieChart.Data(
-                                product.getProductName() + " (" + product.getNetQuantity() + ")", 
-                                percentage
-                            ));
-                        });
+                barChartTopProducts.setTitle("No sales data for current month");
+                return;
+            }
+            
+            // Get all return orders in the date range to calculate net sales
+            List<ReturnOrder> returnOrdersInRange = returnOrderService.findAllReturnOrders().stream()
+                .filter(ro -> ro.getReturnDate() != null && 
+                       !ro.getReturnDate().isBefore(startDate) && 
+                       !ro.getReturnDate().isAfter(endDate))
+                .collect(Collectors.toList());
+            
+            // Create a map of product code to returned quantity
+            Map<Integer, Long> returnedQuantitiesByProduct = new java.util.HashMap<>();
+            for (ReturnOrder returnOrder : returnOrdersInRange) {
+                List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrder.getId());
+                for (ReturnOrderItem returnItem : returnItems) {
+                    Integer productCode = returnItem.getProductCode();
+                    Long returnedQty = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
+                    returnedQuantitiesByProduct.put(productCode, returnedQty + returnItem.getReturnQuantity());
                 }
             }
             
-            pieChartTopProducts.setData(pieChartData);
+            // Calculate net sales (sold - returned) for each product
+            List<ProductNetSales> netSalesList = new ArrayList<>();
+            for (Object[] product : topProducts) {
+                Integer productCode = ((Number) product[0]).intValue();
+                String productName = (String) product[1];
+                if (productName == null || productName.isEmpty()) {
+                    productName = "Product #" + productCode;
+                }
+                long soldQuantity = ((Number) product[2]).longValue();
+                long returnedQuantity = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
+                long netQuantity = soldQuantity - returnedQuantity;
+                
+                // Only include products with positive net sales
+                if (netQuantity > 0) {
+                    netSalesList.add(new ProductNetSales(productCode, productName, netQuantity));
+                }
+            }
+            
+            if (netSalesList.isEmpty()) {
+                barChartTopProducts.setTitle("No net sales data for current month");
+                return;
+            }
+            
+            // Sort by net quantity descending and limit to top 20
+            netSalesList.sort(Comparator.comparing(ProductNetSales::getNetQuantity).reversed());
+            
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Units Sold");
+            
+            netSalesList.stream()
+                .limit(20)
+                .forEach(product -> series.getData().add(
+                    new XYChart.Data<>(formatProductLabel(product.getProductName()), product.getNetQuantity())
+                ));
+            
+            if (topProductsCategoryAxis != null) {
+                topProductsCategoryAxis.setTickLabelRotation(0);
+            }
+            if (topProductsNumberAxis != null) {
+                topProductsNumberAxis.setForceZeroInRange(true);
+            }
+            
+            barChartTopProducts.getData().add(series);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Error loading top selling products chart: " + ex.getMessage());
@@ -525,6 +534,33 @@ public class DashboardFormController extends BaseController {
         public Integer getProductCode() { return productCode; }
         public String getProductName() { return productName; }
         public Long getNetQuantity() { return netQuantity; }
+    }
+    
+    private String formatProductLabel(String productName) {
+        if (productName == null || productName.isBlank()) {
+            return "Unnamed";
+        }
+        String trimmed = productName.trim();
+        int wrapLength = 16;
+        if (trimmed.length() <= wrapLength) {
+            return trimmed;
+        }
+        StringBuilder builder = new StringBuilder();
+        int index = 0;
+        int lines = 0;
+        while (index < trimmed.length() && lines < 2) {
+            int end = Math.min(index + wrapLength, trimmed.length());
+            builder.append(trimmed, index, end);
+            index = end;
+            lines++;
+            if (index < trimmed.length() && lines < 2) {
+                builder.append("\n");
+            }
+        }
+        if (index < trimmed.length()) {
+            builder.append("...");
+        }
+        return builder.toString();
     }
     
     private void loadMonthlyIncomeChart() {
@@ -658,27 +694,32 @@ public class DashboardFormController extends BaseController {
             LocalDateTime startOfDay = today.atStartOfDay();
             LocalDateTime endOfDay = today.atTime(23, 59, 59);
             
-            // Today's orders and returns
+            // Today's orders
             Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
-            Long todayReturns = returnOrderService.countReturnsByDateRange(startOfDay, endOfDay);
+            
+            // Yesterday's orders for comparison
+            LocalDate yesterday = today.minusDays(1);
+            LocalDateTime yesterdayStart = yesterday.atStartOfDay();
+            LocalDateTime yesterdayEnd = yesterday.atTime(23, 59, 59);
+            Long yesterdayOrders = orderDetailService.countOrdersByDateRange(yesterdayStart, yesterdayEnd);
             
             if (lblTodayOrders != null) {
                 long ordersCount = todayOrders != null ? todayOrders : 0L;
-                long returnsCount = todayReturns != null ? todayReturns : 0L;
-                
-                // Show orders count, and if there are returns, show them too
-                if (returnsCount > 0) {
-                    lblTodayOrders.setText(ordersCount + " (" + returnsCount + " returns)");
-                } else {
-                    lblTodayOrders.setText(String.valueOf(ordersCount));
-                }
+                lblTodayOrders.setText(String.valueOf(ordersCount));
             }
             
-            // Update orders change indicator if available
+            // Update orders change indicator - compare with yesterday
             if (lblOrdersChange != null) {
-                Long todayReturnsCount = returnOrderService.countReturnsByDateRange(startOfDay, endOfDay);
-                if (todayReturnsCount != null && todayReturnsCount > 0) {
-                    lblOrdersChange.setText(todayReturnsCount + " return" + (todayReturnsCount > 1 ? "s" : "") + " today");
+                long todayCount = todayOrders != null ? todayOrders : 0L;
+                long yesterdayCount = yesterdayOrders != null ? yesterdayOrders : 0L;
+                
+                if (yesterdayCount > 0 && todayCount >= 0) {
+                    double change = ((double)(todayCount - yesterdayCount) / yesterdayCount) * 100;
+                    String symbol = change >= 0 ? "▲" : "▼";
+                    String changeText = String.format("%s %.1f%% vs Yesterday", symbol, Math.abs(change));
+                    lblOrdersChange.setText(changeText);
+                } else if (todayCount > 0 && yesterdayCount == 0) {
+                    lblOrdersChange.setText("▲ New orders today");
                 } else {
                     lblOrdersChange.setText("--");
                 }

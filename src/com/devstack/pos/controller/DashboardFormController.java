@@ -499,17 +499,34 @@ public class DashboardFormController extends BaseController {
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Units Sold");
             
-            netSalesList.stream()
+            // Get the top 20 products for the chart
+            List<ProductNetSales> top20Products = netSalesList.stream()
                 .limit(20)
-                .forEach(product -> series.getData().add(
-                    new XYChart.Data<>(formatProductLabel(product.getProductName()), product.getNetQuantity())
-                ));
+                .collect(Collectors.toList());
+            
+            // Find the maximum value to set y-axis upper bound with padding
+            long maxValue = top20Products.stream()
+                .mapToLong(ProductNetSales::getNetQuantity)
+                .max()
+                .orElse(10L);
+            
+            // Add 50% padding to the top to make bars appear shorter
+            double upperBound = maxValue * 1.5;
+            // Round up to nearest 10 for cleaner axis labels
+            upperBound = Math.ceil(upperBound / 20.0) * 10.0;
+            
+            top20Products.forEach(product -> series.getData().add(
+                new XYChart.Data<>(formatProductLabel(product.getProductName()), product.getNetQuantity())
+            ));
             
             if (topProductsCategoryAxis != null) {
                 topProductsCategoryAxis.setTickLabelRotation(0);
             }
             if (topProductsNumberAxis != null) {
                 topProductsNumberAxis.setForceZeroInRange(true);
+                topProductsNumberAxis.setUpperBound(upperBound);
+                // Set tick unit to make labels cleaner (every 10 units)
+                topProductsNumberAxis.setTickUnit(Math.max(10, Math.ceil(upperBound / 10)));
             }
             
             barChartTopProducts.getData().add(series);

@@ -587,12 +587,9 @@ public class PlaceOrderFormController extends BaseController {
             }
             orderItemService.saveAllOrderItems(orderItems);
             
-            // Only reduce stock if payment is CASH (PAID)
-            // For CREDIT/CHEQUE (PENDING), stock will be reduced when payment is completed
-            if ("PAID".equals(paymentStatus)) {
-                for (CartTm tm : tms) {
-                    productDetailService.reduceStock(tm.getCode(), tm.getQty());
-                }
+            // Reduce stock immediately regardless of payment status so qty on hand is accurate
+            for (CartTm tm : tms) {
+                productDetailService.reduceStock(tm.getCode(), tm.getQty());
             }
             
             // Store the order code for printing later
@@ -609,7 +606,7 @@ public class PlaceOrderFormController extends BaseController {
                 } else {
                     new Alert(Alert.AlertType.INFORMATION, 
                         "Order created with " + paymentMethod + " payment. Status: PENDING.\nPDF saved to: " + receiptPath + 
-                        "\nStock will be reduced when payment is completed.\nClick Print button to print receipt.").show();
+                        "\nStock reduced immediately to reflect pending order.\nClick Print button to print receipt.").show();
                 }
                 
             } catch (Exception receiptEx) {

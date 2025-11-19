@@ -7,6 +7,9 @@ import com.devstack.pos.entity.ReturnOrder;
 import com.devstack.pos.entity.ReturnOrderItem;
 import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.UserSessionData;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
@@ -319,7 +322,27 @@ public class DashboardFormController extends BaseController {
     @FXML
     public void onLowStockCardClicked(MouseEvent mouseEvent) {
         if (AuthorizationUtil.canAccessProducts()) {
-            navigateTo("ProductMainForm", true);
+            // Navigate to ProductMainForm and set low stock filter
+            try {
+                updateActivity(); // Track activity
+                Stage stage = (Stage) context.getScene().getWindow();
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
+                loader.setLocation(getClass().getResource("/com/devstack/pos/view/ProductMainForm.fxml"));
+                loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+                
+                javafx.scene.Parent root = loader.load();
+                
+                // Get the controller and set low stock filter mode
+                com.devstack.pos.controller.ProductMainPageController controller = loader.getController();
+                if (controller != null) {
+                    controller.setShowLowStockOnly(true);
+                }
+                
+                com.devstack.pos.util.StageManager.loadFullScreenScene(stage, root);
+            } catch (IOException e) {
+                e.printStackTrace();
+                showError("Navigation Error", "Failed to navigate to Product Management: " + e.getMessage());
+            }
         } else {
             AuthorizationUtil.showAdminOnlyAlert();
         }

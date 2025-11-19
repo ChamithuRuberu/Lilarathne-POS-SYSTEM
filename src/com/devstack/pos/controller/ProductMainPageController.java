@@ -78,6 +78,19 @@ public class ProductMainPageController extends BaseController {
     private boolean isUpdatingBarcodeProgrammatically = false;
     private long lastBarcodeInputTime = 0;
     private int barcodeInputChangeCount = 0;
+    private boolean showLowStockOnly = false; // Flag to show only low stock items
+
+    /**
+     * Set the low stock only filter mode
+     * @param showLowStockOnly true to show only products with low stock batches
+     */
+    public void setShowLowStockOnly(boolean showLowStockOnly) {
+        this.showLowStockOnly = showLowStockOnly;
+        // Reload products with the new filter
+        if (showLowStockOnly) {
+            loadAllProducts(searchText);
+        }
+    }
 
     public void initialize() {
         // Initialize sidebar
@@ -628,6 +641,17 @@ public class ProductMainPageController extends BaseController {
 
             ObservableList<ProductTm> tms = FXCollections.observableArrayList();
 
+            // Filter products to show only those with low stock batches if flag is set
+            if (showLowStockOnly) {
+                products = products.stream()
+                    .filter(product -> {
+                        List<ProductDetail> batches = productDetailService.findByProductCode(product.getCode());
+                        return batches.stream().anyMatch(ProductDetail::isLowStock);
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+                System.out.println("Filtered to products with low stock: " + products.size());
+            }
+
             for (Product product : products) {
                 // Create buttons for each row
                 Button viewBarcode = new Button("View");
@@ -796,7 +820,15 @@ public class ProductMainPageController extends BaseController {
             String productBarcode = product != null && product.getBarcode() != null ? product.getBarcode() : "";
             String productDescription = product != null ? product.getDescription() : "";
 
-            for (ProductDetail productDetail : productDetailService.findByProductCode(code)) {
+            // Get batches - filter to low stock only if flag is set
+            List<ProductDetail> batches = productDetailService.findByProductCode(code);
+            if (showLowStockOnly) {
+                batches = batches.stream()
+                    .filter(ProductDetail::isLowStock)
+                    .collect(java.util.stream.Collectors.toList());
+            }
+
+            for (ProductDetail productDetail : batches) {
                 Button btnViewBarcode = new Button("View");
                 Button btnDelete = new Button("Delete");
 

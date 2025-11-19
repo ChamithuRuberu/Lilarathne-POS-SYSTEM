@@ -46,3 +46,6 @@ lib/
 *.swp
 *~
 
+# Executables
+*.exe
+

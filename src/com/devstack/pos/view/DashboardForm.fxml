@@ -58,7 +58,6 @@
       <VBox spacing="25" AnchorPane.leftAnchor="280" AnchorPane.rightAnchor="30"
             AnchorPane.topAnchor="30" AnchorPane.bottomAnchor="30">
          <children>
-//test
             <HBox alignment="CENTER_LEFT" spacing="20">
                <Text text="Executive Dashboard" styleClass="header-title-light"/>
                <Region HBox.hgrow="ALWAYS"/>

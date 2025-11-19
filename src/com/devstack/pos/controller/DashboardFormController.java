@@ -26,7 +26,11 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.TableView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.Node;
 import javafx.scene.text.Text;
+import javafx.animation.PauseTransition;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -308,6 +312,15 @@ public class DashboardFormController extends BaseController {
         btnReturnsOnAction(actionEvent);
     }
     
+    @FXML
+    public void onLowStockCardClicked(MouseEvent mouseEvent) {
+        if (AuthorizationUtil.canAccessProducts()) {
+            navigateTo("ProductMainForm", true);
+        } else {
+            AuthorizationUtil.showAdminOnlyAlert();
+        }
+    }
+    
     // Alias for FXML compatibility (DashboardForm.fxml uses btnIncomeReportOnAction)
     @FXML
     public void btnIncomeReportOnAction(ActionEvent actionEvent) {
@@ -504,11 +517,15 @@ public class DashboardFormController extends BaseController {
                 .limit(20)
                 .collect(Collectors.toList());
             
-            // Find the maximum value to set y-axis upper bound with padding
+            // Find the maximum and minimum values for color gradient
             long maxValue = top20Products.stream()
                 .mapToLong(ProductNetSales::getNetQuantity)
                 .max()
                 .orElse(10L);
+            long minValue = top20Products.stream()
+                .mapToLong(ProductNetSales::getNetQuantity)
+                .min()
+                .orElse(0L);
             
             // Add 50% padding to the top to make bars appear shorter
             double upperBound = maxValue * 1.5;
@@ -530,10 +547,114 @@ public class DashboardFormController extends BaseController {
             }
             
             barChartTopProducts.getData().add(series);
+            
+            // Apply color gradient to bars (green for high, red for low)
+            applyBarColors(series, minValue, maxValue);
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Error loading top selling products chart: " + ex.getMessage());
         }
+    }
+    
+    /**
+     * Applies color gradient to bar chart bars based on their values
+     * Green for high values (good), Red for low values (bad)
+     */
+    private void applyBarColors(XYChart.Series<String, Number> series, long minValue, long maxValue) {
+        // Wait for chart to be rendered before applying colors
+        javafx.application.Platform.runLater(() -> {
+            try {
+                // Add a small delay to ensure chart is fully rendered
+                PauseTransition pause = new PauseTransition(Duration.millis(150));
+                pause.setOnFinished(e -> {
+                    try {
+                        double range = maxValue - minValue;
+                        if (range == 0) range = 1; // Avoid division by zero
+                        
+                        for (XYChart.Data<String, Number> data : series.getData()) {
+                            Number value = data.getYValue();
+                            if (value == null) continue;
+                            
+                            long longValue = value.longValue();
+                            // Calculate position in range (0.0 = min, 1.0 = max)
+                            double ratio = (double)(longValue - minValue) / range;
+                            
+                            // Interpolate color from red (low) to green (high)
+                            // Using RGB values: Red (220, 38, 38) to Green (34, 197, 94)
+                            int red = (int)(220 + (34 - 220) * ratio);
+                            int green = (int)(38 + (197 - 38) * ratio);
+                            int blue = (int)(38 + (94 - 38) * ratio);
+                            
+                            // Ensure values are within valid range
+                            red = Math.max(0, Math.min(255, red));
+                            green = Math.max(0, Math.min(255, green));
+                            blue = Math.max(0, Math.min(255, blue));
+                            
+                            String color = String.format("#%02X%02X%02X", red, green, blue);
+                            
+                            // Find the bar node and apply color
+                            Node bar = data.getNode();
+                            if (bar != null) {
+                                // Apply color using CSS - JavaFX BarChart uses -fx-bar-fill
+                                bar.setStyle("-fx-bar-fill: " + color + ";");
+                            } else {
+                                // If node not yet created, add listener for when it's created
+                                final String finalColor = color;
+                                data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                                    if (newNode != null) {
+                                        newNode.setStyle("-fx-bar-fill: " + finalColor + ";");
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // Also apply colors using chart lookup as backup
+                        javafx.application.Platform.runLater(() -> {
+                            try {
+                                if (barChartTopProducts != null) {
+                                    // Lookup all bars in the chart
+                                    java.util.Set<Node> bars = barChartTopProducts.lookupAll(".chart-bar");
+                                    int barIndex = 0;
+                                    for (Node bar : bars) {
+                                        if (barIndex < series.getData().size()) {
+                                            XYChart.Data<String, Number> data = series.getData().get(barIndex);
+                                            Number value = data.getYValue();
+                                            if (value != null) {
+                                                long longValue = value.longValue();
+                                                double lookupRange = maxValue - minValue;
+                                                if (lookupRange == 0) lookupRange = 1;
+                                                double ratio = (double)(longValue - minValue) / lookupRange;
+                                                
+                                                int red = (int)(220 + (34 - 220) * ratio);
+                                                int green = (int)(38 + (197 - 38) * ratio);
+                                                int blue = (int)(38 + (94 - 38) * ratio);
+                                                
+                                                red = Math.max(0, Math.min(255, red));
+                                                green = Math.max(0, Math.min(255, green));
+                                                blue = Math.max(0, Math.min(255, blue));
+                                                
+                                                String color = String.format("#%02X%02X%02X", red, green, blue);
+                                                bar.setStyle("-fx-bar-fill: " + color + ";");
+                                            }
+                                            barIndex++;
+                                        }
+                                    }
+                                }
+                            } catch (Exception ex) {
+                                // Ignore lookup errors
+                            }
+                        });
+                    } catch (Exception ex) {
+                        System.err.println("Error applying bar colors: " + ex.getMessage());
+                        ex.printStackTrace();
+                    }
+                });
+                pause.play();
+            } catch (Exception e) {
+                System.err.println("Error setting up bar colors: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
     
     // Helper class for net sales calculation

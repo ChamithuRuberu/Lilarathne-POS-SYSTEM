@@ -166,8 +166,11 @@
                      </VBox>
                      
                      <!-- Low Stock Alert -->
-                     <VBox styleClass="summary-card-orange" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <VBox styleClass="summary-card-orange" GridPane.columnIndex="1" GridPane.rowIndex="1" onMouseClicked="#onLowStockCardClicked">
                         <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+                        <cursor>
+                           <Cursor fx:constant="HAND"/>
+                        </cursor>
                         <Text text="⚠️ Low Stock Items" style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: bold;"/>
                         <Text fx:id="lblLowStockCount" text="0" style="-fx-font-size: 28px; -fx-fill: #f59e0b; -fx-font-weight: bold;"/>
                         <Text text="Need attention" style="-fx-font-size: 11px; -fx-fill: #94a3b8;"/>

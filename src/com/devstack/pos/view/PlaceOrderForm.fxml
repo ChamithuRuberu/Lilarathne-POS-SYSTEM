@@ -154,18 +154,21 @@
                
                <!-- Payment Method and Total Cost Section -->
                <VBox spacing="16" style="-fx-padding: 16; -fx-background-color: #f8fafc; -fx-background-radius: 8;">
-                  <!-- Payment Method Row -->
-                  <HBox spacing="12" alignment="CENTER_LEFT">
-                     <Text text="Payment Method:" styleClass="form-label" style="-fx-font-size: 14px;">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <JFXComboBox fx:id="cmbPaymentMethod" promptText="Select Payment Method" styleClass="text-field-modern" prefWidth="180.0" prefHeight="36.0" />
-                  </HBox>
-                  
-                  <!-- Payment Details and Actions Row -->
+                  <!-- Payment Details and Actions Row - All in One Row -->
                   <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 16; -fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);">
+                     <!-- Payment Method -->
+                     <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Text text="Payment Method:" styleClass="form-label" style="-fx-font-size: 14px;">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Text>
+                        <JFXComboBox fx:id="cmbPaymentMethod" promptText="Select Payment Method" styleClass="text-field-modern" prefWidth="180.0" prefHeight="36.0" />
+                     </HBox>
+                     
+                     <!-- Separator -->
+                     <Separator orientation="VERTICAL" prefHeight="50.0" />
+                     
                      <!-- Customer Paid -->
                      <HBox spacing="8" alignment="CENTER_LEFT">
                         <Text text="Customer Paid:" style="-fx-font-size: 15px; -fx-fill: #475569;">

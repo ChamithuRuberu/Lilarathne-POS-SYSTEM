@@ -517,6 +517,19 @@ public class PlaceOrderFormController extends BaseController {
                 return;
             }
             
+            // Validate customer paid field - must not be null or empty
+            if (txtCustomerPaid == null) {
+                new Alert(Alert.AlertType.ERROR, "Customer paid field is not initialized!").show();
+                return;
+            }
+            
+            String paidText = txtCustomerPaid.getText();
+            if (paidText == null || paidText.trim().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter the amount paid by the customer!").show();
+                txtCustomerPaid.requestFocus();
+                return;
+            }
+            
             // Calculate total discount (unit discount * qty)
             double totalDiscount = tms.stream()
                     .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
@@ -535,15 +548,20 @@ public class PlaceOrderFormController extends BaseController {
                 paymentStatus = "PENDING";
             }
             
-            // Get customer paid amount and calculate balance
+            // Get customer paid amount and validate it's a valid number
             double customerPaid = 0.0;
-            String paidText = txtCustomerPaid.getText() == null ? "" : txtCustomerPaid.getText().trim();
-            if (!paidText.isEmpty()) {
-                try {
-                    customerPaid = Double.parseDouble(paidText);
-                } catch (NumberFormatException e) {
-                    customerPaid = 0.0;
+            paidText = paidText.trim();
+            try {
+                customerPaid = Double.parseDouble(paidText);
+                if (customerPaid < 0) {
+                    new Alert(Alert.AlertType.WARNING, "Customer paid amount cannot be negative!").show();
+                    txtCustomerPaid.requestFocus();
+                    return;
                 }
+            } catch (NumberFormatException e) {
+                new Alert(Alert.AlertType.WARNING, "Please enter a valid amount for customer paid!").show();
+                txtCustomerPaid.requestFocus();
+                return;
             }
             double totalCost = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
             double balance = customerPaid - totalCost;

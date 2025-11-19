@@ -86,13 +86,16 @@ public class ProductMainPageController extends BaseController {
      */
     public void setShowLowStockOnly(boolean showLowStockOnly) {
         this.showLowStockOnly = showLowStockOnly;
-        // Reload products with the new filter
-        if (showLowStockOnly) {
-            loadAllProducts(searchText);
-        }
+        // Reload products with the new filter (always reload to apply/remove filter)
+        loadAllProducts(searchText);
     }
 
     public void initialize() {
+        // Reset low stock filter flag to false by default
+        // This ensures normal navigation shows all products
+        // The flag will be set to true only when explicitly called from dashboard low stock card
+        showLowStockOnly = false;
+        
         // Initialize sidebar
         initializeSidebar();
 

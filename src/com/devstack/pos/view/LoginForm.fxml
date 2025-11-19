@@ -35,7 +35,7 @@
                         </font>
                     </Text>
                     <JFXTextField fx:id="txtEmail" promptText="Enter email address" styleClass="text-field-modern"
-                                  text="tcdrubeu@gmail.com" prefWidth="350.0" prefHeight="42.0">
+                                  text="" prefWidth="350.0" prefHeight="42.0">
                         <font>
                             <Font name="System" size="14.0"/>
                         </font>
@@ -49,7 +49,7 @@
                         </font>
                     </Text>
                     <JFXPasswordField fx:id="txtPassword" promptText="Enter password"
-                                      styleClass="text-field-modern" text="ADMIN" prefWidth="350.0" prefHeight="42.0">
+                                      styleClass="text-field-modern" text="" prefWidth="350.0" prefHeight="42.0">
                         <font>
                             <Font name="System" size="14.0"/>
                         </font>

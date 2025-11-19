@@ -59,14 +59,14 @@ public class SuperAdminService implements CommandLineRunner {
     public CommandLineRunner createCashierRole() {
 
         return args -> {
-            if (!userRepository.existsByEmail(("TEST@example.com"))) {
+            if (!userRepository.existsByEmail(("Varsha"))) {
 
                 Role superAdminRole = roleRepository.findByName("ROLE_CASHIER")
                         .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_CASHIER").build()));
 
                 AppUser appUser = AppUser.builder()
-                        .password(passwordEncoder.encode("ADMIN")) // Encode the password
-                        .email("TEST@example.com") // Provide a valid email
+                        .password(passwordEncoder.encode("Varsh@2002")) // Encode the password
+                        .email("Varsha") // Provide a valid email
                         .status("ACTIVE")
                         .roles(Set.of(superAdminRole)) // Assign the role as a Set
                         .build();
@@ -85,14 +85,14 @@ public class SuperAdminService implements CommandLineRunner {
     public CommandLineRunner createCashierRole2() {
 
         return args -> {
-            if (!userRepository.existsByEmail(("TEST2@example.com"))) {
+            if (!userRepository.existsByEmail(("Hansaka"))) {
 
                 Role superAdminRole = roleRepository.findByName("ROLE_CASHIER")
                         .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_CASHIER").build()));
 
                 AppUser appUser = AppUser.builder()
-                        .password(passwordEncoder.encode("ADMIN")) // Encode the password
-                        .email("TEST2@example.com") // Provide a valid email
+                        .password(passwordEncoder.encode("Hansaka1002")) // Encode the password
+                        .email("Hansaka") // Provide a valid email
                         .status("ACTIVE")
                         .roles(Set.of(superAdminRole)) // Assign the role as a Set
                         .build();

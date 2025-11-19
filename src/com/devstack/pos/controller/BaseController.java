@@ -1,5 +1,6 @@
 package com.devstack.pos.controller;
 
+import com.devstack.pos.service.SessionManager;
 import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.StageManager;
 import com.devstack.pos.util.UserSessionData;
@@ -11,6 +12,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 
@@ -29,6 +32,10 @@ public abstract class BaseController {
     @FXML
     protected Text txtUserRole;
     
+    @Getter
+    @Setter
+    private SessionManager sessionManager;
+    
     /**
      * Initialize user info in sidebar
      * Call this from your controller's initialize() method
@@ -43,6 +50,43 @@ public abstract class BaseController {
             String displayRole = role.replace("ROLE_", "");
             txtUserRole.setText("ROLE: " + displayRole);
         }
+        
+        // Setup activity tracking for mouse and keyboard events
+        setupActivityTracking();
+    }
+    
+    /**
+     * Setup activity tracking for user interactions
+     */
+    private void setupActivityTracking() {
+        if (context != null) {
+            // Track mouse movements and clicks
+            context.setOnMouseMoved(this::onUserActivity);
+            context.setOnMouseClicked(this::onUserActivity);
+            context.setOnMousePressed(this::onUserActivity);
+            
+            // Track keyboard events
+            context.setOnKeyPressed(this::onUserActivity);
+            context.setOnKeyTyped(this::onUserActivity);
+        }
+    }
+    
+    /**
+     * Handle user activity - update last activity time
+     */
+    private void onUserActivity(javafx.event.Event event) {
+        updateActivity();
+    }
+    
+    /**
+     * Update user activity timestamp
+     * Can be called manually from child controllers if needed
+     */
+    protected void updateActivity() {
+        UserSessionData.updateLastActivity();
+        if (sessionManager != null) {
+            sessionManager.updateActivity();
+        }
     }
     
     /**
@@ -55,11 +99,13 @@ public abstract class BaseController {
     
     @FXML
     public void btnDashboardOnAction(ActionEvent event) {
+        updateActivity();
         navigateTo("DashboardForm", true);
     }
     
     @FXML
     public void btnCustomerOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessCustomers()) {
             navigateTo("CustomerForm", true);
         } else {
@@ -69,6 +115,7 @@ public abstract class BaseController {
     
     @FXML
     public void btnProductOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessProducts()) {
             navigateTo("ProductMainForm", true);
         } else {
@@ -78,6 +125,7 @@ public abstract class BaseController {
     
     @FXML
     public void btnPlaceOrderOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessPOSOrders()) {
             navigateTo("PlaceOrderForm", true);
         } else {
@@ -87,6 +135,7 @@ public abstract class BaseController {
     
     @FXML
     public void btnPendingPaymentsOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessPOSOrders()) {
             navigateTo("PendingPaymentsForm", true);
         } else {
@@ -96,11 +145,13 @@ public abstract class BaseController {
     
     @FXML
     public void btnOrderDetailsOnAction(ActionEvent event) {
+        updateActivity();
         navigateTo("OrderDetailsForm", true);
     }
     
     @FXML
     public void btnReturnsOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessReturnOrders()) {
             navigateTo("ReturnOrdersForm", true);
         } else {
@@ -110,6 +161,7 @@ public abstract class BaseController {
     
     @FXML
     public void btnPurchaseOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessPurchaseOrders()) {
             navigateTo("SupplierManagementForm", true);
         } else {
@@ -119,6 +171,7 @@ public abstract class BaseController {
     
     @FXML
     public void btnReportsOnAction(ActionEvent event) {
+        updateActivity();
         if (AuthorizationUtil.canAccessReports()) {
             navigateTo("AnalysisPage", true);
         } else {
@@ -128,22 +181,30 @@ public abstract class BaseController {
     
     @FXML
     public void btnHelpOnAction(ActionEvent event) {
+        updateActivity();
         navigateTo("HelpPage", false);
     }
     
     @FXML
     public void btnAboutUsOnAction(ActionEvent event) {
+        updateActivity();
         navigateTo("AboutUsPage", false);
     }
     
     @FXML
     public void btnSettingsOnAction(ActionEvent event) {
+        updateActivity();
         navigateTo("SettingsForm", false);
     }
     
     @FXML
     public void btnLogoutOnAction(ActionEvent event) {
         try {
+            // Stop session monitoring
+            if (sessionManager != null) {
+                sessionManager.stopSessionMonitoring();
+            }
+            
             // Clear session data
             UserSessionData.clear();
             System.out.println("User logged out");
@@ -171,6 +232,7 @@ public abstract class BaseController {
      */
     protected void navigateTo(String viewName, boolean checkAuth) {
         try {
+            updateActivity(); // Track navigation as activity
             Stage stage = (Stage) context.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/com/devstack/pos/view/" + viewName + ".fxml"));

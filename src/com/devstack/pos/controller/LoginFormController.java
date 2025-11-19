@@ -1,6 +1,7 @@
 package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.AppUser;
+import com.devstack.pos.service.SessionManager;
 import com.devstack.pos.service.UserService;
 import com.devstack.pos.util.JwtUtil;
 import com.devstack.pos.util.StageManager;
@@ -28,6 +29,7 @@ public class LoginFormController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final SessionManager sessionManager;
 
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");
@@ -47,12 +49,19 @@ public class LoginFormController {
                     String role = jwtUtil.getRoleFromToken(jwtToken);
                     UserSessionData.userRole = role != null ? role : "ROLE_CASHIER";
                     
+                    // Initialize last activity time
+                    UserSessionData.updateLastActivity();
+                    
+                    // Start session monitoring for inactivity and token expiration
+                    sessionManager.startSessionMonitoring();
+                    
                     System.out.println("=== LOGIN SUCCESSFUL ===");
                     System.out.println("User: " + txtEmail.getText());
                     System.out.println("Role from JWT: " + role);
                     System.out.println("Stored Role: " + UserSessionData.userRole);
                     System.out.println("Is Admin: " + UserSessionData.isAdmin());
                     System.out.println("Is Cashier: " + UserSessionData.isCashier());
+                    System.out.println("Session monitoring started");
                     System.out.println("========================");
                     
                     setUi("DashboardForm");

@@ -56,6 +56,7 @@ public class DashboardFormController extends BaseController {
     private final ReturnOrderItemService returnOrderItemService;
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final com.devstack.pos.service.SessionManager sessionManager;
     
     // KPI Labels
     @FXML
@@ -169,6 +170,9 @@ public class DashboardFormController extends BaseController {
     
     @FXML
     public void initialize() {
+        // Set SessionManager in BaseController for activity tracking
+        setSessionManager(sessionManager);
+        
         // Initialize sidebar with user info
         initializeSidebar();
         

@@ -87,4 +87,41 @@ public class JwtUtil {
             return false;
         }
     }
+    
+    /**
+     * Get the expiration date from a JWT token
+     * @param token JWT token
+     * @return Expiration date, or null if token is invalid
+     */
+    public Date getExpirationDateFromToken(String token) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC512(jwtSecret.getBytes());
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("GreenCodeSolution")
+                    .build();
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getExpiresAt();
+        } catch (Exception e) {
+            log.error("Failed to get expiration date from token: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Check if a JWT token is expired
+     * @param token JWT token
+     * @return true if token is expired or invalid, false if still valid
+     */
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expirationDate = getExpirationDateFromToken(token);
+            if (expirationDate == null) {
+                return true; // Invalid token is considered expired
+            }
+            return expirationDate.before(new Date());
+        } catch (Exception e) {
+            log.error("Failed to check token expiration: {}", e.getMessage());
+            return true; // On error, consider expired
+        }
+    }
 }

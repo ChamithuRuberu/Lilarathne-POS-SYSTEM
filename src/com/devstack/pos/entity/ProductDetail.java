@@ -97,14 +97,25 @@ public class ProductDetail {
             this.profitMargin = ((sellingPrice - buyingPrice) / buyingPrice) * 100;
         }
         
+        // For new records, ensure status is set (default to ACTIVE if null)
+        if (this.batchStatus == null || this.batchStatus.trim().isEmpty()) {
+            this.batchStatus = "ACTIVE";
+        }
+        
         // Update batch status based on quantity and expiry
         updateBatchStatus();
     }
     
     /**
      * Update batch status based on current state
+     * Note: Does not override DELETED status - once deleted, status remains DELETED
      */
     public void updateBatchStatus() {
+        // Don't update status if already marked as DELETED
+        if ("DELETED".equals(this.batchStatus)) {
+            return;
+        }
+        
         if (expiryDate != null && LocalDate.now().isAfter(expiryDate)) {
             this.batchStatus = "EXPIRED";
         } else if (qtyOnHand <= 0) {

@@ -23,6 +23,12 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.stage.Popup;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.geometry.Bounds;
+import javafx.application.Platform;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,9 +82,14 @@ public class NewBatchFormController {
     
     // Supplier Fields
     @FXML
-    public ComboBox cmbSupplier;  // Raw type for FXML compatibility
+    public TextField txtSupplierName;
     @FXML
     public TextField txtSupplierContact;
+    
+    private Popup supplierPopup;
+    private ListView<Supplier> supplierListView;
+    private Supplier selectedSupplier;
+    private boolean isUpdatingSupplierName = false; // Flag to prevent autocomplete during programmatic updates
     
     String uniqueData = null;
     Stage stage = null;
@@ -95,73 +106,169 @@ public class NewBatchFormController {
         setupProfitMarginCalculation();
         setupDateValidation();
         setupNumericValidation();
-        loadSuppliers();
-        setupSupplierSelection();
+        setupSupplierAutocomplete();
         setupManualBarcodeEntry();
     }
     
     /**
-     * Load suppliers into the combo box
+     * Setup supplier autocomplete with popup suggestions
      */
-    @SuppressWarnings("unchecked")
-    private void loadSuppliers() {
-        try {
-            if (cmbSupplier != null) {
-                ObservableList<Supplier> suppliers = FXCollections.observableArrayList(
-                    supplierService.findActiveSuppliers()
+    private void setupSupplierAutocomplete() {
+        if (txtSupplierName == null) return;
+        
+        // Create popup and list view for suggestions
+        supplierPopup = new Popup();
+        supplierListView = new ListView<>();
+        supplierListView.setPrefWidth(300);
+        supplierListView.setPrefHeight(200);
+        supplierListView.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-width: 1;");
+        
+        // Set cell factory to display supplier name
+        supplierListView.setCellFactory(param -> new ListCell<Supplier>() {
+            @Override
+            protected void updateItem(Supplier item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getName());
+                }
+            }
+        });
+        
+        // Handle selection from list
+        supplierListView.setOnMouseClicked((MouseEvent event) -> {
+            Supplier selected = supplierListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                selectSupplier(selected);
+                supplierPopup.hide();
+            }
+        });
+        
+        // Handle keyboard selection
+        supplierListView.setOnKeyPressed((KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                Supplier selected = supplierListView.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    selectSupplier(selected);
+                    supplierPopup.hide();
+                }
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                supplierPopup.hide();
+            }
+        });
+        
+        supplierPopup.getContent().add(supplierListView);
+        
+        // Listen to text changes and show suggestions
+        txtSupplierName.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Skip autocomplete if we're updating programmatically
+            if (isUpdatingSupplierName) {
+                return;
+            }
+            
+            if (newVal == null || newVal.trim().isEmpty()) {
+                supplierPopup.hide();
+                selectedSupplier = null;
+                if (txtSupplierContact != null) {
+                    txtSupplierContact.clear();
+                }
+                return;
+            }
+            
+            // Only search if scene is available
+            if (txtSupplierName.getScene() == null || txtSupplierName.getScene().getWindow() == null) {
+                return;
+            }
+            
+            // Search suppliers as user types
+            try {
+                String searchText = newVal.trim();
+                ObservableList<Supplier> matchingSuppliers = FXCollections.observableArrayList(
+                    supplierService.searchSuppliers(searchText)
                 );
-                cmbSupplier.setItems(suppliers);
                 
-                // Set cell factory to display supplier name
-                cmbSupplier.setCellFactory(param -> new ListCell<Supplier>() {
-                    @Override
-                    protected void updateItem(Supplier item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            setText(null);
-                        } else {
-                            setText(item.getName());
+                // Filter to active suppliers only
+                matchingSuppliers = matchingSuppliers.filtered(s -> 
+                    s.getStatus() != null && "ACTIVE".equals(s.getStatus())
+                );
+                
+                if (!matchingSuppliers.isEmpty()) {
+                    supplierListView.setItems(matchingSuppliers);
+                    
+                    // Show popup below the text field (only if scene is available)
+                    if (!supplierPopup.isShowing() && txtSupplierName.getScene() != null && 
+                        txtSupplierName.getScene().getWindow() != null) {
+                        try {
+                            Bounds bounds = txtSupplierName.localToScreen(txtSupplierName.getBoundsInLocal());
+                            supplierPopup.show(txtSupplierName.getScene().getWindow(),
+                                bounds.getMinX(),
+                                bounds.getMaxY() + 2);
+                        } catch (Exception ex) {
+                            // Scene not ready yet, ignore
+                            System.err.println("Popup not ready: " + ex.getMessage());
                         }
                     }
-                });
-                
-                // Set button cell to display supplier name
-                cmbSupplier.setButtonCell(new ListCell<Supplier>() {
-                    @Override
-                    protected void updateItem(Supplier item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            setText(null);
-                        } else {
-                            setText(item.getName());
-                        }
+                } else {
+                    supplierPopup.hide();
+                }
+            } catch (Exception e) {
+                System.err.println("Error searching suppliers: " + e.getMessage());
+                supplierPopup.hide();
+            }
+        });
+        
+        // Hide popup when text field loses focus
+        txtSupplierName.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused) {
+                // Delay hiding to allow list selection
+                Platform.runLater(() -> {
+                    if (!supplierListView.isFocused()) {
+                        supplierPopup.hide();
                     }
                 });
             }
-        } catch (Exception e) {
-            System.err.println("Error loading suppliers: " + e.getMessage());
-        }
+        });
+        
+        // Handle Enter key to select first suggestion
+        txtSupplierName.setOnKeyPressed((KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER && supplierPopup.isShowing() && 
+                supplierListView.getItems().size() > 0) {
+                Supplier first = supplierListView.getItems().get(0);
+                selectSupplier(first);
+                supplierPopup.hide();
+                event.consume();
+            } else if (event.getCode() == KeyCode.DOWN && supplierPopup.isShowing()) {
+                supplierListView.requestFocus();
+                if (supplierListView.getItems().size() > 0) {
+                    supplierListView.getSelectionModel().select(0);
+                }
+                event.consume();
+            }
+        });
     }
     
     /**
-     * Setup supplier selection listener to auto-fill contact
+     * Select a supplier and auto-fill contact information
      */
-    @SuppressWarnings("unchecked")
-    private void setupSupplierSelection() {
-        if (cmbSupplier != null && txtSupplierContact != null) {
-            cmbSupplier.valueProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && newVal instanceof Supplier) {
-                    Supplier supplier = (Supplier) newVal;
-                    // Auto-fill supplier contact (phone)
-                    String contact = supplier.getPhone() != null ? supplier.getPhone() : "";
-                    if (contact.isEmpty() && supplier.getEmail() != null) {
-                        contact = supplier.getEmail();
-                    }
-                    txtSupplierContact.setText(contact);
-                } else {
-                    txtSupplierContact.clear();
-                }
-            });
+    private void selectSupplier(Supplier supplier) {
+        if (supplier == null) return;
+        
+        selectedSupplier = supplier;
+        isUpdatingSupplierName = true;
+        try {
+            txtSupplierName.setText(supplier.getName());
+        } finally {
+            isUpdatingSupplierName = false;
+        }
+        
+        // Auto-fill supplier contact
+        if (txtSupplierContact != null) {
+            String contact = supplier.getPhone() != null ? supplier.getPhone() : "";
+            if (contact.isEmpty() && supplier.getEmail() != null) {
+                contact = supplier.getEmail();
+            }
+            txtSupplierContact.setText(contact);
         }
     }
     
@@ -488,16 +595,20 @@ public class NewBatchFormController {
                         dateExpiry.setValue(productDetail.getExpiryDate());
                     }
                     // Load supplier if supplier name exists
-                    if (cmbSupplier != null && productDetail.getSupplierName() != null) {
+                    if (txtSupplierName != null && productDetail.getSupplierName() != null) {
+                        isUpdatingSupplierName = true;
+                        try {
+                            txtSupplierName.setText(productDetail.getSupplierName());
+                        } finally {
+                            isUpdatingSupplierName = false;
+                        }
                         // Find supplier by name
                         Supplier supplier = supplierService.findAllSuppliers().stream()
                             .filter(s -> s.getName().equals(productDetail.getSupplierName()))
                             .findFirst()
                             .orElse(null);
                         if (supplier != null) {
-                            @SuppressWarnings("unchecked")
-                            ComboBox<Supplier> supplierCombo = (ComboBox<Supplier>) cmbSupplier;
-                            supplierCombo.setValue(supplier);
+                            selectedSupplier = supplier;
                         }
                     }
                     if (txtSupplierContact != null && productDetail.getSupplierContact() != null) {
@@ -808,18 +919,34 @@ public class NewBatchFormController {
             }
             
             // Set supplier info
-            if (cmbSupplier != null && cmbSupplier.getValue() != null) {
-                @SuppressWarnings("unchecked")
-                Supplier selectedSupplier = (Supplier) cmbSupplier.getValue();
-                productDetail.setSupplierName(selectedSupplier.getName());
+            if (txtSupplierName != null && !txtSupplierName.getText().trim().isEmpty()) {
+                String supplierName = txtSupplierName.getText().trim();
                 
-                // Set supplier contact from the auto-filled field
-                if (txtSupplierContact != null && !txtSupplierContact.getText().trim().isEmpty()) {
-                    productDetail.setSupplierContact(txtSupplierContact.getText().trim());
-                } else if (selectedSupplier.getPhone() != null) {
-                    productDetail.setSupplierContact(selectedSupplier.getPhone());
-                } else if (selectedSupplier.getEmail() != null) {
-                    productDetail.setSupplierContact(selectedSupplier.getEmail());
+                // Find supplier by name if not already selected
+                if (selectedSupplier == null || !selectedSupplier.getName().equals(supplierName)) {
+                    selectedSupplier = supplierService.findAllSuppliers().stream()
+                        .filter(s -> s.getName().equals(supplierName))
+                        .findFirst()
+                        .orElse(null);
+                }
+                
+                if (selectedSupplier != null) {
+                    productDetail.setSupplierName(selectedSupplier.getName());
+                    
+                    // Set supplier contact from the auto-filled field
+                    if (txtSupplierContact != null && !txtSupplierContact.getText().trim().isEmpty()) {
+                        productDetail.setSupplierContact(txtSupplierContact.getText().trim());
+                    } else if (selectedSupplier.getPhone() != null) {
+                        productDetail.setSupplierContact(selectedSupplier.getPhone());
+                    } else if (selectedSupplier.getEmail() != null) {
+                        productDetail.setSupplierContact(selectedSupplier.getEmail());
+                    }
+                } else {
+                    // Supplier name entered but not found - allow saving with just the name
+                    productDetail.setSupplierName(supplierName);
+                    if (txtSupplierContact != null && !txtSupplierContact.getText().trim().isEmpty()) {
+                        productDetail.setSupplierContact(txtSupplierContact.getText().trim());
+                    }
                 }
             }
             
@@ -924,12 +1051,13 @@ public class NewBatchFormController {
         if (dateExpiry != null) {
             dateExpiry.setValue(null);
         }
-        if (cmbSupplier != null) {
-            cmbSupplier.setValue(null);
+        if (txtSupplierName != null) {
+            txtSupplierName.clear();
         }
         if (txtSupplierContact != null) {
             txtSupplierContact.clear();
         }
+        selectedSupplier = null;
         if (txtBatchBarcodeCode != null) {
             txtBatchBarcodeCode.clear();
         }

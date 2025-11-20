@@ -37,7 +37,7 @@ public class ProductDetailService {
     public boolean updateProductDetail(ProductDetail productDetail) {
         validateProductDetail(productDetail);
         
-        if (productDetailRepository.existsById(productDetail.getCode())) {
+        if (productDetail.getId() != null && productDetailRepository.existsById(productDetail.getId())) {
             productDetailRepository.save(productDetail);
             return true;
         }
@@ -92,21 +92,37 @@ public class ProductDetailService {
     }
     
     /**
-     * Delete product detail (soft delete by setting status to OUT_OF_STOCK)
+     * Delete product detail (soft delete by setting status to DELETED)
+     * Does not actually delete the record from database
      */
     public boolean deleteProductDetail(String code) {
-        if (productDetailRepository.existsById(code)) {
-            productDetailRepository.deleteById(code);
-            return true;
+        try {
+            ProductDetail productDetail = findProductDetail(code);
+            if (productDetail != null) {
+                // Soft delete: set status to DELETED instead of removing record
+                productDetail.setBatchStatus("DELETED");
+                productDetailRepository.save(productDetail);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
     
     /**
      * Find product detail by code
+     * Handles cases where multiple records with same code exist (takes most recent)
      */
     public ProductDetail findProductDetail(String code) {
-        return productDetailRepository.findByCode(code).orElse(null);
+        try {
+            return productDetailRepository.findByCode(code).orElse(null);
+        } catch (org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+            // If multiple results exist, get the most recent one
+            List<ProductDetail> details = productDetailRepository.findAllByCode(code);
+            return details.isEmpty() ? null : details.get(0);
+        }
     }
     
     /**
@@ -117,62 +133,71 @@ public class ProductDetailService {
     }
     
     /**
-     * Find all product details
+     * Find all product details (excluding DELETED records)
      */
     public List<ProductDetail> findAllProductDetails() {
-        return productDetailRepository.findAll();
+        return productDetailRepository.findAll().stream()
+            .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
+            .collect(Collectors.toList());
     }
     
     /**
-     * Find product details by product code
+     * Find product details by product code (excluding DELETED records)
      */
     public List<ProductDetail> findByProductCode(int productCode) {
-        return productDetailRepository.findByProductCode(productCode);
+        return productDetailRepository.findByProductCode(productCode).stream()
+            .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
+            .collect(Collectors.toList());
     }
     
     /**
-     * Find active batches for a product (not expired, has stock)
+     * Find active batches for a product (not expired, has stock, not deleted)
      */
     public List<ProductDetail> findActiveBatchesByProductCode(int productCode) {
         return productDetailRepository.findByProductCode(productCode).stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getQtyOnHand() > 0)
                 .filter(pd -> !pd.isExpired())
                 .collect(Collectors.toList());
     }
     
     /**
-     * Find low stock batches for a product
+     * Find low stock batches for a product (excluding DELETED records)
      */
     public List<ProductDetail> findLowStockBatches(int productCode) {
         return productDetailRepository.findByProductCode(productCode).stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(ProductDetail::isLowStock)
                 .collect(Collectors.toList());
     }
     
     /**
-     * Find expired batches
+     * Find expired batches (excluding DELETED records)
      */
     public List<ProductDetail> findExpiredBatches() {
         return productDetailRepository.findAll().stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(ProductDetail::isExpired)
                 .collect(Collectors.toList());
     }
     
     /**
-     * Find batches expiring soon (within specified days)
+     * Find batches expiring soon (within specified days, excluding DELETED records)
      */
     public List<ProductDetail> findBatchesExpiringSoon(int days) {
         return productDetailRepository.findAll().stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getExpiryDate() != null)
                 .filter(pd -> pd.getDaysUntilExpiry() <= days && pd.getDaysUntilExpiry() >= 0)
                 .collect(Collectors.toList());
     }
     
     /**
-     * Get total stock quantity for a product (all batches)
+     * Get total stock quantity for a product (all batches, excluding DELETED)
      */
     public int getTotalStockForProduct(int productCode) {
         return productDetailRepository.findByProductCode(productCode).stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getQtyOnHand() > 0)
                 .filter(pd -> !pd.isExpired())
                 .mapToInt(ProductDetail::getQtyOnHand)
@@ -180,10 +205,11 @@ public class ProductDetailService {
     }
     
     /**
-     * Get total value of stock for a product (based on buying price)
+     * Get total value of stock for a product (based on buying price, excluding DELETED)
      */
     public double getTotalStockValue(int productCode) {
         return productDetailRepository.findByProductCode(productCode).stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getQtyOnHand() > 0)
                 .filter(pd -> !pd.isExpired())
                 .mapToDouble(pd -> pd.getQtyOnHand() * pd.getBuyingPrice())
@@ -191,13 +217,14 @@ public class ProductDetailService {
     }
     
     /**
-     * Get average profit margin for a product
+     * Get average profit margin for a product (excluding DELETED records)
      */
     public double getAverageProfitMargin(int productCode) {
         List<ProductDetail> batches = productDetailRepository.findByProductCode(productCode);
         if (batches.isEmpty()) return 0.0;
         
         return batches.stream()
+                .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getQtyOnHand() > 0)
                 .filter(pd -> !pd.isExpired())
                 .mapToDouble(ProductDetail::getProfitMargin)

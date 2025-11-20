@@ -231,10 +231,10 @@ CREATE INDEX IF NOT EXISTS idx_expiry_date ON product_detail(expiry_date);
 CREATE INDEX IF NOT EXISTS idx_product_code ON product_detail(product_code);
 CREATE INDEX IF NOT EXISTS idx_batch_number ON product_detail(batch_number);
 
--- Add constraint for batch status values
+-- Add constraint for batch status values (including DELETED for soft delete)
 ALTER TABLE product_detail DROP CONSTRAINT IF EXISTS chk_batch_status;
 ALTER TABLE product_detail ADD CONSTRAINT chk_batch_status 
-    CHECK (batch_status IN ('ACTIVE', 'LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRED'));
+    CHECK (batch_status IN ('ACTIVE', 'LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRED', 'DELETED'));
 
 -- Add constraint to ensure selling price >= buying price
 ALTER TABLE product_detail DROP CONSTRAINT IF EXISTS chk_selling_price;

@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductDetailRepository extends JpaRepository<ProductDetail, String> {
+public interface ProductDetailRepository extends JpaRepository<ProductDetail, Long> {
     Optional<ProductDetail> findByCode(String code);
+    
+    @Query("SELECT pd FROM ProductDetail pd WHERE pd.code = :code ORDER BY pd.createdAt DESC")
+    List<ProductDetail> findAllByCode(@Param("code") String code);
     
     List<ProductDetail> findByProductCode(int productCode);
     

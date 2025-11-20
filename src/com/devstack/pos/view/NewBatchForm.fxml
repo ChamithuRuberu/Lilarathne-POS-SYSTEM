@@ -259,7 +259,14 @@
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <ComboBox fx:id="cmbSupplier" promptText="Select supplier" styleClass="text-field-modern" maxWidth="Infinity" style="-fx-font-size: 14px; -fx-cursor: hand;" />
+                              <JFXTextField fx:id="txtSupplierName" promptText="Type supplier name..." styleClass="text-field-modern" maxWidth="Infinity">
+                                 <font>
+                                    <Font name="System" size="14.0" />
+                                 </font>
+                                 <cursor>
+                                    <Cursor fx:constant="TEXT" />
+                                 </cursor>
+                              </JFXTextField>
                            </VBox>
                            
                            <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity">

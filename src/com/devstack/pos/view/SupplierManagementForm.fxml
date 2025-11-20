@@ -79,10 +79,10 @@
                         <JFXTextField fx:id="txtPhone" promptText="e.g., +94 77 123 4567" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
                      </VBox>
                      
-                     <!-- Row 3: Product Name (Full Width) -->
-                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
-                        <Text text="Product Name" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
-                        <JFXTextField fx:id="txtProductName" promptText="Enter product name" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
+                     <!-- Row 3: Address (Full Width) -->
+                     <VBox spacing="8" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                        <Text text="Address" style="-fx-font-size: 13; -fx-fill: #475569; -fx-font-weight: 600;" />
+                        <JFXTextField fx:id="txtAddress" promptText="Enter supplier address" styleClass="modern-text-field" prefHeight="42.0" style="-fx-font-size: 14;" />
                      </VBox>
                   </GridPane>
                   
@@ -169,7 +169,6 @@
                         <TableColumn fx:id="colEmail" prefWidth="180.0" text="Email" />
                         <TableColumn fx:id="colPhone" prefWidth="130.0" text="Phone" />
                         <TableColumn fx:id="colContactPerson" prefWidth="130.0" text="Contact Person" />
-                        <TableColumn fx:id="colProductName" prefWidth="160.0" text="Product Name" />
                         <TableColumn fx:id="colAddress" prefWidth="180.0" text="Address" />
                         <TableColumn fx:id="colStatus" prefWidth="100.0" text="Status" />
                         <TableColumn fx:id="colAction" prefWidth="180.0" text="Actions" />

@@ -52,7 +52,7 @@
                      <Font name="System" size="12.0" />
                   </font>
                </Text>
-               <JFXTextField fx:id="txtSearch" promptText="Search by Order ID or Customer..." prefWidth="300" styleClass="modern-text-field">
+               <JFXTextField fx:id="txtSearch" promptText="Search by Order ID or Customer..." styleClass="modern-text-field">
                   <font>
                      <Font name="System" size="14.0" />
                   </font>
@@ -65,7 +65,7 @@
                      <Font name="System" size="12.0" />
                   </font>
                </Text>
-               <DatePicker fx:id="dateFrom" prefWidth="150" />
+               <DatePicker fx:id="dateFrom" promptText="From Date" prefWidth="150" />
             </VBox>
             
             <VBox spacing="4">
@@ -74,11 +74,11 @@
                      <Font name="System" size="12.0" />
                   </font>
                </Text>
-               <DatePicker fx:id="dateTo" prefWidth="150" />
+               <DatePicker fx:id="dateTo" promptText="To Date" prefWidth="150" />
             </VBox>
             
             <VBox spacing="4" alignment="BOTTOM_CENTER">
-               <JFXButton onAction="#btnSearch" text="Search" buttonType="RAISED" styleClass="btn-success" prefWidth="120">
+               <JFXButton onAction="#btnSearch" text="🔍 Search" buttonType="RAISED" styleClass="btn-success" prefWidth="120">
                   <font>
                      <Font name="System Bold" size="13.0" />
                   </font>

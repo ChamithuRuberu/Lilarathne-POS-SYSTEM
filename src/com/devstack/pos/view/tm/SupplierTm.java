@@ -19,7 +19,6 @@ public class SupplierTm {
     private String address;
     private String contactPerson;
     private String status;
-    private String productName;
     private HBox actionButtons;
 }
 

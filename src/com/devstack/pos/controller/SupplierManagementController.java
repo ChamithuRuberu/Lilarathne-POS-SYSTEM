@@ -41,13 +41,13 @@ public class SupplierManagementController extends BaseController {
     private JFXTextField txtContactPerson;
     
     @FXML
+    private JFXTextField txtAddress;
+    
+    @FXML
     private JFXTextField txtSearch;
     
     @FXML
     private ComboBox<String> cmbStatus;
-    
-    @FXML
-    private JFXTextField txtProductName;
     
     @FXML
     private JFXButton btnSave;
@@ -83,9 +83,6 @@ public class SupplierManagementController extends BaseController {
     private TableColumn<SupplierTm, String> colContactPerson;
     
     @FXML
-    private TableColumn<SupplierTm, String> colProductName;
-    
-    @FXML
     private TableColumn<SupplierTm, String> colAddress;
     
     @FXML
@@ -113,7 +110,6 @@ public class SupplierManagementController extends BaseController {
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colPhone.setCellValueFactory(new PropertyValueFactory<>("phone"));
         colContactPerson.setCellValueFactory(new PropertyValueFactory<>("contactPerson"));
-        colProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colAddress.setCellValueFactory(new PropertyValueFactory<>("address"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         
@@ -185,8 +181,7 @@ public class SupplierManagementController extends BaseController {
             supplier.setEmail(txtEmail.getText().trim().isEmpty() ? null : txtEmail.getText().trim());
             supplier.setPhone(txtPhone.getText().trim().isEmpty() ? null : txtPhone.getText().trim());
             supplier.setContactPerson(txtContactPerson.getText().trim().isEmpty() ? null : txtContactPerson.getText().trim());
-            supplier.setProductName(txtProductName.getText().trim().isEmpty() ? null : txtProductName.getText().trim());
-            supplier.setAddress(null); // Removed from form
+            supplier.setAddress(txtAddress.getText().trim().isEmpty() ? null : txtAddress.getText().trim());
             supplier.setNotes(null); // Removed from form
             supplier.setStatus("ACTIVE");
             supplier.setCreatedAt(LocalDateTime.now());
@@ -229,7 +224,7 @@ public class SupplierManagementController extends BaseController {
             supplier.setEmail(txtEmail.getText().trim().isEmpty() ? null : txtEmail.getText().trim());
             supplier.setPhone(txtPhone.getText().trim().isEmpty() ? null : txtPhone.getText().trim());
             supplier.setContactPerson(txtContactPerson.getText().trim().isEmpty() ? null : txtContactPerson.getText().trim());
-            supplier.setProductName(txtProductName.getText().trim().isEmpty() ? null : txtProductName.getText().trim());
+            supplier.setAddress(txtAddress.getText().trim().isEmpty() ? null : txtAddress.getText().trim());
             supplier.setUpdatedAt(LocalDateTime.now());
             
             supplierService.updateSupplier(supplier);
@@ -255,7 +250,7 @@ public class SupplierManagementController extends BaseController {
         txtEmail.clear();
         txtPhone.clear();
         txtContactPerson.clear();
-        txtProductName.clear();
+        txtAddress.clear();
         selectedSupplierId = null;
         btnSave.setVisible(true);
         btnUpdate.setVisible(false);
@@ -264,10 +259,10 @@ public class SupplierManagementController extends BaseController {
     public void setData(SupplierTm tm) {
         selectedSupplierId = tm.getId();
         txtName.setText(tm.getName());
-        txtEmail.setText(tm.getEmail());
-        txtPhone.setText(tm.getPhone());
-        txtContactPerson.setText(tm.getContactPerson());
-        txtProductName.setText(tm.getProductName() != null ? tm.getProductName() : "");
+        txtEmail.setText(tm.getEmail() != null ? tm.getEmail() : "");
+        txtPhone.setText(tm.getPhone() != null ? tm.getPhone() : "");
+        txtContactPerson.setText(tm.getContactPerson() != null ? tm.getContactPerson() : "");
+        txtAddress.setText(tm.getAddress() != null ? tm.getAddress() : "");
         
         btnSave.setVisible(false);
         btnUpdate.setVisible(true);
@@ -316,7 +311,6 @@ public class SupplierManagementController extends BaseController {
                     supplier.getAddress() != null ? supplier.getAddress() : "",
                     supplier.getContactPerson() != null ? supplier.getContactPerson() : "",
                     displayStatus,
-                    supplier.getProductName() != null ? supplier.getProductName() : "",
                     actionButtons
                 );
                 data.add(tm);
@@ -344,7 +338,6 @@ public class SupplierManagementController extends BaseController {
                 supplier.getAddress() != null ? supplier.getAddress() : "",
                 supplier.getContactPerson() != null ? supplier.getContactPerson() : "",
                 supplier.getStatus() != null ? supplier.getStatus() : "INACTIVE",
-                supplier.getProductName() != null ? supplier.getProductName() : "",
                 null
             );
             setData(tm);

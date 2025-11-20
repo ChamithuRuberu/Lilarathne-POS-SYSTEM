@@ -135,39 +135,59 @@
                      <Font name="System Bold" size="18.0" />
                   </font>
                </Text>
-               <GridPane hgap="15" vgap="15">
-                  <columnConstraints>
-                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
-                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
-                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
-                     <ColumnConstraints hgrow="ALWAYS" prefWidth="200"/>
-                  </columnConstraints>
-                  <rowConstraints>
-                     <RowConstraints prefHeight="40"/>
-                  </rowConstraints>
+               <HBox spacing="16" alignment="CENTER_LEFT">
+                  <VBox spacing="4" HBox.hgrow="ALWAYS">
+                     <Text text="Search" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                        <font>
+                           <Font name="System" size="12.0" />
+                        </font>
+                     </Text>
+                     <JFXTextField fx:id="txtSearch" promptText="Search by Order ID, Customer, Operator..." 
+                                  styleClass="modern-text-field">
+                        <font>
+                           <Font name="System" size="14.0" />
+                        </font>
+                     </JFXTextField>
+                  </VBox>
                   
-                  <JFXTextField fx:id="txtSearch" promptText="Search by Order ID, Customer, Operator..." 
-                               styleClass="modern-text-field" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
-                  <DatePicker fx:id="dateFrom" promptText="From Date" GridPane.columnIndex="2"/>
-                  <DatePicker fx:id="dateTo" promptText="To Date" GridPane.columnIndex="3"/>
-               </GridPane>
-               <HBox spacing="10" alignment="CENTER_RIGHT">
-                  <JFXButton text="🔍 Search" onAction="#btnSearchOnAction" buttonType="RAISED" styleClass="btn-success" prefWidth="120">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
-                  <JFXButton text="🔄 Clear" onAction="#btnClearOnAction" buttonType="RAISED" styleClass="btn-secondary" prefWidth="120">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
+                  <VBox spacing="4">
+                     <Text text="From Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                        <font>
+                           <Font name="System" size="12.0" />
+                        </font>
+                     </Text>
+                     <DatePicker fx:id="dateFrom" promptText="From Date" prefWidth="150" />
+                  </VBox>
+                  
+                  <VBox spacing="4">
+                     <Text text="To Date" style="-fx-font-size: 12; -fx-fill: #64748b;">
+                        <font>
+                           <Font name="System" size="12.0" />
+                        </font>
+                     </Text>
+                     <DatePicker fx:id="dateTo" promptText="To Date" prefWidth="150" />
+                  </VBox>
+                  
+                  <VBox spacing="4" alignment="BOTTOM_CENTER">
+                     <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <JFXButton text="🔍 Search" onAction="#btnSearchOnAction" buttonType="RAISED" styleClass="btn-success" prefWidth="120">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                        <JFXButton text="🔄 Clear" onAction="#btnClearOnAction" buttonType="RAISED" styleClass="btn-secondary" prefWidth="120">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
+                        </JFXButton>
+                     </HBox>
+                  </VBox>
                </HBox>
             </VBox>
 

@@ -51,6 +51,26 @@
                   </JFXTextField>
                </VBox>
                <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+                  <Text text="Batch Barcode Code" styleClass="form-label">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Text>
+                  <JFXTextField fx:id="txtBatchBarcodeCode" promptText="Enter manual code or leave for auto-generate" styleClass="text-field-modern" prefWidth="280.0">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                     <cursor>
+                        <Cursor fx:constant="TEXT" />
+                     </cursor>
+                  </JFXTextField>
+                  <Text text="Leave empty to auto-generate barcode" styleClass="form-label" style="-fx-font-size: 11px; -fx-text-fill: #666;">
+                     <font>
+                        <Font name="System" size="11.0" />
+                     </font>
+                  </Text>
+               </VBox>
+               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
                   <Text text="Product Code" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />

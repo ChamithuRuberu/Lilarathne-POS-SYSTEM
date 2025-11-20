@@ -50,6 +50,8 @@ public class NewBatchFormController {
     @FXML
     public TextField txtProductBarcode;
     @FXML
+    public TextField txtBatchBarcodeCode; // Manual batch barcode code entry
+    @FXML
     public TextArea txtSelectedProdDescription;
     
     // Pricing Fields
@@ -95,6 +97,7 @@ public class NewBatchFormController {
         setupNumericValidation();
         loadSuppliers();
         setupSupplierSelection();
+        setupManualBarcodeEntry();
     }
     
     /**
@@ -159,6 +162,66 @@ public class NewBatchFormController {
                     txtSupplierContact.clear();
                 }
             });
+        }
+    }
+    
+    /**
+     * Setup manual barcode entry listener to generate barcode from manual code
+     */
+    private void setupManualBarcodeEntry() {
+        if (txtBatchBarcodeCode != null) {
+            txtBatchBarcodeCode.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && !newVal.trim().isEmpty()) {
+                    // User entered manual code, generate barcode from it
+                    try {
+                        generateBarcodeFromCode(newVal.trim());
+                    } catch (Exception e) {
+                        System.err.println("Error generating barcode from manual code: " + e.getMessage());
+                    }
+                } else {
+                    // Field is empty, regenerate auto barcode if not in edit mode
+                    if (!isEditMode) {
+                        try {
+                            generateBatchBarcode();
+                        } catch (Exception e) {
+                            System.err.println("Error regenerating auto barcode: " + e.getMessage());
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    /**
+     * Generate barcode image from a given code string
+     */
+    private void generateBarcodeFromCode(String code) throws WriterException, IOException {
+        if (code == null || code.trim().isEmpty()) {
+            return;
+        }
+        
+        // Use the provided code as uniqueData
+        uniqueData = code.trim();
+        
+        // Ensure barcode is valid (alphanumeric, max length for CODE 128)
+        if (uniqueData.length() > 80) {
+            uniqueData = uniqueData.substring(0, 80);
+        }
+        
+        // Generate CODE 128 barcode image
+        Code128Writer barcodeWriter = new Code128Writer();
+        BitMatrix bitMatrix = barcodeWriter.encode(
+            uniqueData,
+            BarcodeFormat.CODE_128,
+            300,
+            80
+        );
+        
+        BufferedImage barcodeBufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+        Image image = SwingFXUtils.toFXImage(barcodeBufferedImage, null);
+        
+        if (barcodeImage != null) {
+            barcodeImage.setImage(image);
         }
     }
 
@@ -442,6 +505,12 @@ public class NewBatchFormController {
                     }
                     
                     uniqueData = productDetail.getCode();
+                    
+                    // Show existing batch code in manual barcode field (read-only in edit mode)
+                    if (txtBatchBarcodeCode != null && productDetail.getCode() != null) {
+                        txtBatchBarcodeCode.setText(productDetail.getCode());
+                        txtBatchBarcodeCode.setEditable(false); // Make read-only in edit mode
+                    }
 
                     // Load barcode image
                     if (barcodeImage != null && productDetail.getBarcode() != null && !productDetail.getBarcode().isEmpty()) {
@@ -464,6 +533,13 @@ public class NewBatchFormController {
         } else {
             // NEW BATCH MODE
             try {
+                // Clear and enable manual barcode field for new batch
+                if (txtBatchBarcodeCode != null) {
+                    txtBatchBarcodeCode.clear();
+                    txtBatchBarcodeCode.setEditable(true); // Make editable for new batch
+                }
+                
+                // Generate auto barcode (will be used if user doesn't enter manual code)
                 generateBatchBarcode();
                 
                 // Auto-generate batch number
@@ -635,20 +711,36 @@ public class NewBatchFormController {
             // Create or update product detail
             ProductDetail productDetail = new ProductDetail();
             
-            // Set batch code
+            // Set batch code - use manual code if provided, otherwise use auto-generated
+            String batchCodeToUse = null;
             if (isEditMode && existingBatchCode != null) {
-                productDetail.setCode(existingBatchCode);
+                batchCodeToUse = existingBatchCode;
             } else {
-            productDetail.setCode(uniqueData);
+                // Check if user entered manual barcode code
+                if (txtBatchBarcodeCode != null && txtBatchBarcodeCode.getText() != null && 
+                    !txtBatchBarcodeCode.getText().trim().isEmpty()) {
+                    batchCodeToUse = txtBatchBarcodeCode.getText().trim();
+                    uniqueData = batchCodeToUse; // Update uniqueData to match manual code
+                } else {
+                    // Use auto-generated code
+                    batchCodeToUse = uniqueData;
+                }
             }
+            
+            if (batchCodeToUse == null || batchCodeToUse.trim().isEmpty()) {
+                showError("Batch code is required! Please enter a manual code or ensure auto-generation works.");
+                return;
+            }
+            
+            productDetail.setCode(batchCodeToUse);
             
             // Generate and set barcode image
             if (!isEditMode) {
                 try {
-                    // Generate barcode for display
+                    // Generate barcode for display using the batch code
                     Code128Writer barcodeWriter = new Code128Writer();
                     BitMatrix bitMatrix = barcodeWriter.encode(
-                        uniqueData,
+                        batchCodeToUse,
                         BarcodeFormat.CODE_128,
                         300,
                         80
@@ -837,6 +929,9 @@ public class NewBatchFormController {
         }
         if (txtSupplierContact != null) {
             txtSupplierContact.clear();
+        }
+        if (txtBatchBarcodeCode != null) {
+            txtBatchBarcodeCode.clear();
         }
     }
 }

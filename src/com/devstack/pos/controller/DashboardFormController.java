@@ -932,11 +932,21 @@ public class DashboardFormController extends BaseController {
                 lblActiveProducts.setText(activeProductsCount + " active products");
             }
             
-            // Low stock count
+            // Low stock and out of stock count
             int lowStockCount = 0;
             try {
                 lowStockCount = (int) productDetailService.findAllProductDetails().stream()
-                    .filter(ProductDetail::isLowStock)
+                    .filter(pd -> {
+                        // Include low stock items (qty > 0 but <= threshold)
+                        if (pd.isLowStock()) {
+                            return true;
+                        }
+                        // Include out of stock items (qty <= 0)
+                        if (pd.getQtyOnHand() <= 0) {
+                            return true;
+                        }
+                        return false;
+                    })
                     .count();
             } catch (Exception ignored) {}
             

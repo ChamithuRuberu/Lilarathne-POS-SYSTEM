@@ -644,15 +644,25 @@ public class ProductMainPageController extends BaseController {
 
             ObservableList<ProductTm> tms = FXCollections.observableArrayList();
 
-            // Filter products to show only those with low stock batches if flag is set
+            // Filter products to show only those with low stock or out of stock batches if flag is set
             if (showLowStockOnly) {
                 products = products.stream()
                     .filter(product -> {
                         List<ProductDetail> batches = productDetailService.findByProductCode(product.getCode());
-                        return batches.stream().anyMatch(ProductDetail::isLowStock);
+                        return batches.stream().anyMatch(pd -> {
+                            // Include low stock items (qty > 0 but <= threshold)
+                            if (pd.isLowStock()) {
+                                return true;
+                            }
+                            // Include out of stock items (qty <= 0)
+                            if (pd.getQtyOnHand() <= 0) {
+                                return true;
+                            }
+                            return false;
+                        });
                     })
                     .collect(java.util.stream.Collectors.toList());
-                System.out.println("Filtered to products with low stock: " + products.size());
+                System.out.println("Filtered to products with low stock or out of stock: " + products.size());
             }
 
             for (Product product : products) {
@@ -823,11 +833,21 @@ public class ProductMainPageController extends BaseController {
             String productBarcode = product != null && product.getBarcode() != null ? product.getBarcode() : "";
             String productDescription = product != null ? product.getDescription() : "";
 
-            // Get batches - filter to low stock only if flag is set
+            // Get batches - filter to low stock and out of stock only if flag is set
             List<ProductDetail> batches = productDetailService.findByProductCode(code);
             if (showLowStockOnly) {
                 batches = batches.stream()
-                    .filter(ProductDetail::isLowStock)
+                    .filter(pd -> {
+                        // Include low stock items (qty > 0 but <= threshold)
+                        if (pd.isLowStock()) {
+                            return true;
+                        }
+                        // Include out of stock items (qty <= 0)
+                        if (pd.getQtyOnHand() <= 0) {
+                            return true;
+                        }
+                        return false;
+                    })
                     .collect(java.util.stream.Collectors.toList());
             }
 

@@ -46,26 +46,8 @@
             
             <VBox spacing="16">
                <HBox spacing="12" alignment="CENTER_LEFT">
-                  <VBox spacing="8" HBox.hgrow="ALWAYS">
-                     <Text text="Barcode (Scan or Enter)" styleClass="form-label">
-                        <font>
-                           <Font name="System Bold" size="14.0" />
-                        </font>
-                     </Text>
-                     <JFXTextField fx:id="txtBarcode" promptText="Scan barcode or enter manually" styleClass="text-field-modern">
-                        <font>
-                           <Font name="System" size="14.0" />
-                        </font>
-                     </JFXTextField>
-                  </VBox>
-                  <JFXButton onAction="#btnAddNewOnAction" text="+ New Product" buttonType="RAISED" styleClass="btn-primary" prefWidth="140.0" style="-fx-margin-top: 28;">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
+                  <Region HBox.hgrow="ALWAYS" />
+
                </HBox>
                
                <VBox spacing="8">
@@ -102,34 +84,6 @@
                      </font>
                   </TextArea>
                </VBox>
-               
-               <VBox spacing="8" fx:id="barcodeImageContainer" visible="false" managed="false">
-                  <Text text="Generated Barcode" styleClass="form-label">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
-                     </font>
-                  </Text>
-                  <javafx.scene.image.ImageView fx:id="imgBarcode" fitWidth="300.0" preserveRatio="true" />
-               </VBox>
-               
-               <HBox spacing="12">
-                  <JFXButton fx:id="btnGenerateBarcode" onAction="#btnGenerateBarcodeOnAction" text="Preview Barcode" buttonType="RAISED" styleClass="btn-secondary" prefHeight="40.0" HBox.hgrow="ALWAYS">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
-                  <JFXButton onAction="#btnClearBarcodeOnAction" text="Clear" buttonType="RAISED" styleClass="btn-secondary" prefHeight="40.0" prefWidth="100.0">
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                     <cursor>
-                        <Cursor fx:constant="HAND" />
-                     </cursor>
-                  </JFXButton>
-               </HBox>
                
                <JFXButton fx:id="btnSaveUpdate" onAction="#btnNewProductOnAction" text="Save Product" buttonType="RAISED" styleClass="btn-success" prefHeight="44.0" maxWidth="Infinity">
                   <font>

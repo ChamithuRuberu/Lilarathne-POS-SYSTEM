@@ -26,37 +26,37 @@
       </VBox>
       
       <!-- Main Content -->
-      <VBox spacing="24" style="-fx-padding: 32;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="32" AnchorPane.rightAnchor="32" AnchorPane.bottomAnchor="32">
-         <HBox spacing="24" alignment="TOP_LEFT">
+      <VBox spacing="16" style="-fx-padding: 16;" AnchorPane.topAnchor="72" AnchorPane.leftAnchor="16" AnchorPane.rightAnchor="16" AnchorPane.bottomAnchor="16" VBox.vgrow="ALWAYS">
+         <HBox spacing="16" alignment="TOP_LEFT" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
             <!-- Left Side - Barcode Image -->
-            <VBox styleClass="form-section" spacing="16" alignment="CENTER" prefWidth="280.0">
+            <VBox styleClass="form-section" spacing="12" alignment="CENTER" minWidth="180.0" prefWidth="260.0" maxWidth="320.0" HBox.hgrow="NEVER">
                <Text text="Barcode" styleClass="label-section">
                   <font>
                      <Font name="System Bold" size="20.0" />
                   </font>
                </Text>
-               <VBox alignment="CENTER" spacing="12" style="-fx-padding: 20; -fx-background-color: #f8fafc; -fx-background-radius: 12;">
-                  <ImageView fx:id="barcodeImage" fitWidth="240.0" fitHeight="180.0" preserveRatio="true" />
+               <VBox alignment="CENTER" spacing="12" style="-fx-padding: 12; -fx-background-color: #f8fafc; -fx-background-radius: 12;" maxWidth="Infinity" VBox.vgrow="NEVER">
+                  <ImageView fx:id="barcodeImage" fitWidth="180.0" fitHeight="135.0" preserveRatio="true" />
                </VBox>
-               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+               <VBox spacing="8" alignment="CENTER_LEFT" maxWidth="Infinity">
                   <Text text="Product Barcode" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtProductBarcode" editable="false" promptText="Product Barcode" styleClass="text-field-modern" prefWidth="280.0">
+                  <JFXTextField fx:id="txtProductBarcode" editable="false" promptText="Product Barcode" styleClass="text-field-modern" maxWidth="Infinity">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
                </VBox>
-               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+               <VBox spacing="8" alignment="CENTER_LEFT" maxWidth="Infinity">
                   <Text text="Batch Barcode Code" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtBatchBarcodeCode" promptText="Enter manual code or leave for auto-generate" styleClass="text-field-modern" prefWidth="280.0">
+                  <JFXTextField fx:id="txtBatchBarcodeCode" promptText="Enter manual code or leave for auto-generate" styleClass="text-field-modern" maxWidth="Infinity">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
@@ -70,25 +70,25 @@
                      </font>
                   </Text>
                </VBox>
-               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+               <VBox spacing="8" alignment="CENTER_LEFT" maxWidth="Infinity">
                   <Text text="Product Code" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
                   </Text>
-                  <JFXTextField fx:id="txtProductCode" editable="false" promptText="Product Code" styleClass="text-field-modern" prefWidth="280.0">
+                  <JFXTextField fx:id="txtProductCode" editable="false" promptText="Product Code" styleClass="text-field-modern" maxWidth="Infinity">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
                   </JFXTextField>
                </VBox>
-               <VBox spacing="8" alignment="CENTER_LEFT" prefWidth="280.0">
+               <VBox spacing="8" alignment="CENTER_LEFT" maxWidth="Infinity" VBox.vgrow="ALWAYS">
                   <Text text="Description" styleClass="form-label">
                      <font>
                         <Font name="System Bold" size="14.0" />
                      </font>
                   </Text>
-                  <TextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Product description" styleClass="text-field-modern" prefHeight="100.0" prefWidth="280.0" wrapText="true">
+                  <TextArea fx:id="txtSelectedProdDescription" editable="false" promptText="Product description" styleClass="text-field-modern" prefHeight="100.0" maxWidth="Infinity" wrapText="true">
                      <font>
                         <Font name="System" size="14.0" />
                      </font>
@@ -97,9 +97,9 @@
             </VBox>
             
             <!-- Right Side - Batch Form -->
-            <VBox styleClass="form-section" spacing="20" HBox.hgrow="ALWAYS">
-               <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy="NEVER">
-                  <VBox spacing="20">
+            <VBox styleClass="form-section" spacing="16" HBox.hgrow="ALWAYS" minWidth="350.0" VBox.vgrow="ALWAYS">
+               <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+                  <VBox spacing="16" maxWidth="Infinity" minWidth="350.0">
                <Text text="Batch Information" styleClass="label-section">
                   <font>
                      <Font name="System Bold" size="20.0" />
@@ -113,71 +113,71 @@
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Text>
-                        <GridPane hgap="16" vgap="16">
+                        <GridPane hgap="12" vgap="12" maxWidth="Infinity" GridPane.hgrow="ALWAYS">
                   <columnConstraints>
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                     <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                     <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
+                     <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
                   </columnConstraints>
                   
-                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Quantity *" styleClass="form-label">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
                      </Text>
-                     <JFXTextField fx:id="txtQty" promptText="Enter quantity" styleClass="text-field-modern" prefWidth="220.0">
+                     <JFXTextField fx:id="txtQty" promptText="Enter quantity" styleClass="text-field-modern" maxWidth="Infinity">
                         <font>
                            <Font name="System" size="14.0" />
                         </font>
                      </JFXTextField>
                   </VBox>
                   
-                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Low Stock Threshold" styleClass="form-label">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
                      </Text>
-                              <JFXTextField fx:id="txtLowStockThreshold" promptText="e.g., 10" styleClass="text-field-modern" prefWidth="220.0">
+                              <JFXTextField fx:id="txtLowStockThreshold" promptText="e.g., 10" styleClass="text-field-modern" maxWidth="Infinity">
                         <font>
                            <Font name="System" size="14.0" />
                         </font>
                      </JFXTextField>
                   </VBox>
                   
-                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                  <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1" maxWidth="Infinity">
                               <Text text="Buying Price *" styleClass="form-label">
                         <font>
                            <Font name="System Bold" size="14.0" />
                         </font>
                      </Text>
-                              <JFXTextField fx:id="txtBuyingPrice" promptText="0.00" styleClass="text-field-modern" prefWidth="220.0">
+                              <JFXTextField fx:id="txtBuyingPrice" promptText="0.00" styleClass="text-field-modern" maxWidth="Infinity">
                         <font>
                            <Font name="System" size="14.0" />
                         </font>
                      </JFXTextField>
                   </VBox>
                   
-                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                  <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity">
                               <Text text="Selling Price *" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtSellingPrice" promptText="0.00" styleClass="text-field-modern" prefWidth="220.0">
+                              <JFXTextField fx:id="txtSellingPrice" promptText="0.00" styleClass="text-field-modern" maxWidth="Infinity">
                                  <font>
                                     <Font name="System" size="14.0" />
                                  </font>
                               </JFXTextField>
                            </VBox>
                            
-                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2" maxWidth="Infinity">
                               <Text text="Profit Margin (%)" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtProfitMargin" editable="false" promptText="Auto-calculated" styleClass="text-field-modern" prefWidth="220.0" style="-fx-background-color: #f0f0f0;">
+                              <JFXTextField fx:id="txtProfitMargin" editable="false" promptText="Auto-calculated" styleClass="text-field-modern" maxWidth="Infinity" style="-fx-background-color: #f0f0f0;">
                                  <font>
                                     <Font name="System" size="14.0" />
                                  </font>
@@ -193,45 +193,45 @@
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Text>
-                        <GridPane hgap="16" vgap="16">
+                        <GridPane hgap="12" vgap="12" maxWidth="Infinity" GridPane.hgrow="ALWAYS">
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
                            </columnConstraints>
                            
-                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Batch Number" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtBatchNumber" editable="false" promptText="Auto-generated" styleClass="text-field-modern" prefWidth="220.0" style="-fx-background-color: #f0f0f0;">
+                              <JFXTextField fx:id="txtBatchNumber" editable="false" promptText="Auto-generated" styleClass="text-field-modern" maxWidth="Infinity" style="-fx-background-color: #f0f0f0;">
                                  <font>
                                     <Font name="System" size="14.0" />
                                  </font>
                               </JFXTextField>
                            </VBox>
                            
-                           <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                           <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Manufacturing Date" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <DatePicker fx:id="dateManufacturing" promptText="Select date" styleClass="text-field-modern" prefWidth="220.0">
+                              <DatePicker fx:id="dateManufacturing" promptText="Select date" styleClass="text-field-modern" maxWidth="Infinity">
                                  <cursor>
                                     <Cursor fx:constant="HAND" />
                                  </cursor>
                               </DatePicker>
                            </VBox>
                            
-                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="1" maxWidth="Infinity">
                               <Text text="Expiry Date" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <DatePicker fx:id="dateExpiry" promptText="Select date" styleClass="text-field-modern" prefWidth="220.0">
+                              <DatePicker fx:id="dateExpiry" promptText="Select date" styleClass="text-field-modern" maxWidth="Infinity">
                                  <cursor>
                                     <Cursor fx:constant="HAND" />
                                  </cursor>
@@ -247,28 +247,28 @@
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Text>
-                        <GridPane hgap="16" vgap="16">
+                        <GridPane hgap="12" vgap="12" maxWidth="Infinity" GridPane.hgrow="ALWAYS">
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" prefWidth="220.0" />
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
+                              <ColumnConstraints hgrow="ALWAYS" minWidth="120.0" prefWidth="180.0" />
                            </columnConstraints>
                            
-                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                           <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Supplier Name" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <ComboBox fx:id="cmbSupplier" promptText="Select supplier" styleClass="text-field-modern" prefWidth="220.0" style="-fx-font-size: 14px; -fx-cursor: hand;" />
+                              <ComboBox fx:id="cmbSupplier" promptText="Select supplier" styleClass="text-field-modern" maxWidth="Infinity" style="-fx-font-size: 14px; -fx-cursor: hand;" />
                            </VBox>
                            
-                           <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                           <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity">
                               <Text text="Supplier Contact" styleClass="form-label">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
                                  </font>
                               </Text>
-                              <JFXTextField fx:id="txtSupplierContact" editable="false" promptText="Auto-filled" styleClass="text-field-modern" prefWidth="220.0" style="-fx-background-color: #f0f0f0;">
+                              <JFXTextField fx:id="txtSupplierContact" editable="false" promptText="Auto-filled" styleClass="text-field-modern" maxWidth="Infinity" style="-fx-background-color: #f0f0f0;">
                                  <font>
                                     <Font name="System" size="14.0" />
                                  </font>

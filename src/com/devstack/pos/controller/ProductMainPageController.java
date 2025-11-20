@@ -594,7 +594,15 @@ public class ProductMainPageController extends BaseController {
             Parent parent = loader.load();
 
             // Set scene first
-            stage.setScene(new Scene(parent));
+            Scene scene = new Scene(parent);
+            stage.setScene(scene);
+            
+            // Configure stage for responsive resizing
+            stage.setResizable(true);
+            stage.setMinWidth(900.0);  // Minimum width to accommodate both panels
+            stage.setMinHeight(600.0); // Minimum height for content
+            stage.setWidth(1200.0);    // Default width
+            stage.setHeight(800.0);    // Default height
 
             // Call setDetails after scene is set (initialize() will be called automatically by FXML)
             // Use Platform.runLater to ensure FXML injection is complete

@@ -23,12 +23,15 @@ import java.util.TimerTask;
 public class SessionManager {
     
     private final JwtUtil jwtUtil;
+    private final TrialService trialService;
     private Timer inactivityTimer;
     
     @Value("${session.inactivity.timeout.hours:3}")
     private long inactivityTimeoutHours; // Configurable inactivity timeout in hours (default: 3)
     
     private static final long CHECK_INTERVAL_SECONDS = 60; // Check every minute
+    private static final long TRIAL_WARNING_INTERVAL_MINUTES = 30; // Show trial warning every 30 minutes
+    private long lastTrialWarningTime = 0; // Track last time warning was shown
     
     /**
      * Start monitoring user session for inactivity and token expiration
@@ -39,6 +42,9 @@ public class SessionManager {
         
         // Update last activity time when session starts
         UserSessionData.updateLastActivity();
+        
+        // Reset trial warning timer
+        lastTrialWarningTime = 0;
         
         // Stop any existing timer
         stopSessionMonitoring();
@@ -80,8 +86,15 @@ public class SessionManager {
         boolean shouldLogout = false;
         String logoutReason = "";
         
+        // Check trial version expiration first
+        if (trialService.isTrialEnabled() && trialService.isTrialExpired()) {
+            shouldLogout = true;
+            logoutReason = "Your trial period has expired. Please contact the administrator to extend or activate the full version.\n\n" +
+                          "Trial End Date: " + trialService.getTrialEndDateFormatted();
+            log.warn("Trial period expired for user: {}", UserSessionData.email);
+        }
         // Check JWT token expiration
-        if (jwtUtil.isTokenExpired(UserSessionData.jwtToken)) {
+        else if (jwtUtil.isTokenExpired(UserSessionData.jwtToken)) {
             shouldLogout = true;
             logoutReason = "Your session has expired due to token expiration. Please login again.";
             log.warn("JWT token expired for user: {}", UserSessionData.email);
@@ -97,6 +110,55 @@ public class SessionManager {
         
         if (shouldLogout) {
             performAutoLogout(logoutReason);
+        } else {
+            // Check and show trial warning if 7 days or less remaining (show every 30 minutes)
+            checkAndShowTrialWarning();
+        }
+    }
+    
+    /**
+     * Check and show trial warning if 7 days or less remaining
+     */
+    private void checkAndShowTrialWarning() {
+        if (trialService.isTrialActive() && trialService.isTrialWarningPeriod()) {
+            long currentTime = System.currentTimeMillis();
+            long timeSinceLastWarning = (currentTime - lastTrialWarningTime) / (1000 * 60); // minutes
+            
+            // Show warning every 30 minutes or on first check
+            if (lastTrialWarningTime == 0 || timeSinceLastWarning >= TRIAL_WARNING_INTERVAL_MINUTES) {
+                lastTrialWarningTime = currentTime;
+                
+                Platform.runLater(() -> {
+                    try {
+                        long daysRemaining = trialService.getDaysRemaining();
+                        javafx.scene.control.Alert trialWarning = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                        trialWarning.setTitle("Trial Version Warning");
+                        trialWarning.setHeaderText("⚠️ Trial Period Ending Soon");
+                        
+                        String message;
+                        if (daysRemaining == 0) {
+                            message = "⚠️ WARNING: Your trial period expires TODAY!\n\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version to avoid service interruption.";
+                        } else if (daysRemaining == 1) {
+                            message = "⚠️ WARNING: Your trial period expires TOMORROW!\n\n" +
+                                     "Days remaining: " + daysRemaining + " day\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version.";
+                        } else {
+                            message = "⚠️ WARNING: Your trial period is ending soon!\n\n" +
+                                     "Days remaining: " + daysRemaining + " days\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version before the trial expires.";
+                        }
+                        
+                        trialWarning.setContentText(message);
+                        trialWarning.show(); // Non-blocking show
+                    } catch (Exception e) {
+                        log.error("Error showing trial warning", e);
+                    }
+                });
+            }
         }
     }
     
@@ -209,6 +271,11 @@ public class SessionManager {
      */
     public boolean isSessionValid() {
         if (UserSessionData.jwtToken == null || UserSessionData.jwtToken.isEmpty()) {
+            return false;
+        }
+        
+        // Check trial expiration
+        if (trialService.isTrialEnabled() && trialService.isTrialExpired()) {
             return false;
         }
         

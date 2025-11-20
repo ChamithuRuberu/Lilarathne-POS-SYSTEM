@@ -34,6 +34,13 @@ public class SystemSettings {
     @Column(name = "footer_message", length = 200)
     private String footerMessage;
     
+    // Trial version settings
+    @Column(name = "trial_enabled")
+    private Boolean trialEnabled = false;
+    
+    @Column(name = "trial_end_date")
+    private java.time.LocalDate trialEndDate;
+    
     // Single row constraint - only one settings record should exist
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -46,6 +53,8 @@ public class SystemSettings {
         this.email = email;
         this.taxNumber = taxNumber;
         this.footerMessage = footerMessage;
+        this.trialEnabled = false;
+        this.trialEndDate = null;
         this.isActive = true;
     }
 }

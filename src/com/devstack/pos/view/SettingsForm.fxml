@@ -147,6 +147,54 @@
                </VBox>
             </VBox>
             
+            <!-- Trial Version Settings Section -->
+            <Separator style="-fx-padding: 20 0;"/>
+            <VBox styleClass="form-section" spacing="24">
+               <Text text="Trial Version Settings" styleClass="label-section">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+               </Text>
+               
+               <VBox spacing="20">
+                  <VBox spacing="12">
+                     <HBox spacing="12" alignment="CENTER_LEFT">
+                        <CheckBox fx:id="chkTrialEnabled" text="Enable Trial Version" style="-fx-font-size: 14px; -fx-font-weight: bold;">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </CheckBox>
+                     </HBox>
+                     
+                     <VBox spacing="8">
+                        <Text text="Trial End Date" styleClass="form-label">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Text>
+                        <DatePicker fx:id="datePickerTrialEndDate" promptText="Select trial end date" styleClass="text-field-modern" prefHeight="42.0">
+                           <font>
+                              <Font name="System" size="14.0" />
+                           </font>
+                        </DatePicker>
+                     </VBox>
+                     
+                     <VBox spacing="4">
+                        <Text fx:id="txtTrialStatus" text="Status: Loading..." style="-fx-font-size: 13px; -fx-fill: #64748b;">
+                           <font>
+                              <Font name="System" size="13.0" />
+                           </font>
+                        </Text>
+                        <Text text="Note: When trial is enabled and expired, users will not be able to login." style="-fx-font-size: 11px; -fx-fill: #94a3b8; -fx-wrap-text: true;">
+                           <font>
+                              <Font name="System" size="11.0" />
+                           </font>
+                        </Text>
+                     </VBox>
+                  </VBox>
+               </VBox>
+            </VBox>
+            
             <!-- Action Buttons -->
             <HBox spacing="16" alignment="CENTER_RIGHT" style="-fx-padding: 20 0 0 0;">
                <JFXButton onAction="#btnCancelOnAction" text="Cancel" buttonType="RAISED" styleClass="btn-secondary" prefWidth="120.0" prefHeight="44.0">

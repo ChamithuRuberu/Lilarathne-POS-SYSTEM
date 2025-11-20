@@ -2,25 +2,28 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.SystemSettings;
 import com.devstack.pos.service.SystemSettingsService;
+import com.devstack.pos.service.TrialService;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Separator;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
 public class SettingsFormController extends BaseController {
     
     private final SystemSettingsService systemSettingsService;
+    private final TrialService trialService;
     
     @FXML
     public AnchorPane context;
@@ -83,9 +86,51 @@ public class SettingsFormController extends BaseController {
     private TextArea txtFooterMessage;
     
     @FXML
+    private CheckBox chkTrialEnabled;
+    
+    @FXML
+    private DatePicker datePickerTrialEndDate;
+    
+    @FXML
+    private Text txtTrialStatus;
+    
+    @FXML
     public void initialize() {
         initializeSidebar();
         loadSystemSettings();
+        setupTrialControls();
+    }
+    
+    private void setupTrialControls() {
+        // Enable/disable date picker based on checkbox
+        chkTrialEnabled.setOnAction(e -> {
+            datePickerTrialEndDate.setDisable(!chkTrialEnabled.isSelected());
+            if (!chkTrialEnabled.isSelected()) {
+                datePickerTrialEndDate.setValue(null);
+            }
+        });
+        
+        // Update trial status display
+        updateTrialStatus();
+    }
+    
+    private void updateTrialStatus() {
+        try {
+            String status = trialService.getTrialStatusMessage();
+            txtTrialStatus.setText("Status: " + status);
+            
+            // Set color based on status
+            if (trialService.isTrialExpired()) {
+                txtTrialStatus.setStyle("-fx-fill: #ef4444; -fx-font-weight: bold;");
+            } else if (trialService.isTrialActive()) {
+                txtTrialStatus.setStyle("-fx-fill: #f59e0b; -fx-font-weight: bold;");
+            } else {
+                txtTrialStatus.setStyle("-fx-fill: #64748b;");
+            }
+        } catch (Exception e) {
+            txtTrialStatus.setText("Status: Unable to load");
+            txtTrialStatus.setStyle("-fx-fill: #64748b;");
+        }
     }
     
     @Override
@@ -103,7 +148,13 @@ public class SettingsFormController extends BaseController {
                 txtEmail.setText(settings.getEmail() != null ? settings.getEmail() : "");
                 txtTaxNumber.setText(settings.getTaxNumber() != null ? settings.getTaxNumber() : "");
                 txtFooterMessage.setText(settings.getFooterMessage() != null ? settings.getFooterMessage() : "");
+                
+                // Load trial settings
+                chkTrialEnabled.setSelected(settings.getTrialEnabled() != null && settings.getTrialEnabled());
+                datePickerTrialEndDate.setValue(settings.getTrialEndDate());
+                datePickerTrialEndDate.setDisable(!chkTrialEnabled.isSelected());
             }
+            updateTrialStatus();
         } catch (Exception e) {
             e.printStackTrace();
             showError("Error", "Failed to load system settings: " + e.getMessage());
@@ -119,6 +170,26 @@ public class SettingsFormController extends BaseController {
                 return;
             }
             
+            // Validate trial settings
+            if (chkTrialEnabled.isSelected() && datePickerTrialEndDate.getValue() == null) {
+                showWarning("Validation Error", "Please select a trial end date when trial is enabled.");
+                return;
+            }
+            
+            if (chkTrialEnabled.isSelected() && datePickerTrialEndDate.getValue() != null) {
+                LocalDate endDate = datePickerTrialEndDate.getValue();
+                if (endDate.isBefore(LocalDate.now())) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("Confirm Past Date");
+                    confirmAlert.setHeaderText("Trial End Date is in the Past");
+                    confirmAlert.setContentText("The selected trial end date is in the past. This will immediately expire the trial.\n\nDo you want to continue?");
+                    var result = confirmAlert.showAndWait();
+                    if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
+                        return; // User cancelled
+                    }
+                }
+            }
+            
             SystemSettings settings = new SystemSettings();
             settings.setBusinessName(txtBusinessName.getText().trim());
             settings.setAddress(txtAddress.getText().trim());
@@ -127,8 +198,15 @@ public class SettingsFormController extends BaseController {
             settings.setTaxNumber(txtTaxNumber.getText().trim());
             settings.setFooterMessage(txtFooterMessage.getText().trim());
             
+            // Set trial settings
+            settings.setTrialEnabled(chkTrialEnabled.isSelected());
+            settings.setTrialEndDate(chkTrialEnabled.isSelected() ? datePickerTrialEndDate.getValue() : null);
+            
             systemSettingsService.updateSystemSettings(settings);
             showSuccess("Success", "System settings saved successfully!");
+            
+            // Update trial status display
+            updateTrialStatus();
             
             // Optionally navigate back to dashboard
             // navigateTo("DashboardForm", false);

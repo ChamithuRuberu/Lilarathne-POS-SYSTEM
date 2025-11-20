@@ -25,6 +25,8 @@ public class SystemSettingsService {
                             "",
                             "Thank you for your business!"
                     );
+                    defaultSettings.setTrialEnabled(false);
+                    defaultSettings.setTrialEndDate(null);
                     return systemSettingsRepository.save(defaultSettings);
                 });
     }
@@ -51,6 +53,13 @@ public class SystemSettingsService {
             existing.setEmail(settings.getEmail());
             existing.setTaxNumber(settings.getTaxNumber());
             existing.setFooterMessage(settings.getFooterMessage());
+            // Update trial settings if provided
+            if (settings.getTrialEnabled() != null) {
+                existing.setTrialEnabled(settings.getTrialEnabled());
+            }
+            if (settings.getTrialEndDate() != null) {
+                existing.setTrialEndDate(settings.getTrialEndDate());
+            }
             systemSettingsRepository.save(existing);
             return true;
         }

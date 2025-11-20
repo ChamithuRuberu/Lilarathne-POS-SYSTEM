@@ -2,6 +2,7 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.service.SessionManager;
+import com.devstack.pos.service.TrialService;
 import com.devstack.pos.service.UserService;
 import com.devstack.pos.util.JwtUtil;
 import com.devstack.pos.util.StageManager;
@@ -30,6 +31,7 @@ public class LoginFormController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final SessionManager sessionManager;
+    private final TrialService trialService;
 
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");
@@ -37,6 +39,18 @@ public class LoginFormController {
 
     public void btnSignInOnAction(ActionEvent actionEvent) {
         try {
+            // Check trial version status before allowing login
+            if (trialService.isTrialEnabled() && trialService.isTrialExpired()) {
+                Alert trialAlert = new Alert(Alert.AlertType.ERROR);
+                trialAlert.setTitle("Trial Period Expired");
+                trialAlert.setHeaderText("Access Denied");
+                trialAlert.setContentText("Your trial period has expired. Please contact the administrator to extend or activate the full version.\n\n" + 
+                                         "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n" +
+                                         "Status: " + trialService.getTrialStatusMessage());
+                trialAlert.showAndWait();
+                return;
+            }
+            
             AppUser appUser = userService.findUser(txtEmail.getText());
             if (appUser != null) {
                 String jwtToken = userService.checkPassword(appUser.getEmail(), txtPassword.getText());
@@ -63,6 +77,35 @@ public class LoginFormController {
                     System.out.println("Is Cashier: " + UserSessionData.isCashier());
                     System.out.println("Session monitoring started");
                     System.out.println("========================");
+                    
+                    // Show trial warning ONLY if 7 days or less remaining
+                    if (trialService.isTrialActive() && trialService.isTrialWarningPeriod()) {
+                        long daysRemaining = trialService.getDaysRemaining();
+                        Alert trialWarning = new Alert(Alert.AlertType.WARNING);
+                        trialWarning.setTitle("Trial Version Warning");
+                        trialWarning.setHeaderText("⚠️Trial Period Ending Soon");
+                        
+                        String message;
+                        if (daysRemaining == 0) {
+                            message = "⚠️WARNING: Your trial period expires TODAY!\n\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version to avoid service interruption.";
+                        } else if (daysRemaining == 1) {
+                            message = "⚠️WARNING: Your trial period expires TOMORROW!\n\n" +
+                                     "Days remaining: " + daysRemaining + " day\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version.";
+                        } else {
+                            message = "⚠️WARNING: Your trial period is ending soon!\n\n" +
+                                     "Days remaining: " + daysRemaining + " days\n" +
+                                     "Trial End Date: " + trialService.getTrialEndDateFormatted() + "\n\n" +
+                                     "Please contact the administrator to extend or activate the full version before the trial expires.";
+                        }
+                        
+                        trialWarning.setContentText(message);
+                        trialWarning.show();
+                    }
+                    // No popup if more than 7 days remaining
                     
                     setUi("DashboardForm");
                 } else {

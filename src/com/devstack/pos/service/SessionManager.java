@@ -109,38 +109,91 @@ public class SessionManager {
         // Stop monitoring
         stopSessionMonitoring();
         
-        // Show alert to user
+        // Show alert to user and handle navigation
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Session Expired");
-            alert.setHeaderText("Your session has expired");
-            alert.setContentText(reason);
-            alert.showAndWait();
-            
-            // Clear session data
-            UserSessionData.clear();
-            
-            // Navigate to login screen
             try {
-                // Get the primary stage
-                Stage primaryStage = (Stage) javafx.stage.Window.getWindows().stream()
-                    .filter(Stage.class::isInstance)
-                    .map(Stage.class::cast)
-                    .findFirst()
-                    .orElse(null);
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Session Expired");
+                alert.setHeaderText("Your session has expired");
+                alert.setContentText(reason);
                 
-                if (primaryStage != null) {
-                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
-                    loader.setLocation(getClass().getResource("/com/devstack/pos/view/LoginForm.fxml"));
-                    loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-                    
-                    javafx.scene.Parent root = loader.load();
-                    StageManager.loadAuthScene(primaryStage, root);
-                }
+                // Show alert and wait for user response
+                alert.showAndWait();
+                
+                // Clear session data after alert is closed (regardless of how it was closed)
+                UserSessionData.clear();
+                
+                // Navigate to login screen
+                navigateToLoginScreen();
+                
             } catch (Exception e) {
-                log.error("Failed to navigate to login screen during auto-logout", e);
+                log.error("Error showing session expired alert", e);
+                // Fallback: clear session and try to navigate
+                try {
+                    UserSessionData.clear();
+                    navigateToLoginScreen();
+                } catch (Exception ex) {
+                    log.error("Failed to navigate to login screen in fallback", ex);
+                }
             }
         });
+    }
+    
+    /**
+     * Navigate to login screen (helper method)
+     */
+    private void navigateToLoginScreen() {
+        try {
+            // Get all open windows and find a valid stage
+            Stage primaryStage = null;
+            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+                if (window instanceof Stage) {
+                    Stage stage = (Stage) window;
+                    if (stage.isShowing() && !stage.isIconified()) {
+                        primaryStage = stage;
+                        break;
+                    }
+                }
+            }
+            
+            // If no valid stage found, try to get primary stage
+            if (primaryStage == null) {
+                primaryStage = (Stage) javafx.stage.Window.getWindows().stream()
+                    .filter(Stage.class::isInstance)
+                    .map(Stage.class::cast)
+                    .filter(stage -> stage.isShowing())
+                    .findFirst()
+                    .orElse(null);
+            }
+            
+            if (primaryStage != null && primaryStage.isShowing()) {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
+                loader.setLocation(getClass().getResource("/com/devstack/pos/view/LoginForm.fxml"));
+                loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+                
+                javafx.scene.Parent root = loader.load();
+                StageManager.loadAuthScene(primaryStage, root);
+            } else {
+                log.warn("No valid stage found for navigation to login screen");
+                // Try to create a new stage as last resort
+                Platform.runLater(() -> {
+                    try {
+                        Stage newStage = new Stage();
+                        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader();
+                        loader.setLocation(getClass().getResource("/com/devstack/pos/view/LoginForm.fxml"));
+                        loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+                        
+                        javafx.scene.Parent root = loader.load();
+                        StageManager.loadAuthScene(newStage, root);
+                        newStage.show();
+                    } catch (Exception e) {
+                        log.error("Failed to create new stage for login screen", e);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.error("Failed to navigate to login screen during auto-logout", e);
+        }
     }
     
     /**

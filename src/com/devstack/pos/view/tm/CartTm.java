@@ -8,14 +8,14 @@ public class CartTm {
     private double discount;
     private double sellingPrice;
     private double showPrice;
-    private int qty;
+    private double qty; // Changed to double to support decimal quantities (e.g., 2.5 kg of sand, 3.75 meters of pipe)
     private double totalCost;
     private Button btn;
 
     public CartTm() {
     }
 
-    public CartTm(String code, String description, double discount, double sellingPrice, double showPrice, int qty, double totalCost, Button btn) {
+    public CartTm(String code, String description, double discount, double sellingPrice, double showPrice, double qty, double totalCost, Button btn) {
         this.code = code;
         this.description = description;
         this.discount = discount;
@@ -66,11 +66,11 @@ public class CartTm {
         this.showPrice = showPrice;
     }
 
-    public int getQty() {
+    public double getQty() {
         return qty;
     }
 
-    public void setQty(int qty) {
+    public void setQty(double qty) {
         this.qty = qty;
     }
 

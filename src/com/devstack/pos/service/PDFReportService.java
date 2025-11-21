@@ -118,11 +118,22 @@ public class PDFReportService {
                 double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
                 
                 // Format: Item (14 chars, left) | Price (9 chars, right, 1 decimal) | Qty with x (5 chars) | Disc (6 chars, right) | Total (9 chars, right)
-                // All on ONE line to match the correct format
-                receipt.append(String.format("%-14s %9.1f x%-3d %6.2f %9.2f\n",
+                // All on ONE line to match the correct format (supports decimal quantities)
+                Double qty = item.getQuantity();
+                String qtyStr;
+                if (qty != null) {
+                    if (qty == qty.intValue()) {
+                        qtyStr = String.format("x%-3d", qty.intValue());
+                    } else {
+                        qtyStr = String.format("x%-5.2f", qty);
+                    }
+                } else {
+                    qtyStr = "x0  ";
+                }
+                receipt.append(String.format("%-14s %9.1f %s %6.2f %9.2f\n",
                     itemName,
                     item.getUnitPrice(),
-                    item.getQuantity(),
+                    qtyStr,
                     discount,
                     item.getLineTotal()
                 ));
@@ -130,9 +141,11 @@ public class PDFReportService {
             
             receipt.append("................................................\n");
             
-            // Totals section
-            double subtotal = orderItems.stream().mapToDouble(item -> 
-                item.getUnitPrice() * item.getQuantity()).sum();
+            // Totals section (supports decimal quantities)
+            double subtotal = orderItems.stream().mapToDouble(item -> {
+                Double qty = item.getQuantity();
+                return item.getUnitPrice() * (qty != null ? qty : 0.0);
+            }).sum();
             double totalDiscount = orderDetail.getDiscount();
             
             receipt.append(String.format("%-30s %17.2f\n", "Subtotal", subtotal));
@@ -382,10 +395,25 @@ public class PDFReportService {
             double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
             
             // Format: Item (14 chars, left) | Price (9 chars, right, 1 decimal) | Qty with x (5 chars) | Disc (6 chars, right) | Total (9 chars, right)
-            Paragraph itemLine = new Paragraph(String.format("%-14s %9.1f x%-3d %6.2f %9.2f",
+            // Supports decimal quantities (e.g., 2.5, 3.75)
+            Double qty = item.getQuantity();
+            String qtyStr;
+            if (qty != null) {
+                if (qty == qty.intValue()) {
+                    // Whole number - format as integer
+                    qtyStr = String.format("x%-3d", qty.intValue());
+                } else {
+                    // Decimal - format with 2 decimal places
+                    qtyStr = String.format("x%-5.2f", qty);
+                }
+            } else {
+                qtyStr = "x0  ";
+            }
+            
+            Paragraph itemLine = new Paragraph(String.format("%-14s %9.1f %s %6.2f %9.2f",
                 itemName,
                 item.getUnitPrice(),
-                item.getQuantity(),
+                qtyStr,
                 discount,
                 item.getLineTotal()))
                 .setFontSize(9)
@@ -1314,7 +1342,7 @@ public class PDFReportService {
                 productName = "Product #" + detail.getProductCode();
             }
             
-            int currentStock = detail.getQtyOnHand();
+            int currentStock = (int) detail.getQtyOnHand();
             int threshold = detail.getLowStockThreshold() != null ? detail.getLowStockThreshold() : 10;
             String status = currentStock == 0 ? "OUT OF STOCK" : "LOW STOCK";
             

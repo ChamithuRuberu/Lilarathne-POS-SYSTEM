@@ -1645,14 +1645,23 @@ public class AnalysisPageController extends BaseController {
         
         Integer productCode = selectedProduct.getCode();
         
-        // Load summary statistics
-        Integer totalSold = orderItemService.getTotalQuantitySoldByProduct(productCode);
+        // Load summary statistics (supports decimal quantities)
+        Double totalSold = orderItemService.getTotalQuantitySoldByProduct(productCode);
         Double totalRevenue = orderItemService.getTotalRevenueByProduct(productCode);
         Long uniqueCustomers = orderItemService.getProductUniqueCustomers(productCode);
         Double avgQtyPerOrder = orderItemService.getProductAverageQuantityPerOrder(productCode);
         
         if (lblProductTotalSold != null) {
-            lblProductTotalSold.setText(String.valueOf(totalSold != null ? totalSold : 0));
+            // Format quantity - show as integer if whole number, otherwise show decimals
+            if (totalSold != null) {
+                if (totalSold == totalSold.intValue()) {
+                    lblProductTotalSold.setText(String.valueOf(totalSold.intValue()));
+                } else {
+                    lblProductTotalSold.setText(String.format("%.2f", totalSold));
+                }
+            } else {
+                lblProductTotalSold.setText("0");
+            }
         }
         if (lblProductTotalRevenue != null) {
             lblProductTotalRevenue.setText(String.format("%.2f /=", totalRevenue != null ? totalRevenue : 0.0));

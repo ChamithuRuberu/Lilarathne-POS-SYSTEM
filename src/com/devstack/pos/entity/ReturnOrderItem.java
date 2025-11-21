@@ -43,11 +43,11 @@ public class ReturnOrderItem {
     @Column(name = "batch_number", length = 50)
     private String batchNumber;
     
-    @Column(name = "original_quantity", nullable = false)
-    private Integer originalQuantity;
+    @Column(name = "original_quantity", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private Double originalQuantity; // Changed to Double to support decimal quantities (e.g., 2.5, 3.75)
     
-    @Column(name = "return_quantity", nullable = false)
-    private Integer returnQuantity;
+    @Column(name = "return_quantity", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private Double returnQuantity; // Changed to Double to support decimal quantities (e.g., 2.5 kg, 3.75 meters)
     
     @Column(name = "unit_price", nullable = false)
     private Double unitPrice;

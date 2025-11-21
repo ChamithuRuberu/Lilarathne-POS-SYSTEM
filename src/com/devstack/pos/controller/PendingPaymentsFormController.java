@@ -208,7 +208,8 @@ public class PendingPaymentsFormController extends BaseController {
                     // Get order items and reduce stock
                     List<OrderItem> orderItems = orderItemService.findByOrderId(order.getCode());
                     for (OrderItem item : orderItems) {
-                        if (item.getBatchCode() != null) {
+                        if (item.getBatchCode() != null && item.getQuantity() != null) {
+                            // Use exact decimal quantity (supports 2.5, 3.75, etc.)
                             productDetailService.reduceStock(item.getBatchCode(), item.getQuantity());
                         }
                     }

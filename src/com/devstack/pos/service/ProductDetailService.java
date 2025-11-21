@@ -194,13 +194,14 @@ public class ProductDetailService {
     
     /**
      * Get total stock quantity for a product (all batches, excluding DELETED)
+     * Supports decimal quantities
      */
-    public int getTotalStockForProduct(int productCode) {
+    public double getTotalStockForProduct(int productCode) {
         return productDetailRepository.findByProductCode(productCode).stream()
                 .filter(pd -> pd.getBatchStatus() == null || !"DELETED".equals(pd.getBatchStatus()))
                 .filter(pd -> pd.getQtyOnHand() > 0)
                 .filter(pd -> !pd.isExpired())
-                .mapToInt(ProductDetail::getQtyOnHand)
+                .mapToDouble(ProductDetail::getQtyOnHand)
                 .sum();
     }
     
@@ -247,9 +248,9 @@ public class ProductDetailService {
     }
     
     /**
-     * Reduce stock quantity (for sales)
+     * Reduce stock quantity (for sales) - supports decimal quantities
      */
-    public boolean reduceStock(String batchCode, int quantity) {
+    public boolean reduceStock(String batchCode, double quantity) {
         Optional<ProductDetail> optionalBatch = productDetailRepository.findByCode(batchCode);
         
         if (optionalBatch.isEmpty()) {
@@ -273,9 +274,9 @@ public class ProductDetailService {
     }
     
     /**
-     * Increase stock quantity (for returns/adjustments)
+     * Increase stock quantity (for returns/adjustments) - supports decimal quantities
      */
-    public boolean increaseStock(String batchCode, int quantity) {
+    public boolean increaseStock(String batchCode, double quantity) {
         Optional<ProductDetail> optionalBatch = productDetailRepository.findByCode(batchCode);
         
         if (optionalBatch.isEmpty()) {
@@ -290,17 +291,20 @@ public class ProductDetailService {
     }
     
     /**
-     * Restore stock quantity (for returns) - alias for increaseStock
+     * Restore stock quantity (for returns) - supports decimal quantities
      */
-    public boolean restoreStock(String batchCode, int quantity) {
+    public boolean restoreStock(String batchCode, Double quantity) {
+        if (quantity == null) {
+            throw new IllegalArgumentException("Quantity cannot be null");
+        }
         return increaseStock(batchCode, quantity);
     }
     
     /**
-     * Check if product has sufficient stock across all batches
+     * Check if product has sufficient stock across all batches (supports decimal quantities)
      */
-    public boolean hasSufficientStock(int productCode, int requiredQuantity) {
-        int totalStock = getTotalStockForProduct(productCode);
+    public boolean hasSufficientStock(int productCode, double requiredQuantity) {
+        double totalStock = getTotalStockForProduct(productCode);
         return totalStock >= requiredQuantity;
     }
     

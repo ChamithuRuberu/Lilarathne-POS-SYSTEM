@@ -33,10 +33,10 @@ public interface ReturnOrderItemRepository extends JpaRepository<ReturnOrderItem
     List<ReturnOrderItem> findByOrderItemId(Long orderItemId);
     
     /**
-     * Get total quantity returned for a product
+     * Get total quantity returned for a product (supports decimal quantities)
      */
-    @Query("SELECT COALESCE(SUM(roi.returnQuantity), 0) FROM ReturnOrderItem roi WHERE roi.productCode = :productCode")
-    Integer getTotalQuantityReturnedByProduct(@Param("productCode") Integer productCode);
+    @Query("SELECT COALESCE(SUM(roi.returnQuantity), 0.0) FROM ReturnOrderItem roi WHERE roi.productCode = :productCode")
+    Double getTotalQuantityReturnedByProduct(@Param("productCode") Integer productCode);
     
     /**
      * Get total refund amount for a product

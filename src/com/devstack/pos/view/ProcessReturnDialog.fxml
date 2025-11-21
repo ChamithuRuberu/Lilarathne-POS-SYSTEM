@@ -159,7 +159,7 @@
                   <TableColumn fx:id="colSelect" prefWidth="60" text="Select" />
                   <TableColumn fx:id="colProductName" prefWidth="250" text="Product Name" />
                   <TableColumn fx:id="colBatchNumber" prefWidth="100" text="Batch" />
-                  <TableColumn fx:id="colOrderedQty" prefWidth="100" text="Ordered Qty" />
+                  <TableColumn fx:id="colOrderedQty" prefWidth="150" text="Ordered Qty (Remaining)" />
                   <TableColumn fx:id="colReturnQty" prefWidth="120" text="Return Qty" />
                   <TableColumn fx:id="colUnitPrice" prefWidth="100" text="Unit Price" />
                   <TableColumn fx:id="colLineTotal" prefWidth="120" text="Line Total" />

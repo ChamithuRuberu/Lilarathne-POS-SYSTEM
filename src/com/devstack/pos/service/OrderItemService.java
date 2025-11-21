@@ -64,11 +64,12 @@ public class OrderItemService {
     }
     
     /**
-     * Get total quantity sold for a product
+     * Get total quantity sold for a product (supports decimal quantities)
      */
     @Transactional(readOnly = true)
-    public Integer getTotalQuantitySoldByProduct(Integer productCode) {
-        return orderItemRepository.getTotalQuantitySoldByProduct(productCode);
+    public Double getTotalQuantitySoldByProduct(Integer productCode) {
+        Double result = orderItemRepository.getTotalQuantitySoldByProduct(productCode);
+        return result != null ? result : 0.0;
     }
     
     /**

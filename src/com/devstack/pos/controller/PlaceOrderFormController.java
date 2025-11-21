@@ -76,7 +76,6 @@ public class PlaceOrderFormController extends BaseController {
     private final OrderItemService orderItemService;
     private final PDFReportService pdfReportService;
     private final ReceiptPrinter receiptPrinter;
-    private Timeline barcodeDebounceTimeline;
     private boolean isUpdatingBarcodeProgrammatically = false;
 
 
@@ -103,6 +102,37 @@ public class PlaceOrderFormController extends BaseController {
         colSelTotal.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
         colSelOperation.setCellValueFactory(new PropertyValueFactory<>("btn"));
         
+        // Format quantity column to show decimals properly
+        colSelQty.setCellFactory(column -> new TableCell<CartTm, Double>() {
+            @Override
+            protected void updateItem(Double qty, boolean empty) {
+                super.updateItem(qty, empty);
+                if (empty || qty == null) {
+                    setText(null);
+                } else {
+                    // Show as integer if whole number, otherwise show decimals
+                    if (qty == qty.intValue()) {
+                        setText(String.valueOf(qty.intValue()));
+                    } else {
+                        setText(String.format("%.2f", qty));
+                    }
+                }
+            }
+        });
+        
+        // Format total cost column to show currency properly
+        colSelTotal.setCellFactory(column -> new TableCell<CartTm, Double>() {
+            @Override
+            protected void updateItem(Double total, boolean empty) {
+                super.updateItem(total, empty);
+                if (empty || total == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f", total));
+                }
+            }
+        });
+        
         // Initialize payment method dropdown
         if (cmbPaymentMethod != null) {
             cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
@@ -119,6 +149,9 @@ public class PlaceOrderFormController extends BaseController {
         if (btnPrint != null) {
             btnPrint.setDisable(true);
         }
+        
+        // Setup decimal quantity input validation (supports items like sand by kg, pipes by meters)
+        setupQuantityInputValidation();
         
         // Setup barcode scanner detection for automatic product loading
         setupBarcodeScannerDetection();
@@ -141,6 +174,25 @@ public class PlaceOrderFormController extends BaseController {
             // Also try immediately
             javafx.application.Platform.runLater(() -> {
                 removeTabPaneBlackBar();
+            });
+        }
+    }
+    
+    /**
+     * Setup validation for quantity input field to support decimal quantities
+     * This allows items like sand (sold by kg) and metal pipes (sold by meters) to use decimal quantities
+     */
+    private void setupQuantityInputValidation() {
+        if (txtQty != null) {
+            txtQty.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return; // Allow empty for user to type
+                }
+                // Allow decimal numbers (e.g., 2.5, 3.75, 10.5)
+                // Pattern: optional negative sign, digits, optional decimal point with digits
+                if (!newValue.matches("^\\d*\\.?\\d*$")) {
+                    txtQty.setText(oldValue);
+                }
             });
         }
     }
@@ -257,44 +309,49 @@ public class PlaceOrderFormController extends BaseController {
     }
 
     /**
-     * Sets up barcode scanner detection with debounced text change listener
-     * This allows barcode scanners to automatically trigger product loading
-     * The debounce ensures we wait for the user to finish typing before searching
+     * Sets up barcode scanner detection - only triggers on Enter key press
+     * This prevents auto-filling while user is typing
+     * User must press Enter to load the product
      */
     private void setupBarcodeScannerDetection() {
-        // Setup debounced text change listener for barcode scanners
-        // Wait 500ms after user stops typing before searching
-        // This prevents searching on every character typed
-        barcodeDebounceTimeline = new Timeline(new KeyFrame(Duration.millis(500), e -> {
-            // Don't trigger if we're updating the barcode programmatically
-            if (isUpdatingBarcodeProgrammatically) {
-                return;
-            }
-            String barcode = txtBarcode.getText();
-            if (barcode != null && !barcode.trim().isEmpty()) {
-                // Remove any newline/carriage return characters that barcode scanners might append
-                barcode = barcode.replace("\n", "").replace("\r", "").trim();
-                if (!barcode.isEmpty()) {
-                    // Auto-trigger product loading after debounce delay
-                    // This ensures we capture complete barcode from scanner or manual input
-                    loadProduct(null); // Call loadProduct automatically
-                }
-            }
-        }));
-        barcodeDebounceTimeline.setCycleCount(1);
+        // Remove automatic debounce - only trigger on Enter key (handled by onAction in FXML)
+        // This allows users to type freely without interruption
         
-        // Listen for text changes to restart debounce timer
+        // Listen for Enter key or newline (from barcode scanners) to trigger product loading
+        txtBarcode.setOnKeyPressed(event -> {
+            // Check for Enter key or newline character (barcode scanners often send newline)
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                event.consume(); // Prevent default behavior
+                loadProduct(null);
+            }
+        });
+        
+        // Also handle text changes for barcode scanners that append newline
         txtBarcode.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Don't start debounce timer if we're updating programmatically
+            // Don't process if we're updating programmatically
             if (isUpdatingBarcodeProgrammatically) {
                 return;
             }
             
-            // Reset and restart the debounce timer when text changes
-            // This way, search only happens after user stops typing for 500ms
-            if (barcodeDebounceTimeline != null) {
-                barcodeDebounceTimeline.stop();
-                barcodeDebounceTimeline.playFromStart();
+            // Check if barcode scanner appended a newline (common behavior)
+            if (newValue != null && (newValue.endsWith("\n") || newValue.endsWith("\r"))) {
+                // Remove newline and trigger product loading
+                String cleanedBarcode = newValue.replace("\n", "").replace("\r", "").trim();
+                if (!cleanedBarcode.isEmpty()) {
+                    // Set the cleaned barcode
+                    isUpdatingBarcodeProgrammatically = true;
+                    try {
+                        txtBarcode.setText(cleanedBarcode);
+                    } finally {
+                        javafx.application.Platform.runLater(() -> {
+                            isUpdatingBarcodeProgrammatically = false;
+                        });
+                    }
+                    // Trigger product loading
+                    javafx.application.Platform.runLater(() -> {
+                        loadProduct(null);
+                    });
+                }
             }
         });
         
@@ -334,77 +391,274 @@ public class PlaceOrderFormController extends BaseController {
                 if (product != null) {
                     txtDescription.setText(product.getDescription());
                 }
-                // Ensure barcode field holds the batch code used for stock reduction
-                // Set flag to prevent debounce timer from triggering during programmatic update
+                // Update barcode field with the batch code (only if not currently being edited)
+                // Set flag to prevent listener from triggering during programmatic update
                 isUpdatingBarcodeProgrammatically = true;
                 try {
-                    txtBarcode.setText(productDetail.getCode());
+                    // Only update if the current text doesn't match (to avoid interrupting typing)
+                    String currentText = txtBarcode.getText();
+                    if (currentText == null || !currentText.trim().equals(productDetail.getCode())) {
+                        txtBarcode.setText(productDetail.getCode());
+                    }
                 } finally {
                     javafx.application.Platform.runLater(() -> {
-                        javafx.application.Platform.runLater(() -> {
-                            isUpdatingBarcodeProgrammatically = false;
-                        });
+                        isUpdatingBarcodeProgrammatically = false;
                     });
                 }
-                txtSellingPrice.setText(String.valueOf(productDetail.getSellingPrice()));
-                txtQtyOnHand.setText(String.valueOf(productDetail.getQtyOnHand()));
-                txtBuyingPrice.setText(String.valueOf(productDetail.getBuyingPrice()));
+                txtSellingPrice.setText(String.format("%.2f", productDetail.getSellingPrice()));
+                // Format quantity - show as integer if whole number, otherwise show decimals
+                double qtyOnHand = productDetail.getQtyOnHand();
+                if (qtyOnHand == (int)qtyOnHand) {
+                    txtQtyOnHand.setText(String.valueOf((int)qtyOnHand));
+                } else {
+                    txtQtyOnHand.setText(String.format("%.2f", qtyOnHand));
+                }
+                txtBuyingPrice.setText(String.format("%.2f", productDetail.getBuyingPrice()));
+                
+                // Show stock status
+                if (productDetail.getQtyOnHand() <= 0) {
+                    txtQtyOnHand.setStyle("-fx-text-fill: #dc2626; -fx-font-weight: bold;");
+                } else if (productDetail.isLowStock()) {
+                    txtQtyOnHand.setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
+                } else {
+                    txtQtyOnHand.setStyle("-fx-text-fill: #16a34a;");
+                }
+                
+                // Show success message
+                String productName = product != null ? product.getDescription() : "Product";
+                new Alert(Alert.AlertType.INFORMATION, 
+                    "Product loaded successfully!\n\n" +
+                    "Product: " + productName + "\n" +
+                    "Batch Code: " + productDetail.getCode() + "\n" +
+                    "Stock: " + (qtyOnHand == (int)qtyOnHand ? String.valueOf((int)qtyOnHand) : String.format("%.2f", qtyOnHand)) + " units"
+                ).show();
+                
                 txtQty.requestFocus();
             } else {
-                new Alert(Alert.AlertType.WARNING, "Can't Find the Product!").show();
+                new Alert(Alert.AlertType.WARNING, 
+                    "Product not found!\n\n" +
+                    "Please check:\n" +
+                    "• Barcode/Code is correct\n" +
+                    "• Product exists in the system\n" +
+                    "• Product has active batches\n\n" +
+                    "You can add a new product using the '+ New Product' button.").show();
             }
         } catch (Exception e) {
-            new Alert(Alert.AlertType.WARNING, "Can't Find the Product!").show();
+            new Alert(Alert.AlertType.ERROR, 
+                "Error loading product: " + e.getMessage() + 
+                "\n\nPlease try again or contact support if the issue persists.").show();
             e.printStackTrace();
         }
     }
 
     ObservableList<CartTm> tms = FXCollections.observableArrayList();
 
+    /**
+     * Adds product to cart with proper validation for quantity and stock availability
+     * Supports decimal quantities for items like sand (kg) and metal pipes (meters)
+     */
     public void addToCart(ActionEvent actionEvent) {
-        int qty = Integer.parseInt(txtQty.getText());
-        double unitPrice = Double.parseDouble(txtSellingPrice.getText());
-        double unitDiscount = 0.0;
-        String discountText = txtDiscount.getText() == null ? "" : txtDiscount.getText().trim();
-        if (!discountText.isEmpty()) {
-            unitDiscount = Double.parseDouble(discountText);
-        }
-        double effectiveUnitPrice = unitPrice - unitDiscount;
-        if (effectiveUnitPrice < 0) effectiveUnitPrice = 0.0;
-        double totalCost = qty * effectiveUnitPrice;
+        try {
+            // Validate required fields
+            if (txtBarcode.getText() == null || txtBarcode.getText().trim().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please load a product first by entering barcode/code!").show();
+                txtBarcode.requestFocus();
+                return;
+            }
+            
+            if (txtDescription.getText() == null || txtDescription.getText().trim().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Product description is missing! Please load the product first.").show();
+                txtBarcode.requestFocus();
+                return;
+            }
+            
+            // Validate and parse quantity (supports decimal for items like sand, pipes)
+            String qtyText = txtQty.getText() == null ? "" : txtQty.getText().trim();
+            if (qtyText.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Please enter quantity!").show();
+                txtQty.requestFocus();
+                return;
+            }
+            
+            double qty;
+            try {
+                qty = Double.parseDouble(qtyText);
+                if (qty <= 0) {
+                    new Alert(Alert.AlertType.WARNING, "Quantity must be greater than zero!").show();
+                    txtQty.requestFocus();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                new Alert(Alert.AlertType.WARNING, "Please enter a valid quantity (e.g., 2 or 2.5)!").show();
+                txtQty.requestFocus();
+                return;
+            }
+            
+            // Validate selling price
+            String priceText = txtSellingPrice.getText() == null ? "" : txtSellingPrice.getText().trim();
+            if (priceText.isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Selling price is missing! Please load the product first.").show();
+                return;
+            }
+            
+            double unitPrice;
+            try {
+                unitPrice = Double.parseDouble(priceText);
+                if (unitPrice < 0) {
+                    new Alert(Alert.AlertType.WARNING, "Selling price cannot be negative!").show();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                new Alert(Alert.AlertType.WARNING, "Invalid selling price! Please load the product again.").show();
+                return;
+            }
+            
+            // Check stock availability (only if product detail exists)
+            String batchCode = txtBarcode.getText().trim();
+            ProductDetail productDetail = productDetailService.findProductDetailByCode(batchCode);
+            if (productDetail != null) {
+                // Get available quantity (supports decimal quantities)
+                double availableQty = productDetail.getQtyOnHand();
+                
+                // Check if requested quantity exceeds available stock
+                if (qty > availableQty) {
+                    // Format available quantity for display
+                    String availableStr;
+                    if (availableQty == (int)availableQty) {
+                        availableStr = String.valueOf((int)availableQty);
+                    } else {
+                        availableStr = String.format("%.2f", availableQty);
+                    }
+                    
+                    // Format requested quantity for display
+                    String requestedStr;
+                    if (qty == (int)qty) {
+                        requestedStr = String.valueOf((int)qty);
+                    } else {
+                        requestedStr = String.format("%.2f", qty);
+                    }
+                    
+                    new Alert(Alert.AlertType.WARNING, 
+                        String.format("Insufficient stock!\n\n" +
+                            "Available: %s\n" +
+                            "Requested: %s\n" +
+                            "Please reduce the quantity or check other batches.", 
+                            availableStr, requestedStr)).show();
+                    txtQty.requestFocus();
+                    return;
+                }
+            }
+            
+            // Parse discount
+            double unitDiscount = 0.0;
+            String discountText = txtDiscount.getText() == null ? "" : txtDiscount.getText().trim();
+            if (!discountText.isEmpty()) {
+                try {
+                    unitDiscount = Double.parseDouble(discountText);
+                    if (unitDiscount < 0) {
+                        new Alert(Alert.AlertType.WARNING, "Discount cannot be negative!").show();
+                        txtDiscount.requestFocus();
+                        return;
+                    }
+                    if (unitDiscount > unitPrice) {
+                        new Alert(Alert.AlertType.WARNING, 
+                            String.format("Discount (%.2f) cannot exceed selling price (%.2f)!", 
+                                unitDiscount, unitPrice)).show();
+                        txtDiscount.requestFocus();
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    new Alert(Alert.AlertType.WARNING, "Invalid discount amount! Please enter a valid number.").show();
+                    txtDiscount.requestFocus();
+                    return;
+                }
+            }
+            
+            // Calculate costs
+            double effectiveUnitPrice = unitPrice - unitDiscount;
+            if (effectiveUnitPrice < 0) effectiveUnitPrice = 0.0;
+            double totalCost = qty * effectiveUnitPrice;
 
-        // Disable print button when starting a new order (first item added to empty cart)
-        if (btnPrint != null && tms.isEmpty()) {
-            btnPrint.setDisable(true);
-            lastCompletedOrderCode = null;
-        }
+            // Disable print button when starting a new order (first item added to empty cart)
+            if (btnPrint != null && tms.isEmpty()) {
+                btnPrint.setDisable(true);
+                lastCompletedOrderCode = null;
+            }
 
-        CartTm selectedCartTm = isExists(txtBarcode.getText());
-        if (selectedCartTm != null) {
-            selectedCartTm.setQty(qty + selectedCartTm.getQty());
-            selectedCartTm.setTotalCost(totalCost + selectedCartTm.getTotalCost());
-            tblCart.refresh();
-        } else {
-            Button btn = new Button("Remove");
-            CartTm tm = new CartTm(txtBarcode.getText(),
-                    txtDescription.getText(),
-                    unitDiscount,
-                    effectiveUnitPrice,
-                    0.0,
-                    qty,
-                    totalCost,
-                    btn);
-
-            btn.setOnAction((e) -> {
-                tms.remove(tm);
+            // Check if product already exists in cart
+            CartTm selectedCartTm = isExists(batchCode);
+            if (selectedCartTm != null) {
+                // Update existing cart item
+                double newQty = selectedCartTm.getQty() + qty;
+                double newTotalCost = selectedCartTm.getTotalCost() + totalCost;
+                
+                // Re-validate stock for updated quantity (supports decimal quantities)
+                if (productDetail != null) {
+                    double availableQty = productDetail.getQtyOnHand();
+                    if (newQty > availableQty) {
+                        // Format quantities for display
+                        String availableStr = availableQty == (int)availableQty ? 
+                            String.valueOf((int)availableQty) : String.format("%.2f", availableQty);
+                        String currentStr = selectedCartTm.getQty() == (int)selectedCartTm.getQty() ? 
+                            String.valueOf((int)selectedCartTm.getQty()) : String.format("%.2f", selectedCartTm.getQty());
+                        String addingStr = qty == (int)qty ? 
+                            String.valueOf((int)qty) : String.format("%.2f", qty);
+                        String totalStr = newQty == (int)newQty ? 
+                            String.valueOf((int)newQty) : String.format("%.2f", newQty);
+                        
+                        new Alert(Alert.AlertType.WARNING, 
+                            String.format("Cannot add more quantity!\n\n" +
+                                "Current in cart: %s\n" +
+                                "Adding: %s\n" +
+                                "Total would be: %s\n" +
+                                "But available stock is only: %s", 
+                                currentStr, addingStr, totalStr, availableStr)).show();
+                        return;
+                    }
+                }
+                
+                selectedCartTm.setQty(newQty);
+                selectedCartTm.setTotalCost(newTotalCost);
                 tblCart.refresh();
                 setTotal();
-            });
+            } else {
+                // Add new item to cart
+                Button btn = new Button("Remove");
+                CartTm tm = new CartTm(batchCode,
+                        txtDescription.getText(),
+                        unitDiscount,
+                        effectiveUnitPrice,
+                        0.0,
+                        qty,
+                        totalCost,
+                        btn);
 
-            tms.add(tm);
-            clear();
-            tblCart.setItems(tms);
-            setTotal();
+                btn.setOnAction((e) -> {
+                    tms.remove(tm);
+                    tblCart.refresh();
+                    setTotal();
+                });
+
+                tms.add(tm);
+                clear();
+                tblCart.setItems(tms);
+                setTotal();
+            }
+            
+            // Show success message for first item
+            if (tms.size() == 1) {
+                javafx.application.Platform.runLater(() -> {
+                    new Alert(Alert.AlertType.INFORMATION, 
+                        "Product added to cart!\n\n" +
+                        "You can continue adding more products or complete the order.").show();
+                });
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, 
+                "Error adding product to cart: " + e.getMessage() + 
+                "\n\nPlease check all fields and try again.").show();
         }
     }
 
@@ -431,11 +685,10 @@ public class PlaceOrderFormController extends BaseController {
 
     private void setTotal() {
         double total = 0;
-        for (CartTm tm : tms
-        ) {
+        for (CartTm tm : tms) {
             total += tm.getTotalCost();
         }
-        txtTotal.setText(total + " /=");
+        txtTotal.setText(String.format("%.2f /=", total));
         calculateBalance();
     }
     
@@ -547,16 +800,20 @@ public class PlaceOrderFormController extends BaseController {
                 // Get product details to fetch product name
                 ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
                 
+                // Use exact decimal quantity (e.g., 2.5 kg, 3.75 meters) - no rounding
+                // Calculate item-level discount and totals
+                double itemTotalDiscount = tm.getDiscount() * tm.getQty();
+                
                 OrderItem orderItem = OrderItem.builder()
                     .orderId(savedOrder.getCode())
                     .productCode(productDetail != null ? productDetail.getProductCode() : null)
                     .productName(tm.getDescription())
                     .batchCode(tm.getCode())
                     .batchNumber(productDetail != null ? productDetail.getBatchNumber() : null)
-                    .quantity(tm.getQty())
+                    .quantity(tm.getQty()) // Store as decimal (supports 2.5, 3.75, etc.)
                     .unitPrice(tm.getSellingPrice())
                     .discountPerUnit(tm.getDiscount())
-                    .totalDiscount(tm.getDiscount() * tm.getQty())
+                    .totalDiscount(itemTotalDiscount)
                     .lineTotal(tm.getTotalCost())
                     .build();
                 orderItems.add(orderItem);
@@ -564,6 +821,7 @@ public class PlaceOrderFormController extends BaseController {
             orderItemService.saveAllOrderItems(orderItems);
             
             // Reduce stock immediately regardless of payment status so qty on hand is accurate
+            // Use exact decimal quantity (supports 2.5, 3.75, etc.)
             for (CartTm tm : tms) {
                 productDetailService.reduceStock(tm.getCode(), tm.getQty());
             }

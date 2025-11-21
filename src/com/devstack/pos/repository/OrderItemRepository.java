@@ -29,9 +29,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     
     /**
      * Get total quantity sold for a product (all orders, including pending payments)
+     * Supports decimal quantities
      */
-    @Query("SELECT COALESCE(SUM(oi.quantity), 0) FROM OrderItem oi WHERE oi.productCode = :productCode")
-    Integer getTotalQuantitySoldByProduct(@Param("productCode") Integer productCode);
+    @Query("SELECT COALESCE(SUM(oi.quantity), 0.0) FROM OrderItem oi WHERE oi.productCode = :productCode")
+    Double getTotalQuantitySoldByProduct(@Param("productCode") Integer productCode);
     
     /**
      * Get total revenue from a product (only PAID orders)

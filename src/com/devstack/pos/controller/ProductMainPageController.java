@@ -117,7 +117,24 @@ public class ProductMainPageController extends BaseController {
         // Setup batch detail table columns
         if (tblDetail != null) {
         colPDId.setCellValueFactory(new PropertyValueFactory<>("code"));
+        // Quantity column - supports decimal display (e.g., 2.5, 3.75)
         colPDQty.setCellValueFactory(new PropertyValueFactory<>("qty"));
+        colPDQty.setCellFactory(column -> new TableCell<ProductDetailTm, Double>() {
+            @Override
+            protected void updateItem(Double qty, boolean empty) {
+                super.updateItem(qty, empty);
+                if (empty || qty == null) {
+                    setText(null);
+                } else {
+                    // Show as integer if whole number, otherwise show decimals
+                    if (qty == qty.intValue()) {
+                        setText(String.valueOf(qty.intValue()));
+                    } else {
+                        setText(String.format("%.2f", qty));
+                    }
+                }
+            }
+        });
         colPDSellingPrice.setCellValueFactory(new PropertyValueFactory<>("sellingPrice"));
         colPDBuyingPrice.setCellValueFactory(new PropertyValueFactory<>("buyingPrice"));
         colPDDAvailability.setCellValueFactory(new PropertyValueFactory<>("discountAvailability"));

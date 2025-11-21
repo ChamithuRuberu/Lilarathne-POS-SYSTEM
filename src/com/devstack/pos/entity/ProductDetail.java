@@ -29,11 +29,11 @@ public class ProductDetail {
     @Column(name = "barcode", columnDefinition = "TEXT")
     private String barcode; // Batch barcode image (Base64)
     
-    @Column(name = "qty_on_hand", nullable = false)
-    private int qtyOnHand;
+    @Column(name = "qty_on_hand", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private double qtyOnHand; // Changed to double to support decimal quantities (e.g., 2.5 kg, 3.75 meters)
     
-    @Column(name = "initial_qty", nullable = false)
-    private int initialQty; // Original quantity when batch was created
+    @Column(name = "initial_qty", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private double initialQty; // Original quantity when batch was created (supports decimals)
     
     @Column(name = "selling_price", nullable = false)
     private double sellingPrice;

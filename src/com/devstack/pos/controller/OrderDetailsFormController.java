@@ -238,10 +238,23 @@ public class OrderDetailsFormController extends BaseController {
                     returnOrdersBtn.setDisable(true);
                 }
                 
-                // Get product names for this order
+                // Get product names for this order (supports decimal quantities)
                 String productNames = orderItemService.findByOrderId(order.getCode())
                     .stream()
-                    .map(item -> item.getProductName() + " (x" + item.getQuantity() + ")")
+                    .map(item -> {
+                        Double qty = item.getQuantity();
+                        String qtyStr;
+                        if (qty != null) {
+                            if (qty == qty.intValue()) {
+                                qtyStr = String.valueOf(qty.intValue());
+                            } else {
+                                qtyStr = String.format("%.2f", qty);
+                            }
+                        } else {
+                            qtyStr = "0";
+                        }
+                        return item.getProductName() + " (x" + qtyStr + ")";
+                    })
                     .collect(Collectors.joining(", "));
                 
                 if (productNames.isEmpty()) {

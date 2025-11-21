@@ -499,14 +499,15 @@ public class DashboardFormController extends BaseController {
                        !ro.getReturnDate().isAfter(endDate))
                 .collect(Collectors.toList());
             
-            // Create a map of product code to returned quantity
-            Map<Integer, Long> returnedQuantitiesByProduct = new java.util.HashMap<>();
+            // Create a map of product code to returned quantity (supports decimal quantities)
+            Map<Integer, Double> returnedQuantitiesByProduct = new java.util.HashMap<>();
             for (ReturnOrder returnOrder : returnOrdersInRange) {
                 List<ReturnOrderItem> returnItems = returnOrderItemService.findByReturnOrderId(returnOrder.getId());
                 for (ReturnOrderItem returnItem : returnItems) {
                     Integer productCode = returnItem.getProductCode();
-                    Long returnedQty = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
-                    returnedQuantitiesByProduct.put(productCode, returnedQty + returnItem.getReturnQuantity());
+                    Double returnedQty = returnedQuantitiesByProduct.getOrDefault(productCode, 0.0);
+                    Double returnQty = returnItem.getReturnQuantity() != null ? returnItem.getReturnQuantity() : 0.0;
+                    returnedQuantitiesByProduct.put(productCode, returnedQty + returnQty);
                 }
             }
             
@@ -519,12 +520,12 @@ public class DashboardFormController extends BaseController {
                     productName = "Product #" + productCode;
                 }
                 long soldQuantity = ((Number) product[2]).longValue();
-                long returnedQuantity = returnedQuantitiesByProduct.getOrDefault(productCode, 0L);
-                long netQuantity = soldQuantity - returnedQuantity;
+                double returnedQuantity = returnedQuantitiesByProduct.getOrDefault(productCode, 0.0);
+                double netQuantity = soldQuantity - returnedQuantity;
                 
                 // Only include products with positive net sales
                 if (netQuantity > 0) {
-                    netSalesList.add(new ProductNetSales(productCode, productName, netQuantity));
+                    netSalesList.add(new ProductNetSales(productCode, productName, (long) netQuantity));
                 }
             }
             
@@ -982,14 +983,21 @@ public class DashboardFormController extends BaseController {
                     .orElse(products.get(0));
             
             int activeBatches = productDetailService.findActiveBatchesByProductCode(topProduct.getCode()).size();
-            int totalStock = productDetailService.getTotalStockForProduct(topProduct.getCode());
+            double totalStock = productDetailService.getTotalStockForProduct(topProduct.getCode());
             
             String productName = topProduct.getDescription();
             if (topProduct.getCategory() != null) {
                 productName += " (" + topProduct.getCategory().getName() + ")";
             }
             
-            String stats = String.format("Active Batches: %d | Total Stock: %d units", activeBatches, totalStock);
+            // Format total stock - show as integer if whole number, otherwise show decimals
+            String stockStr;
+            if (totalStock == (int)totalStock) {
+                stockStr = String.valueOf((int)totalStock);
+            } else {
+                stockStr = String.format("%.2f", totalStock);
+            }
+            String stats = String.format("Active Batches: %d | Total Stock: %s units", activeBatches, stockStr);
             
             if (lblTopProductName != null) lblTopProductName.setText(productName);
             if (lblTopProductStats != null) lblTopProductStats.setText(stats);

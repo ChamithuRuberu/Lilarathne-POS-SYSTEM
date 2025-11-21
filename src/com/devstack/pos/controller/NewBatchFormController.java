@@ -404,19 +404,27 @@ public class NewBatchFormController {
      * Setup numeric validation for input fields
      */
     private void setupNumericValidation() {
-        // Quantity - only integers
+        // Quantity - supports decimal quantities (e.g., 2.5, 3.75)
         if (txtQty != null) {
             txtQty.textProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal.matches("\\d*")) {
+                if (newVal == null || newVal.isEmpty()) {
+                    return; // Allow empty for user to type
+                }
+                // Allow decimal numbers (e.g., 2.5, 3.75, 10.5)
+                if (!newVal.matches("^\\d*\\.?\\d*$")) {
                     txtQty.setText(oldVal);
                 }
             });
         }
         
-        // Low stock threshold - only integers
+        // Low stock threshold - supports decimal quantities
         if (txtLowStockThreshold != null) {
             txtLowStockThreshold.textProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal.matches("\\d*")) {
+                if (newVal == null || newVal.isEmpty()) {
+                    return; // Allow empty for user to type
+                }
+                // Allow decimal numbers (e.g., 2.5, 3.75, 10.5)
+                if (!newVal.matches("^\\d*\\.?\\d*$")) {
                     txtLowStockThreshold.setText(oldVal);
                 }
             });
@@ -578,8 +586,16 @@ public class NewBatchFormController {
                 if (productDetail != null) {
                     existingBatchCode = productDetail.getCode();
                     
-                    // Load existing data
-                    if (txtQty != null) txtQty.setText(String.valueOf(productDetail.getQtyOnHand()));
+                    // Load existing data (supports decimal quantities)
+                    if (txtQty != null) {
+                        double qty = productDetail.getQtyOnHand();
+                        // Format quantity - show as integer if whole number, otherwise show decimals
+                        if (qty == (int)qty) {
+                            txtQty.setText(String.valueOf((int)qty));
+                        } else {
+                            txtQty.setText(String.format("%.2f", qty));
+                        }
+                    }
                     if (txtLowStockThreshold != null && productDetail.getLowStockThreshold() != null) {
                         txtLowStockThreshold.setText(String.valueOf(productDetail.getLowStockThreshold()));
                     }
@@ -707,8 +723,8 @@ public class NewBatchFormController {
         clearFieldHighlight(txtSellingPrice);
         
         try {
-            // Validate quantity
-            int qty = Integer.parseInt(txtQty.getText().trim());
+            // Validate quantity (supports decimal quantities like 2.5, 3.75)
+            double qty = Double.parseDouble(txtQty.getText().trim());
             if (qty <= 0) {
                 showError("Quantity must be greater than 0!");
                 return false;
@@ -720,7 +736,7 @@ public class NewBatchFormController {
             
             // Validate low stock threshold
             if (txtLowStockThreshold != null && !txtLowStockThreshold.getText().trim().isEmpty()) {
-                int threshold = Integer.parseInt(txtLowStockThreshold.getText().trim());
+                double threshold = Double.parseDouble(txtLowStockThreshold.getText().trim());
                 if (threshold < 0) {
                     showError("Low stock threshold cannot be negative!");
                     return false;
@@ -876,8 +892,8 @@ public class NewBatchFormController {
                 }
             }
             
-            // Set quantity fields
-            int qty = Integer.parseInt(txtQty.getText().trim());
+            // Set quantity fields (supports decimal quantities like 2.5, 3.75)
+            double qty = Double.parseDouble(txtQty.getText().trim());
             productDetail.setQtyOnHand(qty);
             
             if (isEditMode) {
@@ -892,7 +908,9 @@ public class NewBatchFormController {
             }
             
             if (txtLowStockThreshold != null && !txtLowStockThreshold.getText().trim().isEmpty()) {
-                productDetail.setLowStockThreshold(Integer.parseInt(txtLowStockThreshold.getText().trim()));
+                // Low stock threshold can be decimal too, but we'll round to int for comparison
+                double threshold = Double.parseDouble(txtLowStockThreshold.getText().trim());
+                productDetail.setLowStockThreshold((int)Math.round(threshold));
             }
             
             // Set pricing

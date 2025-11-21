@@ -19,15 +19,15 @@ public class ReturnItemTm {
     private String productName;
     private String batchCode;
     private String batchNumber;
-    private Integer orderedQuantity;
+    private Double orderedQuantity; // Original ordered quantity (supports decimal quantities like 2.5, 3.75)
     private Double unitPrice;
     private Double lineTotal;
     private CheckBox selectCheckBox;
-    private Spinner<Integer> returnQuantitySpinner;
+    private Spinner<Double> returnQuantitySpinner; // Changed to Double to support decimal quantities
     
     // Constructor without UI components (for data transfer)
     public ReturnItemTm(Long orderItemId, Integer productCode, String productName, 
-                       String batchCode, String batchNumber, Integer orderedQuantity, 
+                       String batchCode, String batchNumber, Double orderedQuantity, 
                        Double unitPrice, Double lineTotal) {
         this.orderItemId = orderItemId;
         this.productCode = productCode;

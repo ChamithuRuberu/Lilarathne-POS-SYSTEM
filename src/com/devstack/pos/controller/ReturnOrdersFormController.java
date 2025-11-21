@@ -226,10 +226,24 @@ public class ReturnOrdersFormController extends BaseController {
                 viewBtn.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white;");
                 viewBtn.setOnAction(e -> viewReturnDetails(returnOrder));
                 
-                // Get product names for this return order
+                // Get product names for this return order (shows return quantities)
                 String productNames = returnOrderItemService.findByReturnOrderId(returnOrder.getId())
                     .stream()
-                    .map(item -> item.getProductName() + " (x" + item.getReturnQuantity() + ")")
+                    .map(item -> {
+                        Double returnQty = item.getReturnQuantity();
+                        // Format quantity - show as integer if whole number, otherwise show decimals (supports 2.5, 3.75, etc.)
+                        String qtyStr;
+                        if (returnQty != null) {
+                            if (returnQty == returnQty.intValue()) {
+                                qtyStr = String.valueOf(returnQty.intValue());
+                            } else {
+                                qtyStr = String.format("%.2f", returnQty);
+                            }
+                        } else {
+                            qtyStr = "0";
+                        }
+                        return item.getProductName() + " (x" + qtyStr + ")";
+                    })
                     .collect(java.util.stream.Collectors.joining(", "));
                 
                 if (productNames.isEmpty()) {
@@ -294,8 +308,31 @@ public class ReturnOrdersFormController extends BaseController {
                 for (ReturnOrderItem item : returnItems) {
                     content.append("\n").append(itemNumber++).append(". ").append(item.getProductName()).append("\n");
                     content.append("   Batch: ").append(item.getBatchNumber() != null ? item.getBatchNumber() : "N/A").append("\n");
-                    content.append("   Return Qty: ").append(item.getReturnQuantity())
-                           .append(" / ").append(item.getOriginalQuantity()).append(" (ordered)\n");
+                    Double returnQty = item.getReturnQuantity();
+                    String returnQtyStr;
+                    if (returnQty != null) {
+                        if (returnQty == returnQty.intValue()) {
+                            returnQtyStr = String.valueOf(returnQty.intValue());
+                        } else {
+                            returnQtyStr = String.format("%.2f", returnQty);
+                        }
+                    } else {
+                        returnQtyStr = "0";
+                    }
+                    // Format original quantity (supports decimal quantities)
+                    Double originalQty = item.getOriginalQuantity();
+                    String originalQtyStr;
+                    if (originalQty != null) {
+                        if (originalQty == originalQty.intValue()) {
+                            originalQtyStr = String.valueOf(originalQty.intValue());
+                        } else {
+                            originalQtyStr = String.format("%.2f", originalQty);
+                        }
+                    } else {
+                        originalQtyStr = "0";
+                    }
+                    content.append("   Return Qty: ").append(returnQtyStr)
+                           .append(" / ").append(originalQtyStr).append(" (ordered)\n");
                     content.append("   Unit Price: ").append(String.format("%.2f /=", item.getUnitPrice())).append("\n");
                     content.append("   Refund: ").append(String.format("%.2f /=", item.getRefundAmount())).append("\n");
                     content.append("   Inventory Restored: ").append(item.getInventoryRestored() ? "Yes ✓" : "No ✗").append("\n");

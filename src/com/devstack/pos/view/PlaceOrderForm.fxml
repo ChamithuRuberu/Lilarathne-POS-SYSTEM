@@ -122,10 +122,13 @@
                      <Font name="System" size="13.0" />
                   </font>
                </JFXTextField>
-               <JFXTextField fx:id="txtQty" promptText="Quantity" styleClass="text-field-modern" onAction="#addToCart" prefWidth="100.0" prefHeight="36.0">
+               <JFXTextField fx:id="txtQty" promptText="Quantity (e.g., 2 or 2.5)" styleClass="text-field-modern" onAction="#addToCart" prefWidth="150.0" prefHeight="36.0">
                   <font>
                      <Font name="System" size="13.0" />
                   </font>
+                  <tooltip>
+                     <Tooltip text="Enter quantity. Supports decimals for items like sand (kg) or pipes (meters). Example: 2.5" />
+                  </tooltip>
                </JFXTextField>
             </HBox>
             

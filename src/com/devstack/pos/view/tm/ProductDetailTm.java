@@ -4,7 +4,7 @@ import javafx.scene.control.Button;
 
 public class ProductDetailTm {
     private String code;
-    private int qty;
+    private double qty; // Changed to double to support decimal quantities
     private double sellingPrice;
     private double buyingPrice;
     private boolean discountAvailability;
@@ -16,7 +16,7 @@ public class ProductDetailTm {
     public ProductDetailTm() {
     }
 
-    public ProductDetailTm(String code, int qty, double sellingPrice, double buyingPrice, boolean discountAvailability, String supplierName, Button viewBarcode, Button delete) {
+    public ProductDetailTm(String code, double qty, double sellingPrice, double buyingPrice, boolean discountAvailability, String supplierName, Button viewBarcode, Button delete) {
         this.code = code;
         this.qty = qty;
         this.sellingPrice = sellingPrice;
@@ -36,11 +36,11 @@ public class ProductDetailTm {
         this.code = code;
     }
 
-    public int getQty() {
+    public double getQty() {
         return qty;
     }
 
-    public void setQty(int qty) {
+    public void setQty(double qty) {
         this.qty = qty;
     }
 

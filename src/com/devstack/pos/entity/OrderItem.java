@@ -40,8 +40,8 @@ public class OrderItem {
     @Column(name = "batch_number", length = 50)
     private String batchNumber;
     
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @Column(name = "quantity", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private Double quantity; // Changed to Double to support decimal quantities (e.g., 2.5 kg, 3.75 meters)
     
     @Column(name = "unit_price", nullable = false)
     private Double unitPrice;
@@ -61,11 +61,11 @@ public class OrderItem {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        // Calculate total discount if not set
+        // Calculate total discount if not set (supports decimal quantities)
         if (totalDiscount == null && discountPerUnit != null && quantity != null) {
             totalDiscount = discountPerUnit * quantity;
         }
-        // Calculate line total if not set
+        // Calculate line total if not set (supports decimal quantities)
         if (lineTotal == null && unitPrice != null && quantity != null) {
             double discountAmount = (totalDiscount != null) ? totalDiscount : 0.0;
             lineTotal = (unitPrice * quantity) - discountAmount;

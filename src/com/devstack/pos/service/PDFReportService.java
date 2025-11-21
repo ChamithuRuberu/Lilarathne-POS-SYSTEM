@@ -1626,7 +1626,7 @@ public class PDFReportService {
         SystemSettings settings = systemSettingsService.getSystemSettings();
         String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
             ? settings.getBusinessName()
-            : "Kumara Enterprises POS System";
+            : "Kumara Enterprises";
         
         String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
             ? settings.getFooterMessage()

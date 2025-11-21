@@ -18,7 +18,7 @@ public class SystemSettingsService {
                 .orElseGet(() -> {
                     // Create default settings if none exist
                     SystemSettings defaultSettings = new SystemSettings(
-                            "Kumara Enterprises POS System",
+                            "Kumara Enterprises",
                             "",
                             "",
                             "",

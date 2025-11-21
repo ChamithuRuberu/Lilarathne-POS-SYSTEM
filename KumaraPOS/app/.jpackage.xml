@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-<jpackage-state version="21.0.6" platform="windows">
-  <app-version>1.0.0</app-version>
-  <main-launcher>KumaraPOS</main-launcher>
-  <main-class>org.springframework.boot.loader.launch.JarLauncher</main-class>
-  <signed>false</signed>
-  <app-store>false</app-store></jpackage-state>

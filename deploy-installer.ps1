@@ -407,11 +407,237 @@ if (-not (Test-Path $JPACKAGE)) {
 Write-Host "Using jpackage from: $JPACKAGE" -ForegroundColor Cyan
 Write-Host ""
 
-# Check if user wants console launcher (for debugging)
+# Check if user wants to enable console launcher (console disabled by default)
 $createConsoleLauncher = $false
 if ($args -contains "--console" -or $args -contains "-c") {
     $createConsoleLauncher = $true
-    Write-Host "Creating console launcher (errors will be visible)..." -ForegroundColor Yellow
+    Write-Host "Console launcher enabled (errors will be visible)..." -ForegroundColor Green
+} else {
+    Write-Host "Console launcher disabled by default (no console window)..." -ForegroundColor Yellow
+}
+
+# Check for WiX tools (required for .exe installer)
+# WiX is needed for creating Windows installers, but not for app-image (portable)
+function Test-WiXAvailable {
+    param([ref]$wixBinPath)
+
+    # Check if WiX tools are in PATH
+    $lightExe = Get-Command light.exe -ErrorAction SilentlyContinue
+    $candleExe = Get-Command candle.exe -ErrorAction SilentlyContinue
+
+    if ($lightExe -and $candleExe) {
+        $wixBinPath.Value = Split-Path $lightExe.Source -Parent
+        return $true
+    }
+
+    # Check WIX environment variable
+    if ($env:WIX) {
+        $wixBinPathCandidate = Join-Path $env:WIX "bin"
+        if ((Test-Path "$wixBinPathCandidate\light.exe") -and (Test-Path "$wixBinPathCandidate\candle.exe")) {
+            $wixBinPath.Value = $wixBinPathCandidate
+            return $true
+        }
+    }
+
+    # Check common WiX installation locations (including newer versions)
+    $wixPaths = @(
+        "${env:ProgramFiles}\WiX Toolset v3.14\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.14\bin",
+        "${env:ProgramFiles}\WiX Toolset v3.13\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.13\bin",
+        "${env:ProgramFiles}\WiX Toolset v3.12\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.12\bin",
+        "${env:ProgramFiles}\WiX Toolset v3.11\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin",
+        "${env:ProgramFiles}\WiX Toolset v3.10\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.10\bin",
+        "${env:ProgramFiles}\WiX Toolset v3.9\bin",
+        "${env:ProgramFiles(x86)}\WiX Toolset v3.9\bin"
+    )
+
+    # Also check for WiX in Program Files without version number
+    $programFilesDirs = @("${env:ProgramFiles}", "${env:ProgramFiles(x86)}")
+    foreach ($pfDir in $programFilesDirs) {
+        if (Test-Path $pfDir) {
+            $wixDirs = Get-ChildItem $pfDir -Directory -ErrorAction SilentlyContinue |
+                       Where-Object { $_.Name -like "WiX*" -or $_.Name -like "*WiX*" }
+            foreach ($wixDir in $wixDirs) {
+                $binPath = Join-Path $wixDir.FullName "bin"
+                if ((Test-Path "$binPath\light.exe") -and (Test-Path "$binPath\candle.exe")) {
+                    $wixPaths += $binPath
+                }
+            }
+        }
+    }
+
+    foreach ($wixPath in $wixPaths) {
+        if ((Test-Path "$wixPath\light.exe") -and (Test-Path "$wixPath\candle.exe")) {
+            $wixBinPath.Value = $wixPath
+            return $true
+        }
+    }
+
+    # Check registry for WiX installation
+    $regPaths = @(
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    foreach ($regPath in $regPaths) {
+        $wixInstall = Get-ItemProperty $regPath -ErrorAction SilentlyContinue |
+                      Where-Object { $_.DisplayName -like "*WiX*" -or $_.DisplayName -like "*Windows Installer XML*" } |
+                      Select-Object -First 1
+        if ($wixInstall -and $wixInstall.InstallLocation) {
+            $binPath = Join-Path $wixInstall.InstallLocation "bin"
+            if ((Test-Path "$binPath\light.exe") -and (Test-Path "$binPath\candle.exe")) {
+                $wixBinPath.Value = $binPath
+                return $true
+            }
+        }
+    }
+
+    return $false
+}
+
+# Function to install WiX using winget or chocolatey
+function Install-WiX {
+    Write-Host ""
+    Write-Host "Attempting to install WiX Toolset automatically..." -ForegroundColor Cyan
+    Write-Host ""
+
+    # Try winget first (Windows 10/11 built-in)
+    $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if ($winget) {
+        Write-Host "Found winget - attempting to install WiX..." -ForegroundColor Green
+        try {
+            $wingetOutput = & winget install --id WiXToolset.WiXToolset --accept-package-agreements --accept-source-agreements 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "WiX installed successfully via winget!" -ForegroundColor Green
+                # Refresh PATH
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+                return $true
+            } else {
+                Write-Host "winget installation failed. Trying chocolatey..." -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "winget installation failed. Trying chocolatey..." -ForegroundColor Yellow
+        }
+    }
+
+    # Try chocolatey
+    $choco = Get-Command choco.exe -ErrorAction SilentlyContinue
+    if ($choco) {
+        Write-Host "Found chocolatey - attempting to install WiX..." -ForegroundColor Green
+        try {
+            # Run chocolatey install (requires admin)
+            $chocoOutput = & choco install wix --yes --accept-license 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "WiX installed successfully via chocolatey!" -ForegroundColor Green
+                # Refresh PATH
+                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+                return $true
+            }
+        } catch {
+            Write-Host "chocolatey installation failed." -ForegroundColor Yellow
+        }
+    }
+
+    Write-Host ""
+    Write-Host "Automatic installation failed or package managers not available." -ForegroundColor Yellow
+    Write-Host "Please install WiX manually:" -ForegroundColor Cyan
+    Write-Host "  1. Download from: https://wixtoolset.org/docs/wix3/" -ForegroundColor White
+    Write-Host "  2. Or use winget: winget install WiXToolset.WiXToolset" -ForegroundColor White
+    Write-Host "  3. Or use chocolatey: choco install wix" -ForegroundColor White
+    Write-Host "  4. After installation, add WiX bin directory to PATH" -ForegroundColor White
+    Write-Host ""
+    return $false
+}
+
+# Determine installer type - prioritize creating installer (.exe) over portable app
+$installerType = "exe"
+$useAppImage = $false
+$wixBinPath = ""
+$wixAvailable = Test-WiXAvailable -wixBinPath ([ref]$wixBinPath)
+
+# Check if user explicitly wants app-image
+if ($args -contains "--app-image" -or $args -contains "-p" -or $args -contains "--portable") {
+    $installerType = "app-image"
+    $useAppImage = $true
+    Write-Host "Creating portable app-image (no installation required)..." -ForegroundColor Cyan
+} elseif (-not $wixAvailable) {
+    Write-Host ""
+    Write-Host "WiX tools not found - attempting to install automatically..." -ForegroundColor Yellow
+    Write-Host "  WiX (Windows Installer XML) is required to create .exe installers." -ForegroundColor Yellow
+    Write-Host ""
+
+    # Automatically try to install WiX (unless user explicitly wants app-image)
+    $tryAutoInstall = $true
+    if ($args -contains "--no-auto-install-wix") {
+        $tryAutoInstall = $false
+        Write-Host "Skipping automatic WiX installation (--no-auto-install-wix flag detected)" -ForegroundColor Yellow
+    }
+
+    if ($tryAutoInstall) {
+        Write-Host "Attempting automatic WiX installation..." -ForegroundColor Cyan
+        $installed = Install-WiX
+        if ($installed) {
+            # Re-check for WiX after installation
+            $wixAvailable = Test-WiXAvailable -wixBinPath ([ref]$wixBinPath)
+            if ($wixAvailable) {
+                Write-Host ""
+                Write-Host "WiX tools found - creating .exe installer..." -ForegroundColor Green
+                if ($wixBinPath -and $wixBinPath -notin $env:Path) {
+                    Write-Host "Adding WiX to PATH for this session..." -ForegroundColor Yellow
+                    $env:Path = "$wixBinPath;$env:Path"
+                }
+            } else {
+                Write-Host ""
+                Write-Host "WiX installation completed but tools not found in PATH." -ForegroundColor Yellow
+                Write-Host "Please restart PowerShell or add WiX bin directory to PATH manually." -ForegroundColor Yellow
+                Write-Host ""
+                Write-Host "To create an installer, please:" -ForegroundColor Cyan
+                Write-Host "  1. Restart PowerShell and run this script again" -ForegroundColor White
+                Write-Host "  2. Or manually add WiX to PATH" -ForegroundColor White
+                Write-Host "  3. Or install WiX manually from: https://wixtoolset.org/" -ForegroundColor White
+                Write-Host ""
+                Write-Host "Alternatively, create a portable version with: .\deploy-installer.ps1 --app-image" -ForegroundColor Cyan
+                pause
+                exit 1
+            }
+        } else {
+            Write-Host ""
+            Write-Host "Automatic WiX installation failed." -ForegroundColor Red
+            Write-Host ""
+            Write-Host "To create an installer, please install WiX manually:" -ForegroundColor Cyan
+            Write-Host "  1. Download from: https://wixtoolset.org/docs/wix3/" -ForegroundColor White
+            Write-Host "  2. Or use winget: winget install WiXToolset.WiXToolset" -ForegroundColor White
+            Write-Host "  3. Or use chocolatey: choco install wix" -ForegroundColor White
+            Write-Host "  4. After installation, run this script again" -ForegroundColor White
+            Write-Host ""
+            Write-Host "Alternatively, create a portable version with: .\deploy-installer.ps1 --app-image" -ForegroundColor Cyan
+            Write-Host ""
+            pause
+            exit 1
+        }
+    } else {
+        Write-Host ""
+        Write-Host "WiX is required to create an installer." -ForegroundColor Red
+        Write-Host "Please install WiX manually or run without --no-auto-install-wix flag." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "To create an installer, please install WiX:" -ForegroundColor Cyan
+        Write-Host "  1. Download from: https://wixtoolset.org/docs/wix3/" -ForegroundColor White
+        Write-Host "  2. Or use winget: winget install WiXToolset.WiXToolset" -ForegroundColor White
+        Write-Host "  3. Or use chocolatey: choco install wix" -ForegroundColor White
+        Write-Host "  4. After installation, run this script again" -ForegroundColor White
+        Write-Host ""
+        pause
+        exit 1
+    }
+} else {
+    Write-Host "WiX tools found - creating .exe installer..." -ForegroundColor Green
+    if ($wixBinPath -and $wixBinPath -notin $env:Path) {
+        Write-Host "Adding WiX to PATH for this session: $wixBinPath" -ForegroundColor Yellow
+        $env:Path = "$wixBinPath;$env:Path"
+    }
 }
 
 # Build jpackage command with bundled Java runtime
@@ -422,24 +648,35 @@ $jpackageArgs = @(
     "--app-version", "1.0.0",
     "--vendor", "Kumara Enterprises",
     "--description", "Point of Sale System - Self Contained Installer",
-    "--type", "exe",
+    "--type", $installerType,
     "--input", "installer_staging",
     "--main-jar", "app.jar",
     "--main-class", "org.springframework.boot.loader.launch.JarLauncher",
-    "--runtime-image", $runtimeDir,
-    "--win-shortcut",
-    "--win-menu",
-    "--win-dir-chooser",
-    "--win-per-user-install"
+    "--runtime-image", $runtimeDir
 )
 
-# Add console launcher if requested (shows errors in console window)
-if ($createConsoleLauncher) {
-    $jpackageArgs += "--win-console"
-    Write-Host "  Note: Console launcher enabled - errors will be visible" -ForegroundColor Cyan
+# Add Windows-specific options only for .exe installer
+if (-not $useAppImage) {
+    $jpackageArgs += @(
+        "--win-shortcut",
+        "--win-menu",
+        "--win-dir-chooser",
+        "--win-per-user-install"
+    )
+} else {
+    # For app-image, we can still add shortcuts but they're created differently
+    Write-Host "  Note: app-image creates a portable folder (no installer needed)" -ForegroundColor Gray
 }
 
-# Add Java options
+# Add console launcher (enabled by default to show errors)
+if ($createConsoleLauncher) {
+    $jpackageArgs += "--win-console"
+    Write-Host "  Console launcher: ENABLED (errors will be visible)" -ForegroundColor Green
+} else {
+    Write-Host "  Console launcher: DISABLED (errors will not be visible)" -ForegroundColor Yellow
+}
+
+# Add Java options (including JavaFX-specific options)
 $jpackageArgs += @(
     "--java-options", "-Xmx1024m",
     "--java-options", "-Xms256m",
@@ -447,18 +684,32 @@ $jpackageArgs += @(
     "--java-options", "-Djava.awt.headless=false",
     "--java-options", "-Djava.net.useSystemProxies=true",
     "--java-options", "-Duser.timezone=UTC",
+    # Core module opens
     "--java-options", "--add-opens=java.base/java.lang=ALL-UNNAMED",
     "--java-options", "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
     "--java-options", "--add-opens=java.base/java.util=ALL-UNNAMED",
     "--java-options", "--add-opens=java.base/java.io=ALL-UNNAMED",
     "--java-options", "--add-opens=java.base/java.nio=ALL-UNNAMED",
     "--java-options", "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+    # Desktop/AWT module opens (required for JavaFX)
     "--java-options", "--add-opens=java.desktop/java.awt=ALL-UNNAMED",
     "--java-options", "--add-opens=java.desktop/java.awt.event=ALL-UNNAMED",
     "--java-options", "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+    "--java-options", "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED",
+    "--java-options", "--add-opens=java.desktop/sun.font=ALL-UNNAMED",
+    "--java-options", "--add-opens=java.desktop/sun.swing=ALL-UNNAMED",
+    # Preferences module opens
     "--java-options", "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED",
+    # Exports for JavaFX
     "--java-options", "--add-exports=java.desktop/sun.awt=ALL-UNNAMED",
     "--java-options", "--add-exports=java.desktop/sun.java2d=ALL-UNNAMED",
+    "--java-options", "--add-exports=java.desktop/sun.font=ALL-UNNAMED",
+    # JavaFX module opens (if JavaFX is in classpath)
+    "--java-options", "--add-opens=javafx.base/com.sun.javafx=ALL-UNNAMED",
+    "--java-options", "--add-opens=javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED",
+    "--java-options", "--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
+    "--java-options", "--add-opens=javafx.graphics/com.sun.javafx.stage=ALL-UNNAMED",
+    # GC options
     "--java-options", "-XX:+UseG1GC",
     "--java-options", "-XX:MaxGCPauseMillis=200"
 )
@@ -474,6 +725,7 @@ if (-not $isWindows10OrLater) {
 
 Write-Host ""
 Write-Host "Running jpackage with the following configuration:" -ForegroundColor Cyan
+Write-Host "  Type: $installerType" -ForegroundColor $(if ($useAppImage) { "Yellow" } else { "Green" })
 Write-Host "  Main JAR: app.jar" -ForegroundColor White
 Write-Host "  Main Class: org.springframework.boot.loader.launch.JarLauncher (Spring Boot)" -ForegroundColor White
 Write-Host "  Start Class: com.devstack.pos.PosApplication" -ForegroundColor White
@@ -482,8 +734,49 @@ Write-Host '  Compatibility: Enhanced for all Windows 10/11 versions (64-bit)' -
 Write-Host "  Java Options: Optimized for Spring Boot 3.x + JavaFX" -ForegroundColor Green
 Write-Host ""
 
+# Verify WiX is accessible if creating .exe installer
+if (-not $useAppImage) {
+    $lightCheck = Get-Command light.exe -ErrorAction SilentlyContinue
+    $candleCheck = Get-Command candle.exe -ErrorAction SilentlyContinue
+    if (-not ($lightCheck -and $candleCheck)) {
+        Write-Host ""
+        Write-Host "ERROR: WiX tools (light.exe, candle.exe) are not accessible in PATH!" -ForegroundColor Red
+        Write-Host "  Even though WiX was detected, the tools cannot be found when running jpackage." -ForegroundColor Yellow
+        if ($wixBinPath) {
+            Write-Host "  WiX bin path found: $wixBinPath" -ForegroundColor Cyan
+            Write-Host "  Attempting to add to PATH for this session..." -ForegroundColor Yellow
+            $env:Path = "$wixBinPath;$env:Path"
+            # Re-check
+            $lightCheck = Get-Command light.exe -ErrorAction SilentlyContinue
+            $candleCheck = Get-Command candle.exe -ErrorAction SilentlyContinue
+            if (-not ($lightCheck -and $candleCheck)) {
+                Write-Host "  Failed to make WiX accessible. Please add WiX bin directory to system PATH." -ForegroundColor Red
+                Write-Host "  WiX bin directory: $wixBinPath" -ForegroundColor Yellow
+                Write-Host ""
+                Write-Host "  Alternatively, use app-image instead: .\deploy-installer.ps1 --app-image" -ForegroundColor Cyan
+                pause
+                exit 1
+            } else {
+                Write-Host "  WiX tools are now accessible!" -ForegroundColor Green
+            }
+        } else {
+            Write-Host "  Please install WiX and add it to your PATH, or use app-image instead." -ForegroundColor Yellow
+            Write-Host "  To use app-image: .\deploy-installer.ps1 --app-image" -ForegroundColor Cyan
+            pause
+            exit 1
+        }
+    } else {
+        Write-Host "  WiX tools verified and accessible" -ForegroundColor Green
+    }
+    Write-Host ""
+}
+
 # Run jpackage with error handling
-Write-Host "Creating installer (this may take several minutes)..." -ForegroundColor Yellow
+if ($useAppImage) {
+    Write-Host "Creating portable application (this may take several minutes)..." -ForegroundColor Yellow
+} else {
+    Write-Host "Creating installer (this may take several minutes)..." -ForegroundColor Yellow
+}
 & $JPACKAGE $jpackageArgs 2>&1 | Tee-Object -Variable jpackageOutput
 
 # Check if there were warnings but it still succeeded
@@ -495,114 +788,201 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "     SUCCESS!" -ForegroundColor Green
     Write-Host "=====================================" -ForegroundColor Green
     Write-Host ""
-    
-    $installerFile = "KumaraPOS-1.0.0.exe"
-    if (Test-Path $installerFile) {
-        Write-Host "Installer created: " -NoNewline
-        Write-Host $installerFile -ForegroundColor Cyan
-        Write-Host "Location: " -NoNewline
-        Write-Host "$(Get-Location)" -ForegroundColor Yellow
-        Write-Host ""
-        
-        $fileSize = (Get-Item $installerFile).Length / 1MB
-        Write-Host "File size: " -NoNewline
-        Write-Host "$([math]::Round($fileSize, 2)) MB" -ForegroundColor Cyan
-        Write-Host ""
-        
-        # Verify installer integrity
-        Write-Host "Verifying installer..." -ForegroundColor Cyan
-        $fileInfo = Get-Item $installerFile
-        if ($fileInfo.Length -gt 50MB) {
-            Write-Host "  Installer size looks good (contains bundled Java runtime)" -ForegroundColor Green
+
+    if ($useAppImage) {
+        # App-image creates a folder, not an installer
+        $appImageFolder = "KumaraPOS"
+        if (Test-Path $appImageFolder) {
+            Write-Host "Portable application created: " -NoNewline
+            Write-Host $appImageFolder -ForegroundColor Cyan
+            Write-Host "Location: " -NoNewline
+            Write-Host "$(Get-Location)\$appImageFolder" -ForegroundColor Yellow
+            Write-Host ""
+
+            $folderSize = (Get-ChildItem $appImageFolder -Recurse -ErrorAction SilentlyContinue |
+                           Measure-Object -Property Length -Sum).Sum / 1MB
+            Write-Host "Folder size: " -NoNewline
+            Write-Host "$([math]::Round($folderSize, 2)) MB" -ForegroundColor Cyan
+            Write-Host ""
+
+            $exePath = Join-Path $appImageFolder "KumaraPOS.exe"
+            if (Test-Path $exePath) {
+                Write-Host "Application executable: " -NoNewline
+                Write-Host $exePath -ForegroundColor Green
+                Write-Host ""
+            }
+
+            Write-Host "You can now:" -ForegroundColor Green
+            Write-Host "  1. Run the application directly: .\$appImageFolder\KumaraPOS.exe" -ForegroundColor White
+            Write-Host "  2. Copy the entire '$appImageFolder' folder to any Windows computer" -ForegroundColor White
+            Write-Host "  3. No installation required - just run KumaraPOS.exe" -ForegroundColor White
+            Write-Host ""
+            Write-Host "IMPORTANT: This is a PORTABLE application!" -ForegroundColor Green
+            Write-Host "  - No Java installation required on target computers" -ForegroundColor White
+            Write-Host '  - Works on Windows 10/11 (64-bit) - all versions' -ForegroundColor White
+            Write-Host "  - Java runtime is bundled in the folder" -ForegroundColor White
+            Write-Host "  - Just copy the folder and run - no installer needed!" -ForegroundColor White
+            Write-Host "  - Enhanced compatibility with all required Java modules" -ForegroundColor White
+            Write-Host "  - Optimized Java options for Spring Boot 3.x + JavaFX" -ForegroundColor White
+            Write-Host ""
         } else {
-            Write-Host "  WARNING: Installer seems small - may not contain runtime" -ForegroundColor Yellow
+            Write-Host "WARNING: App-image folder not found at expected location!" -ForegroundColor Yellow
         }
-        Write-Host ""
-        
-        Write-Host "You can now:" -ForegroundColor Green
-        $runCommand = ".\" + $installerFile
-        Write-Host "  1. Test the installer by running: $runCommand" -ForegroundColor White
-        Write-Host "  2. Distribute this file to other Windows computers" -ForegroundColor White
-        Write-Host ""
-        Write-Host "IMPORTANT: This is a SELF-CONTAINED installer!" -ForegroundColor Green
-        Write-Host "  - No Java installation required on target computers" -ForegroundColor White
-        Write-Host '  - Works on Windows 10/11 (64-bit) - all versions' -ForegroundColor White
-        Write-Host "  - Java runtime is bundled with the installer" -ForegroundColor White
-        Write-Host "  - Enhanced compatibility with all required Java modules" -ForegroundColor White
-        Write-Host "  - Optimized Java options for Spring Boot 3.x + JavaFX" -ForegroundColor White
-        Write-Host ""
-        
-        if ($hasWarnings) {
-            Write-Host "NOTE: Some warnings were detected but installer was created successfully." -ForegroundColor Yellow
-            Write-Host "      The installer should still work correctly." -ForegroundColor Yellow
+    } else {
+        # .exe installer
+        $installerFile = "KumaraPOS-1.0.0.exe"
+        if (Test-Path $installerFile) {
+            Write-Host "Installer created: " -NoNewline
+            Write-Host $installerFile -ForegroundColor Cyan
+            Write-Host "Location: " -NoNewline
+            Write-Host "$(Get-Location)" -ForegroundColor Yellow
+            Write-Host ""
+
+            $fileSize = (Get-Item $installerFile).Length / 1MB
+            Write-Host "File size: " -NoNewline
+            Write-Host "$([math]::Round($fileSize, 2)) MB" -ForegroundColor Cyan
+            Write-Host ""
+
+            # Verify installer integrity
+            Write-Host "Verifying installer..." -ForegroundColor Cyan
+            $fileInfo = Get-Item $installerFile
+            if ($fileInfo.Length -gt 50MB) {
+                Write-Host "  Installer size looks good (contains bundled Java runtime)" -ForegroundColor Green
+            } else {
+                Write-Host "  WARNING: Installer seems small - may not contain runtime" -ForegroundColor Yellow
+            }
+            Write-Host ""
+
+            Write-Host "You can now:" -ForegroundColor Green
+            $runCommand = ".\" + $installerFile
+            Write-Host "  1. Test the installer by running: $runCommand" -ForegroundColor White
+            Write-Host "  2. Distribute this file to other Windows computers" -ForegroundColor White
+            Write-Host ""
+            Write-Host "IMPORTANT: This is a SELF-CONTAINED installer!" -ForegroundColor Green
+            Write-Host "  - No Java installation required on target computers" -ForegroundColor White
+            Write-Host '  - Works on Windows 10/11 (64-bit) - all versions' -ForegroundColor White
+            Write-Host "  - Java runtime is bundled with the installer" -ForegroundColor White
+            Write-Host "  - Enhanced compatibility with all required Java modules" -ForegroundColor White
+            Write-Host "  - Optimized Java options for Spring Boot 3.x + JavaFX" -ForegroundColor White
+            Write-Host ""
+        } else {
+            if ($useAppImage) {
+                Write-Host "WARNING: App-image folder not found at expected location!" -ForegroundColor Yellow
+            } else {
+                Write-Host "WARNING: Installer file not found at expected location!" -ForegroundColor Yellow
+            }
+            Write-Host "Check the jpackage output above for details." -ForegroundColor Yellow
             Write-Host ""
         }
-        
-        Write-Host "TROUBLESHOOTING:" -ForegroundColor Cyan
-        Write-Host '  If the installer does not run on some Windows versions:' -ForegroundColor White
-        Write-Host '  1. Ensure target PC is Windows 10/11 (64-bit)' -ForegroundColor Gray
-        Write-Host "  2. Run installer as Administrator if needed" -ForegroundColor Gray
-        Write-Host "  3. Check Windows Event Viewer for detailed errors" -ForegroundColor Gray
-        Write-Host '  4. Ensure antivirus is not blocking the installer' -ForegroundColor Gray
-        Write-Host "  5. Try creating a portable version (app-image) instead" -ForegroundColor Gray
-        Write-Host ""
-        Write-Host "OPTIONAL: Create portable version (app-image)?" -ForegroundColor Cyan
-        Write-Host '  A portable version does not require installation and may work better on some systems.' -ForegroundColor Gray
-        Write-Host "  To create it, run this script again with: .\deploy-installer.ps1 -Portable" -ForegroundColor Gray
-        Write-Host ""
-        Write-Host "DEBUGGING TOOLS:" -ForegroundColor Cyan
-        Write-Host '  If the .exe installer does not work or nothing happens when you click it:' -ForegroundColor White
-        Write-Host ""
-        Write-Host "  1. Recreate installer with console launcher (RECOMMENDED):" -ForegroundColor Yellow
-        Write-Host "     .\deploy-installer.ps1 --console" -ForegroundColor Gray
-        Write-Host "     (This creates an installer that shows errors in a console window)" -ForegroundColor DarkGray
-        Write-Host ""
-        Write-Host "  2. Test JAR before installing:" -ForegroundColor Yellow
-        Write-Host "     .\test-jar.ps1" -ForegroundColor Gray
-        Write-Host "     (This runs the JAR with visible console to see errors)" -ForegroundColor DarkGray
-        Write-Host ""
-        Write-Host "  3. After installation, run with console:" -ForegroundColor Yellow
-        Write-Host "     .\run-with-console.ps1" -ForegroundColor Gray
-        Write-Host "     (This runs the installed app with visible console window)" -ForegroundColor DarkGray
-        Write-Host ""
-        Write-Host "  4. View application logs:" -ForegroundColor Yellow
-        Write-Host "     .\view-app-logs.ps1" -ForegroundColor Gray
-        Write-Host "     (Shows log files from the installed application)" -ForegroundColor DarkGray
-        Write-Host ""
-        Write-Host "  5. Check Windows Event Viewer:" -ForegroundColor Yellow
-        Write-Host "     .\check-event-viewer.ps1" -ForegroundColor Gray
-        Write-Host "     (Checks Windows Event Viewer for errors)" -ForegroundColor DarkGray
-        Write-Host ""
-    } else {
-        Write-Host "WARNING: Installer file not found at expected location!" -ForegroundColor Yellow
-        Write-Host "Check the jpackage output above for details." -ForegroundColor Yellow
+    }
+
+    # Show warnings and troubleshooting info (outside the file/folder check)
+    if ($hasWarnings) {
+        Write-Host "NOTE: Some warnings were detected but application was created successfully." -ForegroundColor Yellow
+        Write-Host "      The application should still work correctly." -ForegroundColor Yellow
         Write-Host ""
     }
+
+    Write-Host "TROUBLESHOOTING:" -ForegroundColor Cyan
+    Write-Host '  If the application does not run on some Windows versions:' -ForegroundColor White
+    Write-Host '  1. Ensure target PC is Windows 10/11 (64-bit)' -ForegroundColor Gray
+    Write-Host "  2. Run as Administrator if needed" -ForegroundColor Gray
+    Write-Host "  3. Check Windows Event Viewer for detailed errors" -ForegroundColor Gray
+    Write-Host '  4. Ensure antivirus is not blocking the application' -ForegroundColor Gray
+    Write-Host "  5. Try creating a portable version (app-image) instead" -ForegroundColor Gray
+    Write-Host ""
+    if (-not $useAppImage) {
+        Write-Host "OPTIONAL: Create portable version (app-image)?" -ForegroundColor Cyan
+        Write-Host '  A portable version does not require installation and may work better on some systems.' -ForegroundColor Gray
+        Write-Host "  To create it, run this script again with: .\deploy-installer.ps1 --app-image" -ForegroundColor Gray
+        Write-Host ""
+    }
+    Write-Host "DEBUGGING TOOLS:" -ForegroundColor Cyan
+    Write-Host '  If the application does not work or nothing happens when you click it:' -ForegroundColor White
+    Write-Host ""
+    Write-Host "  1. Recreate with console launcher (RECOMMENDED):" -ForegroundColor Yellow
+    Write-Host "     .\deploy-installer.ps1 --console" -ForegroundColor Gray
+    Write-Host "     (This creates an application that shows errors in a console window)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  2. Test JAR before packaging:" -ForegroundColor Yellow
+    Write-Host "     java -jar target\pos-1.0.0.jar" -ForegroundColor Gray
+    Write-Host "     (This runs the JAR with visible console to see errors)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  3. View application logs:" -ForegroundColor Yellow
+    Write-Host "     Get-Content logs\kumarapos.log" -ForegroundColor Gray
+    Write-Host "     (Shows log files from the application)" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  4. Check Windows Event Viewer:" -ForegroundColor Yellow
+    Write-Host "     eventvwr.msc" -ForegroundColor Gray
+    Write-Host "     (Checks Windows Event Viewer for errors)" -ForegroundColor DarkGray
+    Write-Host ""
 } else {
     Write-Host ""
     Write-Host "=====================================" -ForegroundColor Red
     Write-Host "     FAILED!" -ForegroundColor Red
     Write-Host "=====================================" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Installer creation failed!" -ForegroundColor Red
+    if ($useAppImage) {
+        Write-Host "Portable application creation failed!" -ForegroundColor Red
+    } else {
+        Write-Host "Installer creation failed!" -ForegroundColor Red
+    }
     Write-Host ""
-    Write-Host "Common issues and solutions:" -ForegroundColor Yellow
-    Write-Host "  1. Missing dependencies:" -ForegroundColor White
-    Write-Host "     - Ensure JDK 21 is properly installed" -ForegroundColor Gray
-    Write-Host "     - Verify jpackage.exe exists at: $JPACKAGE" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "  2. Runtime creation issues:" -ForegroundColor White
-    Write-Host "     - Check that jlink.exe exists at: $JLINK" -ForegroundColor Gray
-    Write-Host "     - Verify JDK jmods directory exists" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "  3. Windows-specific issues:" -ForegroundColor White
-    Write-Host "     - Run PowerShell as Administrator" -ForegroundColor Gray
-    Write-Host '     - Check antivirus is not blocking jpackage' -ForegroundColor Gray
-    Write-Host "     - Ensure sufficient disk space (need ~500MB free)" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "  4. Check the error messages above for specific details." -ForegroundColor Yellow
-    Write-Host ""
-    
+
+    # Check if the error is WiX-related
+    $wixError = $jpackageOutput | Select-String -Pattern "WiX|wix|light\.exe|candle\.exe|Windows Installer XML" -Quiet
+    if ($wixError -and -not $useAppImage) {
+        Write-Host "ERROR DETECTED: WiX-related issue!" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "The installer creation failed because WiX tools are not properly configured." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Solutions:" -ForegroundColor Cyan
+        Write-Host "  1. Install WiX Toolset:" -ForegroundColor White
+        Write-Host "     - Download from: https://wixtoolset.org/docs/wix3/" -ForegroundColor Gray
+        Write-Host "     - Or use: winget install WiXToolset.WiXToolset" -ForegroundColor Gray
+        Write-Host "     - Or use: choco install wix" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  2. Add WiX to PATH:" -ForegroundColor White
+        if ($wixBinPath) {
+            Write-Host "     WiX bin directory: $wixBinPath" -ForegroundColor Gray
+            Write-Host "     Add this to your system PATH environment variable" -ForegroundColor Gray
+        } else {
+            Write-Host "     Find WiX installation (usually in Program Files\WiX Toolset v3.x\bin)" -ForegroundColor Gray
+            Write-Host "     Add the 'bin' directory to your system PATH" -ForegroundColor Gray
+        }
+        Write-Host ""
+        Write-Host "  3. Use portable app-image instead (no WiX needed):" -ForegroundColor White
+        Write-Host "     .\deploy-installer.ps1 --app-image" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  4. Try automatic WiX installation:" -ForegroundColor White
+        Write-Host "     .\deploy-installer.ps1 --install-wix" -ForegroundColor Gray
+        Write-Host "     (Requires admin rights and winget/chocolatey)" -ForegroundColor DarkGray
+        Write-Host ""
+    } else {
+        Write-Host "Common issues and solutions:" -ForegroundColor Yellow
+        Write-Host "  1. Missing dependencies:" -ForegroundColor White
+        Write-Host "     - Ensure JDK 21 is properly installed" -ForegroundColor Gray
+        Write-Host "     - Verify jpackage.exe exists at: $JPACKAGE" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  2. Runtime creation issues:" -ForegroundColor White
+        Write-Host "     - Check that jlink.exe exists at: $JLINK" -ForegroundColor Gray
+        Write-Host "     - Verify JDK jmods directory exists" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  3. Windows-specific issues:" -ForegroundColor White
+        Write-Host "     - Run PowerShell as Administrator" -ForegroundColor Gray
+        Write-Host '     - Check antivirus is not blocking jpackage' -ForegroundColor Gray
+        Write-Host "     - Ensure sufficient disk space (need ~500MB free)" -ForegroundColor Gray
+        Write-Host ""
+        if (-not $useAppImage) {
+            Write-Host "  4. WiX tools missing (for .exe installer):" -ForegroundColor White
+            Write-Host "     - Install WiX from: https://wixtoolset.org/" -ForegroundColor Gray
+            Write-Host "     - Or use portable app-image instead: .\deploy-installer.ps1 --app-image" -ForegroundColor Gray
+            Write-Host ""
+        }
+        Write-Host "  5. Check the error messages above for specific details." -ForegroundColor Yellow
+        Write-Host ""
+    }
+
     # Try to provide more diagnostic info
     if (Test-Path $runtimeDir) {
         Write-Host "Runtime directory exists: $runtimeDir" -ForegroundColor Cyan
@@ -614,4 +994,5 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
 }
 
+pause
 pause

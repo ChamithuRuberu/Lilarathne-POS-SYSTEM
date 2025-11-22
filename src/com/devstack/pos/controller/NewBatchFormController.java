@@ -6,15 +6,9 @@ import com.devstack.pos.entity.Supplier;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.SupplierService;
-import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.view.tm.ProductDetailTm;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.oned.Code128Writer;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -273,25 +267,26 @@ public class NewBatchFormController {
     }
     
     /**
-     * Setup manual barcode entry listener to generate barcode from manual code
+     * Setup manual barcode entry listener to set batch code from manual entry
+     * (Barcode image generation moved to Feature/scanner branch)
      */
     private void setupManualBarcodeEntry() {
         if (txtBatchBarcodeCode != null) {
             txtBatchBarcodeCode.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null && !newVal.trim().isEmpty()) {
-                    // User entered manual code, generate barcode from it
+                    // User entered manual code, set it as batch code
                     try {
                         generateBarcodeFromCode(newVal.trim());
                     } catch (Exception e) {
-                        System.err.println("Error generating barcode from manual code: " + e.getMessage());
+                        System.err.println("Error setting batch code from manual entry: " + e.getMessage());
                     }
                 } else {
-                    // Field is empty, regenerate auto barcode if not in edit mode
+                    // Field is empty, regenerate auto code if not in edit mode
                     if (!isEditMode) {
                         try {
                             generateBatchBarcode();
                         } catch (Exception e) {
-                            System.err.println("Error regenerating auto barcode: " + e.getMessage());
+                            System.err.println("Error regenerating auto batch code: " + e.getMessage());
                         }
                     }
                 }
@@ -300,9 +295,9 @@ public class NewBatchFormController {
     }
     
     /**
-     * Generate barcode image from a given code string
+     * Set batch code from a given code string (barcode image generation moved to Feature/scanner branch)
      */
-    private void generateBarcodeFromCode(String code) throws WriterException, IOException {
+    private void generateBarcodeFromCode(String code) {
         if (code == null || code.trim().isEmpty()) {
             return;
         }
@@ -310,25 +305,15 @@ public class NewBatchFormController {
         // Use the provided code as uniqueData
         uniqueData = code.trim();
         
-        // Ensure barcode is valid (alphanumeric, max length for CODE 128)
+        // Ensure code is valid (alphanumeric, max length)
         if (uniqueData.length() > 80) {
             uniqueData = uniqueData.substring(0, 80);
         }
         
-        // Generate CODE 128 barcode image
-        Code128Writer barcodeWriter = new Code128Writer();
-        BitMatrix bitMatrix = barcodeWriter.encode(
-            uniqueData,
-            BarcodeFormat.CODE_128,
-            300,
-            80
-        );
-        
-        BufferedImage barcodeBufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        Image image = SwingFXUtils.toFXImage(barcodeBufferedImage, null);
-        
+        // Barcode image generation moved to Feature/scanner branch
+        // Just clear the image display
         if (barcodeImage != null) {
-            barcodeImage.setImage(image);
+            barcodeImage.setImage(null);
         }
     }
 
@@ -494,9 +479,10 @@ public class NewBatchFormController {
     }
 
     /**
-     * Generate unique batch barcode with meaningful short form from product description
+     * Generate unique batch code with meaningful short form from product description
+     * (Barcode image generation moved to Feature/scanner branch)
      */
-    private void generateBatchBarcode() throws WriterException, IOException {
+    private void generateBatchBarcode() {
         // Get product description
         String description = txtSelectedProdDescription != null ? 
                 txtSelectedProdDescription.getText() : "";
@@ -505,32 +491,21 @@ public class NewBatchFormController {
         String shortForm = generateShortForm(description);
         
         // Generate unique numeric suffix (6 digits for uniqueness)
-        String numericSuffix = BarcodeGenerator.generateNumeric(6);
+        String numericSuffix = String.format("%06d", System.currentTimeMillis() % 1000000);
         
         // Combine short form with numeric suffix
         // Format: SHORTFORM + 6 digits (e.g., "COKE123456")
         uniqueData = shortForm + numericSuffix;
         
-        // Ensure barcode is valid (alphanumeric, max length for CODE 128)
-        // CODE 128 supports up to 80 characters, but we'll keep it reasonable
+        // Ensure code is valid (alphanumeric, max length)
         if (uniqueData.length() > 20) {
             uniqueData = uniqueData.substring(0, 20);
         }
         
-        // Generate CODE 128 barcode image
-        Code128Writer barcodeWriter = new Code128Writer();
-        BitMatrix bitMatrix = barcodeWriter.encode(
-                                uniqueData,
-                BarcodeFormat.CODE_128,
-            300,
-            80
-        );
-        
-        BufferedImage barcodeBufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        Image image = SwingFXUtils.toFXImage(barcodeBufferedImage, null);
-        
+        // Barcode image generation moved to Feature/scanner branch
+        // Just clear the image display
         if (barcodeImage != null) {
-            barcodeImage.setImage(image);
+            barcodeImage.setImage(null);
         }
     }
 
@@ -639,14 +614,10 @@ public class NewBatchFormController {
                         txtBatchBarcodeCode.setEditable(false); // Make read-only in edit mode
                     }
 
-                    // Load barcode image
-                    if (barcodeImage != null && productDetail.getBarcode() != null && !productDetail.getBarcode().isEmpty()) {
-                        try {
-                    byte[] data = Base64.getDecoder().decode(productDetail.getBarcode());
-                            barcodeImage.setImage(new Image(new ByteArrayInputStream(data)));
-                        } catch (Exception e) {
-                            System.err.println("Error loading barcode image: " + e.getMessage());
-                        }
+                    // Barcode image loading moved to Feature/scanner branch
+                    // Clear barcode image display
+                    if (barcodeImage != null) {
+                        barcodeImage.setImage(null);
                     }
                 } else {
                     new Alert(Alert.AlertType.ERROR, "Batch not found!").show();
@@ -861,34 +832,18 @@ public class NewBatchFormController {
             
             productDetail.setCode(batchCodeToUse);
             
-            // Generate and set barcode image
+            // Barcode image generation moved to Feature/scanner branch
+            // Store batch code as text in barcode field (for backward compatibility)
             if (!isEditMode) {
-                try {
-                    // Generate barcode for display using the batch code
-                    Code128Writer barcodeWriter = new Code128Writer();
-                    BitMatrix bitMatrix = barcodeWriter.encode(
-                        batchCodeToUse,
-                        BarcodeFormat.CODE_128,
-                        300,
-                        80
-                    );
-                    
-                    BufferedImage barcodeBufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-                    
-                    // Convert to Base64 for storage
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    javax.imageio.ImageIO.write(barcodeBufferedImage, "png", baos);
-                    byte[] barcodeBytes = baos.toByteArray();
-                    productDetail.setBarcode(Base64.getEncoder().encodeToString(barcodeBytes));
-                } catch (Exception e) {
-                    System.err.println("Error generating barcode: " + e.getMessage());
-                    productDetail.setBarcode("");
-                }
+                // For new batches, store the batch code as text
+                productDetail.setBarcode(batchCodeToUse);
             } else {
                 // Keep existing barcode for edit mode
                 ProductDetail existing = productDetailService.findProductDetail(existingBatchCode);
                 if (existing != null && existing.getBarcode() != null) {
                     productDetail.setBarcode(existing.getBarcode());
+                } else {
+                    productDetail.setBarcode(batchCodeToUse);
                 }
             }
             

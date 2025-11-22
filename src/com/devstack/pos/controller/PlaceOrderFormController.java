@@ -1,18 +1,15 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.entity.Customer;
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.OrderItem;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.entity.ProductDetail;
-import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.util.AuthorizationUtil;
-import com.devstack.pos.util.ReceiptPrinter;
 import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.CartTm;
 import javafx.collections.FXCollections;
@@ -67,13 +64,11 @@ public class PlaceOrderFormController extends BaseController {
 
     private Long selectedCustomerId = null;
     private Long lastCompletedOrderCode = null;
-    private final CustomerService customerService;
     private final ProductDetailService productDetailService;
     private final ProductService productService;
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final PDFReportService pdfReportService;
-    private final ReceiptPrinter receiptPrinter;
     private boolean isUpdatingBarcodeProgrammatically = false;
 
 
@@ -184,8 +179,9 @@ public class PlaceOrderFormController extends BaseController {
         btnDashboardOnAction(actionEvent);
     }
 
-    public void btnAddNewCustomerOnAction(ActionEvent actionEvent) throws IOException {
-        setUi("CustomerForm", true);
+    public void btnAddNewCustomerOnAction(ActionEvent actionEvent) {
+        // Customer management feature moved to Feature/customer-module branch
+        new Alert(Alert.AlertType.INFORMATION, "Customer management feature has been moved to Feature/customer-module branch").show();
     }
 
     public void btnAddNewProductOnAction(ActionEvent actionEvent) throws IOException {
@@ -218,18 +214,12 @@ public class PlaceOrderFormController extends BaseController {
                 return;
             }
             
-            Customer customer = customerService.findByContact(contact);
-            if (customer != null) {
-                selectedCustomerId = customer.getId();
-                txtName.setText(customer.getName());
-                new Alert(Alert.AlertType.INFORMATION, "Customer found: " + customer.getName()).show();
-            } else {
-                selectedCustomerId = null;
-                txtName.clear();
-                new Alert(Alert.AlertType.WARNING, "Customer not found! You can proceed with guest checkout or add a new customer.").show();
-            }
+            // Customer management feature moved to Feature/customer-module branch
+            selectedCustomerId = null;
+            txtName.setText("Guest");
+            new Alert(Alert.AlertType.INFORMATION, "Proceeding with guest checkout. Customer management feature has been moved to Feature/customer-module branch.").show();
         } catch (Exception e) {
-            new Alert(Alert.AlertType.ERROR, "Error searching customer: " + e.getMessage()).show();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).show();
             e.printStackTrace();
         }
     }
@@ -822,20 +812,11 @@ public class PlaceOrderFormController extends BaseController {
                 return;
             }
             
-            // Generate plain text receipt for thermal printer
-            String receiptText = pdfReportService.generatePlainTextReceipt(lastCompletedOrderCode);
-            
-            // Print receipt directly to thermal printer using ESC/POS commands
-            boolean printed = receiptPrinter.printRawText(receiptText);
-            
-            if (printed) {
-                new Alert(Alert.AlertType.INFORMATION, "Receipt printed successfully!").show();
-            } else {
-                new Alert(Alert.AlertType.WARNING, "Printing failed. Please check printer connection.").show();
-            }
+            // Printer feature moved to Feature/printer branch
+            new Alert(Alert.AlertType.INFORMATION, "Printer feature has been moved to Feature/printer branch").show();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error printing receipt: " + e.getMessage()).show();
+            new Alert(Alert.AlertType.ERROR, "Error: " + e.getMessage()).show();
         }
     }
 }

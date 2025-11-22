@@ -34,7 +34,8 @@
             <Text text="Kumara Enterprises" styleClass="sidebar-title-light" />
             <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
             <JFXButton fx:id="btnDashboard" text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-active-light" />
-            <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
+            <!-- Customer feature moved to Feature/customer-module branch -->
+            <!-- <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" /> -->
             <JFXButton fx:id="btnProduct" text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPlaceOrder" text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPendingPayments" text="💳 Pending Payments" onAction="#btnPendingPaymentsOnAction" styleClass="sidebar-btn-light" />

@@ -7,10 +7,8 @@ import com.devstack.pos.service.CategoryService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.SupplierService;
-import com.devstack.pos.util.BarcodeGenerator;
 import com.devstack.pos.view.tm.ProductDetailTm;
 import com.devstack.pos.view.tm.ProductTm;
-import com.google.zxing.WriterException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -420,20 +418,16 @@ public class ProductMainPageController extends BaseController {
             }
 
             if (btnSaveUpdate.getText().equals("Save Product")) {
-                // Auto-generate barcode for new products
-                String barcodeValue;
-                do {
-                    // Generate a unique barcode (12 digits)
-                    barcodeValue = BarcodeGenerator.generateNumeric(12);
-                } while (productService.barcodeExists(barcodeValue)); // Ensure uniqueness
-                
+                // Barcode generation feature moved to Feature/scanner branch
+                // Generate a simple unique identifier
+                String barcodeValue = String.format("%012d", System.currentTimeMillis() % 1000000000000L);
                 product.setBarcode(barcodeValue);
-                System.out.println("[PRODUCT SAVE] Auto-generated barcode: " + barcodeValue);
+                System.out.println("[PRODUCT SAVE] Generated identifier: " + barcodeValue);
                 
                 Product savedProduct = productService.saveProduct(product);
                 
                 new Alert(Alert.AlertType.CONFIRMATION,
-                        "Product Saved Successfully!\nBarcode: " + savedProduct.getBarcode()).show();
+                        "Product Saved Successfully!\nIdentifier: " + savedProduct.getBarcode()).show();
 
                 clearFields();
                 loadAllProducts(searchText);
@@ -513,13 +507,9 @@ public class ProductMainPageController extends BaseController {
                 );
                 tms.add(tm);
 
-                // Add click handlers
+                // Add click handlers - barcode viewer moved to Feature/scanner branch
                 viewBarcode.setOnAction((e) -> {
-                    if (product.getBarcode() != null && !product.getBarcode().isEmpty()) {
-                        showBarcodeViewer(product.getCode(), product.getDescription(), product.getBarcode());
-                    } else {
-                        new Alert(Alert.AlertType.WARNING, "This product does not have a barcode!").show();
-                    }
+                    new Alert(Alert.AlertType.INFORMATION, "Barcode viewer feature has been moved to Feature/scanner branch").show();
                 });
                 
                 delete.setOnAction((e) -> {
@@ -698,31 +688,9 @@ public class ProductMainPageController extends BaseController {
                 );
                 obList.add(tm);
                 
-                // View barcode button action
+                // View barcode button action - barcode viewer moved to Feature/scanner branch
                 btnViewBarcode.setOnAction((e) -> {
-                    try {
-                        // Decode batch barcode from Base64 if available
-                        String batchBarcode = productDetail.getBarcode();
-                        if (batchBarcode != null && !batchBarcode.isEmpty()) {
-                            try {
-                                // Try to decode as Base64 image
-                                byte[] imageData = java.util.Base64.getDecoder().decode(batchBarcode);
-                                Image batchImage = new Image(new ByteArrayInputStream(imageData));
-                                showBatchBarcodeViewerWithImage(code, productDescription, productDetail.getCode(), batchImage);
-                            } catch (Exception ex) {
-                                // If not Base64, treat as barcode value and generate image
-                                showBatchBarcodeViewer(code, productDescription, productDetail.getCode(), batchBarcode);
-                            }
-                        } else if (!productBarcode.isEmpty()) {
-                            // Fallback to product barcode if batch barcode not available
-                            showBarcodeViewer(code, productDescription, productBarcode);
-                        } else {
-                            new Alert(Alert.AlertType.WARNING, "No barcode available for this batch!").show();
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        new Alert(Alert.AlertType.ERROR, "Error viewing barcode: " + ex.getMessage()).show();
-                    }
+                    new Alert(Alert.AlertType.INFORMATION, "Barcode viewer feature has been moved to Feature/scanner branch").show();
                 });
 
                 // Delete button action
@@ -753,69 +721,6 @@ public class ProductMainPageController extends BaseController {
         }
     }
 
-    /**
-     * Shows batch barcode viewer dialog with download option (for barcode string)
-     */
-    private void showBatchBarcodeViewer(int productCode, String productDescription, String batchCode, String batchBarcode) {
-        try {
-            Stage stage = new Stage();
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/com/devstack/pos/view/BarcodeViewerForm.fxml"));
-            loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-            Parent parent = loader.load();
-            BarcodeViewerController controller = loader.getController();
-
-            // Set stage first
-            controller.setStage(stage);
-            
-            // Set scene and show stage first
-            stage.setScene(new Scene(parent));
-            stage.setTitle("Batch Barcode Viewer");
-            stage.show();
-            stage.centerOnScreen();
-            
-            // Use Platform.runLater to ensure FXML fields are fully initialized after scene is shown
-            javafx.application.Platform.runLater(() -> {
-                // Use batch code as barcode value for display
-                controller.setData(productCode, productDescription + " (Batch: " + batchCode + ")", batchCode);
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error opening barcode viewer: " + e.getMessage()).show();
-        }
-    }
-
-    /**
-     * Shows batch barcode viewer dialog with pre-loaded image (for Base64 encoded images)
-     */
-    private void showBatchBarcodeViewerWithImage(int productCode, String productDescription, String batchCode, Image batchImage) {
-        try {
-            Stage stage = new Stage();
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/com/devstack/pos/view/BarcodeViewerForm.fxml"));
-            loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-            Parent parent = loader.load();
-            BarcodeViewerController controller = loader.getController();
-
-            // Set stage first
-            controller.setStage(stage);
-            
-            // Set scene and show stage first
-            stage.setScene(new Scene(parent));
-            stage.setTitle("Batch Barcode Viewer");
-            stage.show();
-            stage.centerOnScreen();
-            
-            // Use Platform.runLater to ensure FXML fields are fully initialized after scene is shown
-            javafx.application.Platform.runLater(() -> {
-                // Use batch code as barcode value, with pre-loaded image
-                controller.setDataWithImage(productCode, productDescription + " (Batch: " + batchCode + ")", batchCode, batchImage);
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error opening barcode viewer: " + e.getMessage()).show();
-        }
-    }
 
     // Navigation methods inherited from BaseController
 
@@ -848,36 +753,6 @@ public class ProductMainPageController extends BaseController {
         }
     }
 
-    /**
-     * Shows barcode viewer dialog with download option
-     */
-    private void showBarcodeViewer(int productCode, String description, String barcode) {
-        try {
-            Stage stage = new Stage();
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/com/devstack/pos/view/BarcodeViewerForm.fxml"));
-            loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
-            Parent parent = loader.load();
-            BarcodeViewerController controller = loader.getController();
-            
-            // Set stage first
-            controller.setStage(stage);
-            
-            // Set scene and show stage first
-            stage.setScene(new Scene(parent));
-            stage.setTitle("Product Barcode Viewer");
-            stage.show();
-            stage.centerOnScreen();
-            
-            // Use Platform.runLater to ensure FXML fields are fully initialized after scene is shown
-            javafx.application.Platform.runLater(() -> {
-                controller.setData(productCode, description, barcode);
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error opening barcode viewer: " + e.getMessage()).show();
-        }
-    }
 
 
     /**
@@ -907,57 +782,22 @@ public class ProductMainPageController extends BaseController {
     }
 
     /**
-     * Generates and displays barcode preview
-     * For new products, generates a preview barcode. For existing products, shows their barcode.
+     * Barcode generation feature moved to Feature/scanner branch
      */
     public void btnGenerateBarcodeOnAction(ActionEvent actionEvent) {
-        try {
-            String barcodeValue = null;
-            
-            // If editing existing product, use its barcode
-            if (currentProductCode != null) {
-                Product product = productService.findProduct(currentProductCode);
-                if (product != null && product.getBarcode() != null) {
-                    barcodeValue = product.getBarcode();
-                }
-            }
-            
-            // If no barcode found, generate a preview one (for new products)
-            if (barcodeValue == null || barcodeValue.isEmpty()) {
-                do {
-                    barcodeValue = BarcodeGenerator.generateNumeric(12);
-                } while (productService.barcodeExists(barcodeValue));
-            }
-
-            displayBarcode(barcodeValue);
-            new Alert(Alert.AlertType.INFORMATION, "Barcode preview generated successfully!").show();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error generating barcode: " + e.getMessage()).show();
-        }
+        new Alert(Alert.AlertType.INFORMATION, "Barcode generation feature has been moved to Feature/scanner branch").show();
     }
 
     /**
      * Clears barcode image display
      */
     public void btnClearBarcodeOnAction(ActionEvent actionEvent) {
-        imgBarcode.setImage(null);
-        barcodeImageContainer.setVisible(false);
-        barcodeImageContainer.setManaged(false);
-    }
-
-    /**
-     * Displays the barcode image
-     */
-    private void displayBarcode(String barcodeValue) {
-        try {
-            Image barcodeImage = BarcodeGenerator.generateBarcodeImage(barcodeValue);
-            imgBarcode.setImage(barcodeImage);
-            barcodeImageContainer.setVisible(true);
-            barcodeImageContainer.setManaged(true);
-        } catch (WriterException e) {
-            throw new RuntimeException("Failed to generate barcode image", e);
+        if (imgBarcode != null) {
+            imgBarcode.setImage(null);
+        }
+        if (barcodeImageContainer != null) {
+            barcodeImageContainer.setVisible(false);
+            barcodeImageContainer.setManaged(false);
         }
     }
 

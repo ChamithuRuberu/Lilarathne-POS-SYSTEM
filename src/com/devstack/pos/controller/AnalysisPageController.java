@@ -1,12 +1,9 @@
 package com.devstack.pos.controller;
 
-import com.devstack.pos.entity.Customer;
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.Product;
-import com.devstack.pos.repository.CustomerRepository;
 import com.devstack.pos.repository.ProductDetailRepository;
 import com.devstack.pos.repository.ProductRepository;
-import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
@@ -16,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -221,9 +219,9 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
     
-    // Customer Purchase History Tab
+    // Customer Purchase History Tab - feature moved to Feature/customer-module branch
     @FXML
-    private javafx.scene.control.ComboBox<Customer> cmbCustomerHistory;
+    private javafx.scene.control.ComboBox<String> cmbCustomerHistory;
     
     @FXML
     private Text lblCustomerTotalOrders;
@@ -329,8 +327,6 @@ public class AnalysisPageController extends BaseController {
     private final PDFReportService pdfReportService;
     private final ReturnOrderService returnOrderService;
     private final ReturnOrderItemService returnOrderItemService;
-    private final CustomerService customerService;
-    private final CustomerRepository customerRepository;
     
     private LocalDateTime filterStartDate = null;
     private LocalDateTime filterEndDate = null;
@@ -463,36 +459,11 @@ public class AnalysisPageController extends BaseController {
     }
     
     private void initializeCustomerHistoryTab() {
-        // Load customers into combo box
+        // Customer management feature moved to Feature/customer-module branch
         if (cmbCustomerHistory != null) {
-            ObservableList<Customer> customers = FXCollections.observableArrayList(
-                customerService.findAllCustomers()
-            );
-            cmbCustomerHistory.setItems(customers);
-            
-            cmbCustomerHistory.setCellFactory(param -> new javafx.scene.control.ListCell<Customer>() {
-                @Override
-                protected void updateItem(Customer item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item.getName() + " (" + item.getContact() + ")");
-                    }
-                }
-            });
-            
-            cmbCustomerHistory.setButtonCell(new javafx.scene.control.ListCell<Customer>() {
-                @Override
-                protected void updateItem(Customer item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item.getName() + " (" + item.getContact() + ")");
-                    }
-                }
-            });
+            cmbCustomerHistory.setItems(FXCollections.observableArrayList());
+            cmbCustomerHistory.setDisable(true);
+            cmbCustomerHistory.setPromptText("Customer feature moved to Feature/customer-module branch");
         }
         
         // Configure customer history table
@@ -1324,73 +1295,33 @@ public class AnalysisPageController extends BaseController {
     // Customer Purchase History Methods
     @FXML
     public void loadCustomerHistory(ActionEvent event) {
-        Customer selectedCustomer = cmbCustomerHistory.getValue();
-        if (selectedCustomer == null) {
-            showErrorAlert("No Customer Selected", "Please select a customer to view purchase history.");
-            return;
+        // Customer management feature moved to Feature/customer-module branch
+        new Alert(Alert.AlertType.INFORMATION, "Customer history feature has been moved to Feature/customer-module branch").show();
+        
+        // Clear customer history tables
+        if (tblCustomerHistory != null) {
+            tblCustomerHistory.setItems(FXCollections.observableArrayList());
+        }
+        if (tblCustomerFavoriteProducts != null) {
+            tblCustomerFavoriteProducts.setItems(FXCollections.observableArrayList());
+        }
+        if (tblCustomerFavoriteCategories != null) {
+            tblCustomerFavoriteCategories.setItems(FXCollections.observableArrayList());
         }
         
-        Long customerId = selectedCustomer.getId();
-        
-        // Load summary statistics
-        Long totalOrders = orderDetailService.getCustomerTotalOrders(customerId);
-        Double totalSpent = orderDetailService.getTotalSpentByCustomerId(customerId);
-        Double avgOrderValue = orderDetailService.getCustomerAverageOrderValue(customerId);
-        LocalDateTime lastPurchaseDate = orderDetailService.getCustomerLastPurchaseDate(customerId);
-        
+        // Clear customer statistics labels
         if (lblCustomerTotalOrders != null) {
-            lblCustomerTotalOrders.setText(String.valueOf(totalOrders != null ? totalOrders : 0));
+            lblCustomerTotalOrders.setText("0");
         }
         if (lblCustomerTotalSpent != null) {
-            lblCustomerTotalSpent.setText(String.format("%.2f /=", totalSpent != null ? totalSpent : 0.0));
+            lblCustomerTotalSpent.setText("0.00 /=");
         }
         if (lblCustomerAvgOrder != null) {
-            lblCustomerAvgOrder.setText(String.format("%.2f /=", avgOrderValue != null ? avgOrderValue : 0.0));
+            lblCustomerAvgOrder.setText("0.00 /=");
         }
         if (lblCustomerLastPurchase != null) {
-            if (lastPurchaseDate != null) {
-                lblCustomerLastPurchase.setText(lastPurchaseDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-            } else {
-                lblCustomerLastPurchase.setText("N/A");
-            }
+            lblCustomerLastPurchase.setText("N/A");
         }
-        
-        // Load purchase history
-        List<OrderDetail> purchaseHistory = orderDetailService.getCustomerPurchaseHistory(customerId);
-        ObservableList<CustomerHistoryTm> historyList = FXCollections.observableArrayList();
-        for (OrderDetail order : purchaseHistory) {
-            historyList.add(new CustomerHistoryTm(
-                order.getCode(),
-                order.getIssuedDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                order.getTotalCost(),
-                order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A",
-                order.getPaymentStatus() != null ? order.getPaymentStatus() : "N/A"
-            ));
-        }
-        tblCustomerHistory.setItems(historyList);
-        
-        // Load favorite products
-        List<Object[]> favoriteProducts = orderItemService.getCustomerFavoriteProducts(customerId);
-        ObservableList<FavoriteProductTm> favProductsList = FXCollections.observableArrayList();
-        for (Object[] data : favoriteProducts) {
-            Integer productCode = ((Number) data[0]).intValue();
-            String productName = (String) data[1];
-            Integer qty = ((Number) data[2]).intValue();
-            Double revenue = ((Number) data[3]).doubleValue();
-            favProductsList.add(new FavoriteProductTm(productName, qty, revenue));
-        }
-        tblCustomerFavoriteProducts.setItems(favProductsList);
-        
-        // Load favorite categories
-        List<Object[]> favoriteCategories = orderItemService.getCustomerFavoriteCategories(customerId);
-        ObservableList<FavoriteCategoryTm> favCategoriesList = FXCollections.observableArrayList();
-        for (Object[] data : favoriteCategories) {
-            String categoryName = (String) data[0];
-            Integer qty = ((Number) data[1]).intValue();
-            Double revenue = ((Number) data[2]).doubleValue();
-            favCategoriesList.add(new FavoriteCategoryTm(categoryName, qty, revenue));
-        }
-        tblCustomerFavoriteCategories.setItems(favCategoriesList);
     }
     
     // Product Performance Methods

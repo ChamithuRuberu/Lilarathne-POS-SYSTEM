@@ -13,7 +13,6 @@ import java.io.IOException;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
-import com.devstack.pos.service.CustomerService;
 import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ProductService;
@@ -54,7 +53,6 @@ public class DashboardFormController extends BaseController {
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final ProductDetailService productDetailService;
-    private final CustomerService customerService;
     private final ReturnOrderService returnOrderService;
     private final ReturnOrderItemService returnOrderItemService;
     private final ProductService productService;
@@ -445,11 +443,8 @@ public class DashboardFormController extends BaseController {
                 lblRevenueChange.setText("No comparison data");
             }
             
-            // Total customers
+            // Total customers - feature moved to Feature/customer-module branch
             int totalCustomers = 0;
-            try {
-                totalCustomers = customerService.findAllCustomers().size();
-            } catch (Exception ignored) {}
             
             // Total products
             int totalProducts = 0;

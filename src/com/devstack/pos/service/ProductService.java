@@ -3,7 +3,6 @@ package com.devstack.pos.service;
 import com.devstack.pos.entity.Product;
 import com.devstack.pos.enums.Status;
 import com.devstack.pos.repository.ProductRepository;
-import com.devstack.pos.util.BarcodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +35,9 @@ public class ProductService {
         
         System.out.println("[PRODUCT SERVICE DEBUG] Barcode validation passed: '" + product.getBarcode() + "'");
         
-        if (!BarcodeGenerator.isValidBarcode(product.getBarcode())) {
+        // Barcode validation moved to Feature/scanner branch
+        // Basic validation: check if barcode contains only alphanumeric characters
+        if (!product.getBarcode().matches("^[a-zA-Z0-9]+$")) {
             System.out.println("[PRODUCT SERVICE DEBUG] ERROR: Invalid barcode format!");
             throw new IllegalArgumentException("Invalid barcode format. Use alphanumeric characters only.");
         }

@@ -24,7 +24,8 @@
         <!-- Navigation Menu -->
         <VBox spacing="8" VBox.vgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
             <JFXButton fx:id="btnDashboard" text="🏠  Dashboard" styleClass="sidebar-btn"/>
-            <JFXButton fx:id="btnCustomers" text="👥  Customers" styleClass="sidebar-btn"/>
+            <!-- Customer feature moved to Feature/customer-module branch -->
+            <!-- <JFXButton fx:id="btnCustomers" text="👥  Customers" styleClass="sidebar-btn"/> -->
             <JFXButton fx:id="btnProducts" text="📦  Products" styleClass="sidebar-btn"/>
             <JFXButton fx:id="btnPlaceOrder" text="🛒  Place Order" styleClass="sidebar-btn"/>
             <JFXButton fx:id="btnOrderDetails" text="📋  Order Details" styleClass="sidebar-btn"/>

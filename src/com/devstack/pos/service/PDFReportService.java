@@ -34,7 +34,6 @@ public class PDFReportService {
     private final OrderDetailService orderDetailService;
     private final ReturnOrderService returnOrderService;
     private final ProductService productService;
-    private final CustomerService customerService;
     private final SupplierService supplierService;
     private final ProductDetailService productDetailService;
     private final OrderItemService orderItemService;

@@ -9,8 +9,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class PosApplication {
 
-    @Getter
     private static ConfigurableApplicationContext applicationContext;
+    
+    public static ConfigurableApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
 
     public static void main(String[] args) {
         // Capture ALL exceptions

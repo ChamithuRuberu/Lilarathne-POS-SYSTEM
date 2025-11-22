@@ -13,14 +13,14 @@ Write-Host "[0/7] Detecting JDK installation..." -ForegroundColor Green
 function Find-JDK {
     # Try multiple methods to find JDK 21
     $candidates = @()
-    
+
     # Method 1: Check JAVA_HOME environment variable
     $javaHome = $env:JAVA_HOME
     if ($javaHome -and (Test-Path "$javaHome\bin\jpackage.exe")) {
         $candidates += $javaHome
         Write-Host "  Found JDK via JAVA_HOME: $javaHome" -ForegroundColor Gray
     }
-    
+
     # Method 2: Check if jpackage is in PATH
     $jpackageInPath = Get-Command jpackage.exe -ErrorAction SilentlyContinue
     if ($jpackageInPath) {
@@ -30,13 +30,13 @@ function Find-JDK {
             Write-Host "  Found JDK via PATH: $jpackageDir" -ForegroundColor Gray
         }
     }
-    
+
     # Method 3: Check common .jdks directory (IntelliJ IDEA, VS Code, etc.)
     $userProfile = $env:USERPROFILE
     if ($userProfile) {
         $jdksDir = "$userProfile\.jdks"
         if (Test-Path $jdksDir) {
-            $jdkDirs = Get-ChildItem $jdksDir -Directory -ErrorAction SilentlyContinue | 
+            $jdkDirs = Get-ChildItem $jdksDir -Directory -ErrorAction SilentlyContinue |
                        Where-Object { Test-Path "$($_.FullName)\bin\jpackage.exe" } |
                        Sort-Object Name -Descending
             foreach ($jdkDir in $jdkDirs) {
@@ -45,7 +45,7 @@ function Find-JDK {
             }
         }
     }
-    
+
     # Method 4: Check Program Files
     $programFilesPaths = @(
         "${env:ProgramFiles}\Java",
@@ -65,9 +65,9 @@ function Find-JDK {
             }
         }
     }
-    
+
     # Method 5: Check for JDK 21 specifically (preferred version)
-    $jdk21 = $candidates | Where-Object { 
+    $jdk21 = $candidates | Where-Object {
         $javaExe = "$_\bin\java.exe"
         if (Test-Path $javaExe) {
             $version = & $javaExe -version 2>&1 | Select-String -Pattern "version `"(\d+)" | ForEach-Object { $_.Matches[0].Groups[1].Value }
@@ -75,12 +75,12 @@ function Find-JDK {
         }
         return $false
     } | Select-Object -First 1
-    
+
     if ($jdk21) {
         Write-Host "  Selected JDK 21: $jdk21" -ForegroundColor Green
         return $jdk21
     }
-    
+
     # Fallback: Use first candidate found
     if ($candidates.Count -gt 0) {
         $selected = $candidates[0]
@@ -88,7 +88,7 @@ function Find-JDK {
         Write-Host "  Warning: Not JDK 21, but will attempt to use it" -ForegroundColor Yellow
         return $selected
     }
-    
+
     return $null
 }
 
@@ -343,7 +343,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Check the error messages above." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Trying with minimal module set..." -ForegroundColor Yellow
-    
+
     # Fallback to minimal set if comprehensive set fails
     # Note: java.scripting is required for JavaFX FXML loading (javax.script.Bindings)
     $minimalModules = "java.base,java.desktop,java.logging,java.sql,java.xml,java.naming,java.security.jgss,java.security.sasl,java.scripting,jdk.unsupported,java.net.http,java.prefs"
@@ -356,9 +356,9 @@ if ($LASTEXITCODE -ne 0) {
         "--no-header-files",
         "--no-man-pages"
     )
-    
+
     & $JLINK $jlinkArgs
-    
+
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: Failed to create runtime even with minimal modules!" -ForegroundColor Red
         pause

@@ -42,9 +42,6 @@ public class OrderDetail {
     @Column(name = "payment_status", length = 20)
     private String paymentStatus = "PAID";
     
-    @Column(name = "order_type", length = 20)
-    private String orderType = "HARDWARE"; // HARDWARE or CONSTRUCTION
-    
     @Column(name = "customer_paid")
     private Double customerPaid;
     

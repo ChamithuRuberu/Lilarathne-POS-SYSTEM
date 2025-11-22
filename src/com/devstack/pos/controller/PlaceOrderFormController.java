@@ -64,8 +64,6 @@ public class PlaceOrderFormController extends BaseController {
     public JFXTextField txtCustomerPaid;
     public JFXButton btnPrint;
     public JFXComboBox<String> cmbPaymentMethod;
-    @FXML
-    public TabPane tabPane;
 
     private Long selectedCustomerId = null;
     private Long lastCompletedOrderCode = null;
@@ -155,27 +153,6 @@ public class PlaceOrderFormController extends BaseController {
         
         // Setup barcode scanner detection for automatic product loading
         setupBarcodeScannerDetection();
-        
-        // Track tab changes to determine order type
-        if (tabPane != null) {
-            tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
-                // Order type will be determined when completing order based on active tab
-            });
-            
-            // Remove black bar from TabPane header - run after scene is shown
-            tabPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
-                if (newScene != null) {
-                    javafx.application.Platform.runLater(() -> {
-                        removeTabPaneBlackBar();
-                    });
-                }
-            });
-            
-            // Also try immediately
-            javafx.application.Platform.runLater(() -> {
-                removeTabPaneBlackBar();
-            });
-        }
     }
     
     /**
@@ -197,57 +174,6 @@ public class PlaceOrderFormController extends BaseController {
         }
     }
     
-    private void removeTabPaneBlackBar() {
-        if (tabPane == null) return;
-        
-        try {
-            // Try multiple lookup attempts with retries
-            for (int i = 0; i < 3; i++) {
-                javafx.scene.Node headerArea = tabPane.lookup(".tab-header-area");
-                if (headerArea != null) {
-                    headerArea.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-background-insets: 0;");
-                }
-                
-                javafx.scene.Node headerBackground = tabPane.lookup(".tab-header-background");
-                if (headerBackground != null) {
-                    headerBackground.setStyle("-fx-background-color: transparent; -fx-opacity: 0; -fx-pref-height: 0; -fx-max-height: 0; -fx-min-height: 0;");
-                    // Also try to hide it completely
-                    if (headerBackground instanceof javafx.scene.layout.Region) {
-                        ((javafx.scene.layout.Region) headerBackground).setVisible(false);
-                    }
-                }
-                
-                // Try to find any StackPane or Region in the header
-                javafx.scene.Node headersRegion = tabPane.lookup(".headers-region");
-                if (headersRegion != null) {
-                    headersRegion.setStyle("-fx-background-color: transparent;");
-                }
-                
-                // Wait a bit before retry
-                if (i < 2) {
-                    Thread.sleep(50);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private String getCurrentOrderType() {
-        if (tabPane != null && tabPane.getSelectionModel().getSelectedItem() != null) {
-            String tabText = tabPane.getSelectionModel().getSelectedItem().getText();
-            // Check if tab text contains "Construction" (handles emoji prefix)
-            if (tabText != null && tabText.toLowerCase().contains("construction")) {
-                return "CONSTRUCTION";
-            }
-            // Alternatively, check by tab index (index 0 = Hardware, index 1 = Construction)
-            int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
-            if (selectedIndex == 1) {
-                return "CONSTRUCTION";
-            }
-        }
-        return "HARDWARE"; // Default to Hardware
-    }
     
     @Override
     protected String getCurrentPageName() {
@@ -787,7 +713,6 @@ public class PlaceOrderFormController extends BaseController {
             orderDetail.setOperatorEmail(UserSessionData.email);
             orderDetail.setPaymentMethod(paymentMethod);
             orderDetail.setPaymentStatus(paymentStatus);
-            orderDetail.setOrderType(getCurrentOrderType()); // Set order type based on active tab
             orderDetail.setCustomerPaid(customerPaid);
             orderDetail.setBalance(balance);
             

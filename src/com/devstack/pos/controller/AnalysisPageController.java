@@ -221,43 +221,6 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
     
-    // Construction Reports Tab
-    @FXML
-    private TableView<ConstructionReportTm> tblConstructionReports;
-    
-    @FXML
-    private TableColumn<ConstructionReportTm, String> colConstructionPeriod;
-    
-    @FXML
-    private TableColumn<ConstructionReportTm, Integer> colConstructionOrders;
-    
-    @FXML
-    private TableColumn<ConstructionReportTm, Double> colConstructionRevenue;
-    
-    @FXML
-    private TableColumn<ConstructionReportTm, Double> colConstructionAvgOrder;
-    
-    @FXML
-    private Text lblConstructionTotalRevenue;
-    
-    @FXML
-    private Text lblConstructionTotalOrders;
-    
-    @FXML
-    private Text lblConstructionAvgOrder;
-    
-    @FXML
-    private TableView<ConstructionCashierTm> tblConstructionByCashier;
-    
-    @FXML
-    private TableColumn<ConstructionCashierTm, String> colConstructionCashierName;
-    
-    @FXML
-    private TableColumn<ConstructionCashierTm, Integer> colConstructionCashierOrders;
-    
-    @FXML
-    private TableColumn<ConstructionCashierTm, Double> colConstructionCashierRevenue;
-    
     // Customer Purchase History Tab
     @FXML
     private javafx.scene.control.ComboBox<Customer> cmbCustomerHistory;
@@ -486,32 +449,11 @@ public class AnalysisPageController extends BaseController {
         tblSalesByCashier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblProfitLoss.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblTopCustomers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tblConstructionReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tblConstructionByCashier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        
-        // Configure Construction Reports Table
-        colConstructionPeriod.setCellValueFactory(new PropertyValueFactory<>("period"));
-        colConstructionOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
-        colConstructionRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
-        colConstructionAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
-        formatCurrencyColumn(colConstructionRevenue);
-        formatCurrencyColumn(colConstructionAvgOrder);
-        
-        // Configure Construction By Cashier Table
-        colConstructionCashierName.setCellValueFactory(new PropertyValueFactory<>("cashierName"));
-        colConstructionCashierOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
-        colConstructionCashierRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
-        formatCurrencyColumn(colConstructionCashierRevenue);
-        
-        // Load all data
+        // Load all reports
         loadAllReports();
         
         // Load weekly sales by default
         loadWeeklySales(null);
-        
-        // Load construction data
-        loadConstructionSummary();
-        loadWeeklyConstruction(null);
         
         // Initialize Customer Purchase History Tab
         initializeCustomerHistoryTab();
@@ -641,8 +583,6 @@ public class AnalysisPageController extends BaseController {
         loadAllReports();
         // Reload weekly sales to maintain default view
         loadWeeklySales(null);
-        loadConstructionSummary();
-        loadWeeklyConstruction(null);
     }
     
     // PDF Download Methods
@@ -904,145 +844,6 @@ public class AnalysisPageController extends BaseController {
         }
         
         tblSalesReports.setItems(data);
-    }
-    
-    // Construction Reports Methods
-    @FXML
-    public void loadWeeklyConstruction(ActionEvent event) {
-        ObservableList<ConstructionReportTm> data = FXCollections.observableArrayList();
-        LocalDate now = LocalDate.now();
-        
-        for (int i = 7; i >= 0; i--) {
-            LocalDate weekStart = now.minusWeeks(i).with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-            LocalDate weekEnd = weekStart.plusDays(6);
-            
-            LocalDateTime startDateTime = weekStart.atStartOfDay();
-            LocalDateTime endDateTime = weekEnd.atTime(23, 59, 59);
-            
-            Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
-            
-            String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
-                          weekEnd.format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-            data.add(new ConstructionReportTm(period, orders != null ? orders.intValue() : 0, 
-                revenue != null ? revenue : 0.0, avgOrder));
-        }
-        
-        tblConstructionReports.setItems(data);
-    }
-    
-    @FXML
-    public void loadMonthlyConstruction(ActionEvent event) {
-        ObservableList<ConstructionReportTm> data = FXCollections.observableArrayList();
-        LocalDate now = LocalDate.now();
-        
-        for (int i = 11; i >= 0; i--) {
-            LocalDate monthStart = now.minusMonths(i).with(TemporalAdjusters.firstDayOfMonth());
-            LocalDate monthEnd = monthStart.with(TemporalAdjusters.lastDayOfMonth());
-            
-            LocalDateTime startDateTime = monthStart.atStartOfDay();
-            LocalDateTime endDateTime = monthEnd.atTime(23, 59, 59);
-            
-            Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
-            
-            String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
-            data.add(new ConstructionReportTm(period, orders != null ? orders.intValue() : 0, 
-                revenue != null ? revenue : 0.0, avgOrder));
-        }
-        
-        tblConstructionReports.setItems(data);
-    }
-    
-    @FXML
-    public void loadYearlyConstruction(ActionEvent event) {
-        ObservableList<ConstructionReportTm> data = FXCollections.observableArrayList();
-        LocalDate now = LocalDate.now();
-        
-        for (int i = 4; i >= 0; i--) {
-            LocalDate yearStart = now.minusYears(i).with(TemporalAdjusters.firstDayOfYear());
-            LocalDate yearEnd = yearStart.with(TemporalAdjusters.lastDayOfYear());
-            
-            LocalDateTime startDateTime = yearStart.atStartOfDay();
-            LocalDateTime endDateTime = yearEnd.atTime(23, 59, 59);
-            
-            Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
-            Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
-            
-            String period = String.valueOf(yearStart.getYear());
-            data.add(new ConstructionReportTm(period, orders != null ? orders.intValue() : 0, 
-                revenue != null ? revenue : 0.0, avgOrder));
-        }
-        
-        tblConstructionReports.setItems(data);
-    }
-    
-    private void loadConstructionSummary() {
-        Double revenue;
-        Long orders;
-        Double avgOrder;
-        
-        if (filterStartDate != null && filterEndDate != null) {
-            revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", filterStartDate, filterEndDate);
-            orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", filterStartDate, filterEndDate);
-            avgOrder = orderDetailService.getAverageOrderValueByOrderTypeAndDateRange("CONSTRUCTION", filterStartDate, filterEndDate);
-        } else {
-            revenue = orderDetailService.getRevenueByOrderType("CONSTRUCTION");
-            orders = orderDetailService.getOrderCountByOrderType("CONSTRUCTION");
-            avgOrder = orderDetailService.getAverageOrderValueByOrderType("CONSTRUCTION");
-        }
-        
-        if (lblConstructionTotalRevenue != null) {
-            lblConstructionTotalRevenue.setText(String.format("%.2f /=", revenue != null ? revenue : 0.0));
-        }
-        if (lblConstructionTotalOrders != null) {
-            lblConstructionTotalOrders.setText(String.valueOf(orders != null ? orders : 0));
-        }
-        if (lblConstructionAvgOrder != null) {
-            lblConstructionAvgOrder.setText(String.format("%.2f /=", avgOrder != null ? avgOrder : 0.0));
-        }
-        
-        // Load construction sales by cashier
-        List<Object[]> cashierData;
-        if (filterStartDate != null && filterEndDate != null) {
-            cashierData = orderDetailService.getSalesByCashierByOrderTypeAndDateRange("CONSTRUCTION", filterStartDate, filterEndDate);
-        } else {
-            cashierData = orderDetailService.getSalesByCashierByOrderType("CONSTRUCTION");
-        }
-        
-        ObservableList<ConstructionCashierTm> observableList = FXCollections.observableArrayList();
-        for (Object[] data : cashierData) {
-            String cashierName = (String) data[0];
-            Long orderCount = ((Number) data[1]).longValue();
-            Double revenueAmount = ((Number) data[2]).doubleValue();
-            
-            observableList.add(new ConstructionCashierTm(
-                cashierName != null ? cashierName : "Unknown",
-                orderCount != null ? orderCount.intValue() : 0,
-                revenueAmount != null ? revenueAmount : 0.0
-            ));
-        }
-        
-        if (tblConstructionByCashier != null) {
-            tblConstructionByCashier.setItems(observableList);
-        }
-    }
-    
-    @FXML
-    public void downloadConstructionReportPDF(ActionEvent event) {
-        try {
-            String filePath = pdfReportService.generateConstructionReportPDF(
-                filterStartDate != null ? filterStartDate : null,
-                filterEndDate != null ? filterEndDate : null
-            );
-            showSuccessAlert("PDF Generated", "Construction report PDF has been saved to:\n" + filePath);
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorAlert("PDF Generation Error", "Failed to generate construction report PDF: " + e.getMessage());
-        }
     }
     
     private void loadTopProducts() {
@@ -1479,48 +1280,6 @@ public class AnalysisPageController extends BaseController {
         public void setRevenue(double revenue) { this.revenue = revenue; }
         public double getProfit() { return profit; }
         public void setProfit(double profit) { this.profit = profit; }
-    }
-    
-    public static class ConstructionReportTm {
-        private String period;
-        private int orders;
-        private double revenue;
-        private double avgOrder;
-        
-        public ConstructionReportTm(String period, int orders, double revenue, double avgOrder) {
-            this.period = period;
-            this.orders = orders;
-            this.revenue = revenue;
-            this.avgOrder = avgOrder;
-        }
-        
-        public String getPeriod() { return period; }
-        public void setPeriod(String period) { this.period = period; }
-        public int getOrders() { return orders; }
-        public void setOrders(int orders) { this.orders = orders; }
-        public double getRevenue() { return revenue; }
-        public void setRevenue(double revenue) { this.revenue = revenue; }
-        public double getAvgOrder() { return avgOrder; }
-        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
-    }
-    
-    public static class ConstructionCashierTm {
-        private String cashierName;
-        private int orders;
-        private double revenue;
-        
-        public ConstructionCashierTm(String cashierName, int orders, double revenue) {
-            this.cashierName = cashierName;
-            this.orders = orders;
-            this.revenue = revenue;
-        }
-        
-        public String getCashierName() { return cashierName; }
-        public void setCashierName(String cashierName) { this.cashierName = cashierName; }
-        public int getOrders() { return orders; }
-        public void setOrders(int orders) { this.orders = orders; }
-        public double getRevenue() { return revenue; }
-        public void setRevenue(double revenue) { this.revenue = revenue; }
     }
     
     public static class TopCustomerTm {

@@ -20,7 +20,6 @@ public class OrderTm {
     private double discount;
     private String operatorEmail;
     private double totalCost;
-    private String orderType; // HARDWARE or CONSTRUCTION
     private String productNames; // Comma-separated list of product names
     private JFXButton viewButton;
     private JFXButton returnOrdersButton;
@@ -49,14 +48,6 @@ public class OrderTm {
         this.discount = discount;
         this.operatorEmail = operatorEmail;
         this.totalCost = totalCost;
-    }
-    
-    // Getter for formatted order type display
-    public String getOrderTypeFormatted() {
-        if (orderType == null) {
-            return "Hardware";
-        }
-        return orderType.equals("CONSTRUCTION") ? "Construction" : "Hardware";
     }
     
     // Getter for return orders button text (for display)

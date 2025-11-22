@@ -95,9 +95,6 @@ public class OrderDetailsFormController extends BaseController {
     private TableColumn<OrderTm, String> colTotal;
     
     @FXML
-    private TableColumn<OrderTm, String> colOrderType;
-    
-    @FXML
     private TableColumn<OrderTm, JFXButton> colAction;
     
     @FXML
@@ -137,9 +134,6 @@ public class OrderDetailsFormController extends BaseController {
         colTotal.setCellValueFactory(new PropertyValueFactory<>("totalFormatted"));
         colTotal.setEditable(false);
         colTotal.setSortable(false);
-        colOrderType.setCellValueFactory(new PropertyValueFactory<>("orderTypeFormatted"));
-        colOrderType.setEditable(false);
-        colOrderType.setSortable(false);
         colAction.setCellValueFactory(new PropertyValueFactory<>("viewButton"));
         colAction.setEditable(false);
         colAction.setSortable(false);
@@ -269,7 +263,6 @@ public class OrderDetailsFormController extends BaseController {
                 tm.setDiscount(order.getDiscount());
                 tm.setOperatorEmail(order.getOperatorEmail());
                 tm.setTotalCost(order.getTotalCost());
-                tm.setOrderType(order.getOrderType() != null ? order.getOrderType() : "HARDWARE");
                 tm.setViewButton(viewBtn);
                 tm.setReturnOrdersButton(returnOrdersBtn);
                 observableList.add(tm);

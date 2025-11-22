@@ -31,7 +31,7 @@
             <Insets top="25" right="15" bottom="30" left="15" />
          </padding>
          <children>
-            <Text text="Kumara Hardware" styleClass="sidebar-title-light" />
+            <Text text="Kumara Enterprises" styleClass="sidebar-title-light" />
             <Separator style="-fx-max-width: 180; -fx-background-color: #DDDDDD;"/>
             <JFXButton fx:id="btnDashboard" text="🏠 Dashboard" onAction="#btnDashboardOnAction" styleClass="sidebar-btn-active-light" />
             <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />

@@ -3,6 +3,8 @@
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXPasswordField?>
 <?import com.jfoenix.controls.JFXTextField?>
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import javafx.geometry.Pos?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
@@ -35,7 +37,7 @@
                         </font>
                     </Text>
                     <JFXTextField fx:id="txtEmail" promptText="Enter email address" styleClass="text-field-modern"
-                                  text="" prefWidth="350.0" prefHeight="42.0">
+                                  text="" prefWidth="350.0" prefHeight="42.0" onAction="#txtEmailOnAction">
                         <font>
                             <Font name="System" size="14.0"/>
                         </font>
@@ -48,12 +50,30 @@
                             <Font name="System Bold" size="13.0"/>
                         </font>
                     </Text>
-                    <JFXPasswordField fx:id="txtPassword" promptText="Enter password"
-                                      styleClass="text-field-modern" text="" prefWidth="350.0" prefHeight="42.0">
-                        <font>
-                            <Font name="System" size="14.0"/>
-                        </font>
-                    </JFXPasswordField>
+                    <StackPane prefWidth="350.0" prefHeight="42.0">
+                        <JFXPasswordField fx:id="txtPassword" promptText="Enter password"
+                                          styleClass="text-field-modern" text="" prefWidth="350.0" prefHeight="42.0" onAction="#txtPasswordOnAction">
+                            <font>
+                                <Font name="System" size="14.0"/>
+                            </font>
+                        </JFXPasswordField>
+                        <JFXTextField fx:id="txtPasswordVisible" promptText="Enter password"
+                                      styleClass="text-field-modern" text="" prefWidth="350.0" prefHeight="42.0" 
+                                      onAction="#txtPasswordOnAction" visible="false" managed="false">
+                            <font>
+                                <Font name="System" size="14.0"/>
+                            </font>
+                        </JFXTextField>
+                        <HBox alignment="CENTER_RIGHT" spacing="0" style="-fx-padding: 0 12 0 0;" maxWidth="350.0" prefWidth="350.0">
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <JFXButton fx:id="btnTogglePassword" onAction="#btnTogglePasswordOnAction" 
+                                      buttonType="FLAT" style="-fx-background-color: transparent; -fx-padding: 8; -fx-min-width: 36; -fx-min-height: 36; -fx-cursor: hand;">
+                                <graphic>
+                                    <FontAwesomeIconView fx:id="iconTogglePassword" glyphName="EYE" size="16" style="-fx-fill: #64748b;"/>
+                                </graphic>
+                            </JFXButton>
+                        </HBox>
+                    </StackPane>
                 </VBox>
             </VBox>
 

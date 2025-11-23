@@ -9,105 +9,32 @@ import com.devstack.pos.util.StageManager;
 import com.devstack.pos.util.UserSessionData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXPasswordField;
-import com.jfoenix.controls.JFXTextField;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 
 @Component
 @RequiredArgsConstructor
-public class LoginFormController implements Initializable {
+public class LoginFormController {
     public VBox context;
     public TextField txtEmail;
-    public JFXPasswordField txtPassword;
-    public JFXTextField txtPasswordVisible;
-    public JFXButton btnTogglePassword;
-    public FontAwesomeIconView iconTogglePassword;
+    public PasswordField txtPassword;
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final SessionManager sessionManager;
     private final TrialService trialService;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // Initialize icon to EYE (password is hidden by default)
-        if (iconTogglePassword != null) {
-            iconTogglePassword.setGlyphName("EYE");
-        }
-        
-        // Sync text between password fields
-        txtPassword.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (txtPassword.isVisible() && !txtPasswordVisible.isFocused()) {
-                txtPasswordVisible.setText(newValue);
-            }
-        });
-
-        txtPasswordVisible.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (txtPasswordVisible.isVisible() && !txtPassword.isFocused()) {
-                txtPassword.setText(newValue);
-            }
-        });
-    }
-
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");
-    }
-
-    public void txtEmailOnAction(ActionEvent actionEvent) {
-        // Move focus to password field when Enter is pressed in email field
-        if (txtPasswordVisible.isVisible()) {
-            txtPasswordVisible.requestFocus();
-        } else {
-            txtPassword.requestFocus();
-        }
-    }
-
-    public void txtPasswordOnAction(ActionEvent actionEvent) {
-        // Trigger login when Enter is pressed in password field
-        btnSignInOnAction(actionEvent);
-    }
-
-    public void btnTogglePasswordOnAction(ActionEvent actionEvent) {
-        // Toggle between showing and hiding password
-        if (txtPassword.isVisible()) {
-            // Show password as plain text
-            String password = txtPassword.getText();
-            txtPasswordVisible.setText(password);
-            txtPassword.setVisible(false);
-            txtPassword.setManaged(false);
-            txtPasswordVisible.setVisible(true);
-            txtPasswordVisible.setManaged(true);
-            txtPasswordVisible.requestFocus();
-            txtPasswordVisible.positionCaret(password.length());
-            // Change icon to EYE_SLASH (eye with diagonal line)
-            iconTogglePassword.setGlyphName("EYE_SLASH");
-        } else {
-            // Hide password
-            String password = txtPasswordVisible.getText();
-            txtPassword.setText(password);
-            txtPasswordVisible.setVisible(false);
-            txtPasswordVisible.setManaged(false);
-            txtPassword.setVisible(true);
-            txtPassword.setManaged(true);
-            txtPassword.requestFocus();
-            txtPassword.positionCaret(password.length());
-            // Change icon to EYE (normal eye)
-            iconTogglePassword.setGlyphName("EYE");
-        }
     }
 
     public void btnSignInOnAction(ActionEvent actionEvent) {
@@ -126,9 +53,7 @@ public class LoginFormController implements Initializable {
             
             AppUser appUser = userService.findUser(txtEmail.getText());
             if (appUser != null) {
-                // Get password from the visible field if it's showing, otherwise from password field
-                String password = txtPasswordVisible.isVisible() ? txtPasswordVisible.getText() : txtPassword.getText();
-                String jwtToken = userService.checkPassword(appUser.getEmail(), password);
+                String jwtToken = userService.checkPassword(appUser.getEmail(), txtPassword.getText());
                 if (!ObjectUtils.isEmpty(jwtToken)) {
                     // Store JWT token
                     UserSessionData.jwtToken = jwtToken;

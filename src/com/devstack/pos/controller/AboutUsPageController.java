@@ -63,7 +63,7 @@ public class AboutUsPageController extends BaseController {
      * Admin users: All features including Products, Supplier, Reports
      */
     private void configureMenuVisibility() {
-        boolean isAdmin = AuthorizationUtil.isAdmin();
+        boolean isAdmin = AuthorizationUtil.isAdmin() || AuthorizationUtil.isSuperAdmin();
         
         // Always visible for all users (normal and admin)
         if (btnCustomer != null) {

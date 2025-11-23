@@ -191,33 +191,33 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<ProfitLossTm, Double> colPLProfit;
     
-    // Top Customers Tab
-    @FXML
-    private TableView<TopCustomerTm> tblTopCustomers;
+    // Top Customers Tab - removed
+    // @FXML
+    // private TableView<TopCustomerTm> tblTopCustomers;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Integer> colCustomerRank;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Integer> colCustomerRank;
     
-    @FXML
-    private TableColumn<TopCustomerTm, String> colCustomerEmail;
+    // @FXML
+    // private TableColumn<TopCustomerTm, String> colCustomerEmail;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Integer> colCustomerOrders;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Integer> colCustomerOrders;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerRefunds;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Double> colCustomerRefunds;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerNetRevenue;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Double> colCustomerNetRevenue;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerAvgOrder;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Double> colCustomerAvgOrder;
     
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
+    // @FXML
+    // private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
     
     // Customer Purchase History Tab - feature moved to Feature/customer-module branch
     @FXML
@@ -421,22 +421,23 @@ public class AnalysisPageController extends BaseController {
         colPLRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
         colPLProfit.setCellValueFactory(new PropertyValueFactory<>("profit"));
         
+        // Top Customers Tab - removed
         // Configure Top Customers Table
-        colCustomerRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
-        colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
-        colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
-        colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
-        colCustomerRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
-        colCustomerNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
-        colCustomerAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
-        colCustomerPendingPayments.setCellValueFactory(new PropertyValueFactory<>("pendingPayments"));
+        // colCustomerRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
+        // colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
+        // colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
+        // colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
+        // colCustomerRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
+        // colCustomerNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
+        // colCustomerAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
+        // colCustomerPendingPayments.setCellValueFactory(new PropertyValueFactory<>("pendingPayments"));
         
         // Format currency columns for Top Customers
-        formatCurrencyColumn(colCustomerRevenue);
-        formatCurrencyColumn(colCustomerRefunds);
-        formatCurrencyColumn(colCustomerNetRevenue);
-        formatCurrencyColumn(colCustomerAvgOrder);
-        formatCurrencyColumn(colCustomerPendingPayments);
+        // formatCurrencyColumn(colCustomerRevenue);
+        // formatCurrencyColumn(colCustomerRefunds);
+        // formatCurrencyColumn(colCustomerNetRevenue);
+        // formatCurrencyColumn(colCustomerAvgOrder);
+        // formatCurrencyColumn(colCustomerPendingPayments);
         
         // Set CONSTRAINED_RESIZE_POLICY for all tables
         tblSalesReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -444,7 +445,7 @@ public class AnalysisPageController extends BaseController {
         tblSalesByCategory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblSalesByCashier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblProfitLoss.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tblTopCustomers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        // tblTopCustomers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Load all reports
         loadAllReports();
         
@@ -695,7 +696,7 @@ public class AnalysisPageController extends BaseController {
         loadSalesByCategory();
         loadSalesByCashier();
         loadProfitLoss();
-        loadTopCustomers();
+        // loadTopCustomers(); // Top Customers tab removed
     }
     
     private void loadSummaryStatistics() {
@@ -1010,71 +1011,72 @@ public class AnalysisPageController extends BaseController {
         tblProfitLoss.setItems(FXCollections.observableArrayList());
     }
     
-    private void loadTopCustomers() {
-        List<Object[]> topCustomersData;
-        
-        if (filterStartDate != null && filterEndDate != null) {
-            topCustomersData = orderDetailService.getTopCustomersWithOrderCountByDateRange(filterStartDate, filterEndDate);
-        } else {
-            topCustomersData = orderDetailService.getTopCustomersWithOrderCount();
-        }
-        
-        // Get refunds by customer
-        List<Object[]> refundsByCustomer;
-        if (filterStartDate != null && filterEndDate != null) {
-            refundsByCustomer = returnOrderItemService.getRefundsByCustomerByDateRange(filterStartDate, filterEndDate);
-        } else {
-            refundsByCustomer = returnOrderItemService.getRefundsByCustomer();
-        }
-        
-        // Get pending payments by customer
-        List<Object[]> pendingPaymentsByCustomer;
-        if (filterStartDate != null && filterEndDate != null) {
-            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomerByDateRange(filterStartDate, filterEndDate);
-        } else {
-            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomer();
-        }
-        
-        // Create a map of customer email/name to refund amount
-        Map<String, Double> refundMap = new HashMap<>();
-        for (Object[] refundData : refundsByCustomer) {
-            String customerEmail = (String) refundData[0];
-            Double refundAmount = ((Number) refundData[1]).doubleValue();
-            refundMap.put(customerEmail != null ? customerEmail : "Guest", refundAmount);
-        }
-        
-        // Create a map of customer name to pending payments total
-        Map<String, Double> pendingPaymentsMap = new HashMap<>();
-        for (Object[] pendingData : pendingPaymentsByCustomer) {
-            String customerName = (String) pendingData[0];
-            Double pendingAmount = ((Number) pendingData[1]).doubleValue();
-            pendingPaymentsMap.put(customerName != null ? customerName : "Guest", pendingAmount);
-        }
-        
-        ObservableList<TopCustomerTm> observableList = FXCollections.observableArrayList();
-        
-        int rank = 1;
-        for (Object[] data : topCustomersData) {
-            String customerName = (String) data[0];
-            String customerKey = customerName != null ? customerName : "Guest";
-            Integer orders = ((Number) data[1]).intValue();
-            Double totalRevenue = ((Number) data[2]).doubleValue();
-            
-            // Get refund amount for this customer
-            Double refundAmount = refundMap.getOrDefault(customerKey, 0.0);
-            Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
-            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
-            
-            // Get pending payments total for this customer
-            Double pendingPayments = pendingPaymentsMap.getOrDefault(customerKey, 0.0);
-            
-            TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, 
-                totalRevenue, refundAmount, netRevenue, avgOrder, pendingPayments);
-            observableList.add(tm);
-        }
-        
-        tblTopCustomers.setItems(observableList);
-    }
+    // Top Customers Tab - removed
+    // private void loadTopCustomers() {
+    //     List<Object[]> topCustomersData;
+    //     
+    //     if (filterStartDate != null && filterEndDate != null) {
+    //         topCustomersData = orderDetailService.getTopCustomersWithOrderCountByDateRange(filterStartDate, filterEndDate);
+    //     } else {
+    //         topCustomersData = orderDetailService.getTopCustomersWithOrderCount();
+    //     }
+    //     
+    //     // Get refunds by customer
+    //     List<Object[]> refundsByCustomer;
+    //     if (filterStartDate != null && filterEndDate != null) {
+    //         refundsByCustomer = returnOrderItemService.getRefundsByCustomerByDateRange(filterStartDate, filterEndDate);
+    //     } else {
+    //         refundsByCustomer = returnOrderItemService.getRefundsByCustomer();
+    //     }
+    //     
+    //     // Get pending payments by customer
+    //     List<Object[]> pendingPaymentsByCustomer;
+    //     if (filterStartDate != null && filterEndDate != null) {
+    //         pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomerByDateRange(filterStartDate, filterEndDate);
+    //     } else {
+    //         pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomer();
+    //     }
+    //     
+    //     // Create a map of customer email/name to refund amount
+    //     Map<String, Double> refundMap = new HashMap<>();
+    //     for (Object[] refundData : refundsByCustomer) {
+    //         String customerEmail = (String) refundData[0];
+    //         Double refundAmount = ((Number) refundData[1]).doubleValue();
+    //         refundMap.put(customerEmail != null ? customerEmail : "Guest", refundAmount);
+    //     }
+    //     
+    //     // Create a map of customer name to pending payments total
+    //     Map<String, Double> pendingPaymentsMap = new HashMap<>();
+    //     for (Object[] pendingData : pendingPaymentsByCustomer) {
+    //         String customerName = (String) pendingData[0];
+    //         Double pendingAmount = ((Number) pendingData[1]).doubleValue();
+    //         pendingPaymentsMap.put(customerName != null ? customerName : "Guest", pendingAmount);
+    //     }
+    //     
+    //     ObservableList<TopCustomerTm> observableList = FXCollections.observableArrayList();
+    //     
+    //     int rank = 1;
+    //     for (Object[] data : topCustomersData) {
+    //         String customerName = (String) data[0];
+    //         String customerKey = customerName != null ? customerName : "Guest";
+    //         Integer orders = ((Number) data[1]).intValue();
+    //         Double totalRevenue = ((Number) data[2]).doubleValue();
+    //         
+    //         // Get refund amount for this customer
+    //         Double refundAmount = refundMap.getOrDefault(customerKey, 0.0);
+    //         Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
+    //         Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
+    //         
+    //         // Get pending payments total for this customer
+    //         Double pendingPayments = pendingPaymentsMap.getOrDefault(customerKey, 0.0);
+    //         
+    //         TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, 
+    //             totalRevenue, refundAmount, netRevenue, avgOrder, pendingPayments);
+    //         observableList.add(tm);
+    //     }
+    //     
+    //     tblTopCustomers.setItems(observableList);
+    // }
     
     // ===== Table Model Classes =====
     

@@ -129,14 +129,15 @@ public class DashboardFormController extends BaseController {
     @FXML
     private Text lblLowStockCount;
     
-    @FXML
-    private Text lblPendingPaymentsCount;
+    // Pending payment feature moved to Feature/payment-method branch
+    // @FXML
+    // private Text lblPendingPaymentsCount;
     
-    @FXML
-    private Text lblPendingPaymentsAmount;
+    // @FXML
+    // private Text lblPendingPaymentsAmount;
     
-    @FXML
-    private Text lblPendingPaymentsDetails;
+    // @FXML
+    // private Text lblPendingPaymentsDetails;
     
     @FXML
     private MenuButton btnUserMenu;
@@ -289,7 +290,8 @@ public class DashboardFormController extends BaseController {
             loadRecentTransactions();
             loadQuickStats();
             loadPendingTasks(); // Load return orders statistics
-            loadPendingPayments(); // Load pending payments statistics
+            // Pending payment feature moved to Feature/payment-method branch
+            // loadPendingPayments(); // Load pending payments statistics
             System.out.println("Dashboard refresh completed");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -1036,57 +1038,58 @@ public class DashboardFormController extends BaseController {
         }
     }
     
-    private void loadPendingPayments() {
-        try {
-            // Get all pending payments
-            List<OrderDetail> pendingPayments = orderDetailService.findPendingPayments();
-            
-            // Calculate total amount
-            double totalAmount = pendingPayments.stream()
-                    .mapToDouble(OrderDetail::getTotalCost)
-                    .sum();
-            
-            // Count by payment method
-            long creditCount = pendingPayments.stream()
-                    .filter(order -> "CREDIT".equals(order.getPaymentMethod()))
-                    .count();
-            
-            long chequeCount = pendingPayments.stream()
-                    .filter(order -> "CHEQUE".equals(order.getPaymentMethod()))
-                    .count();
-            
-            // Update UI
-            if (lblPendingPaymentsCount != null) {
-                lblPendingPaymentsCount.setText(String.valueOf(pendingPayments.size()));
-            }
-            
-            if (lblPendingPaymentsAmount != null) {
-                lblPendingPaymentsAmount.setText(String.format("LKR %,.2f", totalAmount));
-            }
-            
-            if (lblPendingPaymentsDetails != null) {
-                if (pendingPayments.isEmpty()) {
-                    lblPendingPaymentsDetails.setText("No pending payments");
-                } else {
-                    StringBuilder details = new StringBuilder();
-                    if (creditCount > 0) {
-                        details.append(creditCount).append(" Credit");
-                    }
-                    if (chequeCount > 0) {
-                        if (details.length() > 0) details.append(", ");
-                        details.append(chequeCount).append(" Cheque");
-                    }
-                    if (details.length() == 0) {
-                        details.append("Other payment methods");
-                    }
-                    lblPendingPaymentsDetails.setText(details.toString());
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.err.println("Error loading pending payments data: " + ex.getMessage());
-        }
-    }
+    // Pending payment feature moved to Feature/payment-method branch
+    // private void loadPendingPayments() {
+    //     try {
+    //         // Get all pending payments
+    //         List<OrderDetail> pendingPayments = orderDetailService.findPendingPayments();
+    //         
+    //         // Calculate total amount
+    //         double totalAmount = pendingPayments.stream()
+    //                 .mapToDouble(OrderDetail::getTotalCost)
+    //                 .sum();
+    //         
+    //         // Count by payment method
+    //         long creditCount = pendingPayments.stream()
+    //                 .filter(order -> "CREDIT".equals(order.getPaymentMethod()))
+    //                 .count();
+    //         
+    //         long chequeCount = pendingPayments.stream()
+    //                 .filter(order -> "CHEQUE".equals(order.getPaymentMethod()))
+    //                 .count();
+    //         
+    //         // Update UI
+    //         if (lblPendingPaymentsCount != null) {
+    //             lblPendingPaymentsCount.setText(String.valueOf(pendingPayments.size()));
+    //         }
+    //         
+    //         if (lblPendingPaymentsAmount != null) {
+    //             lblPendingPaymentsAmount.setText(String.format("LKR %,.2f", totalAmount));
+    //         }
+    //         
+    //         if (lblPendingPaymentsDetails != null) {
+    //             if (pendingPayments.isEmpty()) {
+    //                 lblPendingPaymentsDetails.setText("No pending payments");
+    //             } else {
+    //                 StringBuilder details = new StringBuilder();
+    //                 if (creditCount > 0) {
+    //                     details.append(creditCount).append(" Credit");
+    //                 }
+    //                 if (chequeCount > 0) {
+    //                     if (details.length() > 0) details.append(", ");
+    //                     details.append(chequeCount).append(" Cheque");
+    //                 }
+    //                 if (details.length() == 0) {
+    //                     details.append("Other payment methods");
+    //                 }
+    //                 lblPendingPaymentsDetails.setText(details.toString());
+    //             }
+    //         }
+    //     } catch (Exception ex) {
+    //         ex.printStackTrace();
+    //         System.err.println("Error loading pending payments data: " + ex.getMessage());
+    //     }
+    // }
     
     // Table Model for Recent Transactions
     public static class RecentTransactionTm {

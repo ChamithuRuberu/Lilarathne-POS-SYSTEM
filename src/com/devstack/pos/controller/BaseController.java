@@ -133,15 +133,16 @@ public abstract class BaseController {
         }
     }
     
-    @FXML
-    public void btnPendingPaymentsOnAction(ActionEvent event) {
-        updateActivity();
-        if (AuthorizationUtil.canAccessPOSOrders()) {
-            navigateTo("PendingPaymentsForm", true);
-        } else {
-            AuthorizationUtil.showUnauthorizedAlert();
-        }
-    }
+    // Pending payment feature moved to Feature/payment-method branch
+    // @FXML
+    // public void btnPendingPaymentsOnAction(ActionEvent event) {
+    //     updateActivity();
+    //     if (AuthorizationUtil.canAccessPOSOrders()) {
+    //         navigateTo("PendingPaymentsForm", true);
+    //     } else {
+    //         AuthorizationUtil.showUnauthorizedAlert();
+    //     }
+    // }
     
     @FXML
     public void btnOrderDetailsOnAction(ActionEvent event) {

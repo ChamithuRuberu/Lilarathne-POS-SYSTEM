@@ -138,12 +138,12 @@
                   </columns>
                </TableView>
                
-               <!-- Payment Method and Total Cost Section -->
+               <!-- Total Cost and Actions Section -->
                <VBox spacing="16" style="-fx-padding: 16; -fx-background-color: #f8fafc; -fx-background-radius: 8;">
                   <!-- Payment Details and Actions Row - All in One Row -->
                   <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 16; -fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);">
-                     <!-- Payment Method -->
-                     <HBox spacing="8" alignment="CENTER_LEFT">
+                     <!-- Payment Method - feature moved to Feature/payment-method branch -->
+                     <!-- <HBox spacing="8" alignment="CENTER_LEFT">
                         <Text text="Payment Method:" styleClass="form-label" style="-fx-font-size: 14px;">
                            <font>
                               <Font name="System Bold" size="14.0" />
@@ -152,10 +152,8 @@
                         <JFXComboBox fx:id="cmbPaymentMethod" promptText="Select Payment Method" styleClass="text-field-modern" prefWidth="180.0" prefHeight="36.0" />
                      </HBox>
                      
-                     <!-- Separator -->
                      <Separator orientation="VERTICAL" prefHeight="50.0" />
                      
-                     <!-- Customer Paid -->
                      <HBox spacing="8" alignment="CENTER_LEFT">
                         <Text text="Customer Paid:" style="-fx-font-size: 15px; -fx-fill: #475569;">
                            <font>
@@ -169,8 +167,7 @@
                         </JFXTextField>
                      </HBox>
                      
-                     <!-- Separator -->
-                     <Separator orientation="VERTICAL" prefHeight="50.0" />
+                     <Separator orientation="VERTICAL" prefHeight="50.0" /> -->
                      
                      <!-- Total Cost -->
                      <HBox spacing="8" alignment="CENTER_LEFT">
@@ -186,10 +183,9 @@
                         </Text>
                      </HBox>
                      
-                     <!-- Separator -->
-                     <Separator orientation="VERTICAL" prefHeight="50.0" />
+                     <!-- Balance - feature moved to Feature/payment-method branch -->
+                     <!-- <Separator orientation="VERTICAL" prefHeight="50.0" />
                      
-                     <!-- Balance -->
                      <HBox spacing="8" alignment="CENTER_LEFT">
                         <Text text="Balance:" style="-fx-font-size: 16px; -fx-fill: #64748b;">
                            <font>
@@ -201,7 +197,7 @@
                               <Font name="System Bold" size="20.0" />
                            </font>
                         </Text>
-                     </HBox>
+                     </HBox> -->
                      
                      <Region HBox.hgrow="ALWAYS" />
                      

@@ -57,10 +57,11 @@ public class PlaceOrderFormController extends BaseController {
     public TableColumn colSelTotal;
     public TableColumn colSelOperation;
     public Text txtTotal;
-    public Text txtBalance;
-    public JFXTextField txtCustomerPaid;
+    // Payment method and pending payment feature moved to Feature/payment-method branch
+    // public Text txtBalance;
+    // public JFXTextField txtCustomerPaid;
     public JFXButton btnPrint;
-    public JFXComboBox<String> cmbPaymentMethod;
+    // public JFXComboBox<String> cmbPaymentMethod;
 
     private Long selectedCustomerId = null;
     private Long lastCompletedOrderCode = null;
@@ -126,17 +127,18 @@ public class PlaceOrderFormController extends BaseController {
             }
         });
         
+        // Payment method and pending payment feature moved to Feature/payment-method branch
         // Initialize payment method dropdown
-        if (cmbPaymentMethod != null) {
-            cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
-            cmbPaymentMethod.setValue("Cash"); // Set default to Cash
-        }
+        // if (cmbPaymentMethod != null) {
+        //     cmbPaymentMethod.setItems(FXCollections.observableArrayList("Cash", "Credit", "Cheque"));
+        //     cmbPaymentMethod.setValue("Cash"); // Set default to Cash
+        // }
         
         // Initialize balance display
-        if (txtBalance != null) {
-            txtBalance.setText("0.00 /=");
-            txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
-        }
+        // if (txtBalance != null) {
+        //     txtBalance.setText("0.00 /=");
+        //     txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+        // }
         
         // Disable print button initially (no order to print yet)
         if (btnPrint != null) {
@@ -605,37 +607,39 @@ public class PlaceOrderFormController extends BaseController {
             total += tm.getTotalCost();
         }
         txtTotal.setText(String.format("%.2f /=", total));
-        calculateBalance();
+        // Payment method and pending payment feature moved to Feature/payment-method branch
+        // calculateBalance();
     }
     
-    public void calculateBalance(javafx.scene.input.KeyEvent keyEvent) {
-        calculateBalance();
-    }
+    // Payment method and pending payment feature moved to Feature/payment-method branch
+    // public void calculateBalance(javafx.scene.input.KeyEvent keyEvent) {
+    //     calculateBalance();
+    // }
     
-    private void calculateBalance() {
-        try {
-            double total = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
-            double customerPaid = 0.0;
-            String paidText = txtCustomerPaid.getText() == null ? "" : txtCustomerPaid.getText().trim();
-            if (!paidText.isEmpty()) {
-                customerPaid = Double.parseDouble(paidText);
-            }
-            double balance = customerPaid - total;
-            txtBalance.setText(String.format("%.2f /=", balance));
-            
-            // Change color based on balance (red for negative, green for positive)
-            if (balance < 0) {
-                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
-            } else if (balance > 0) {
-                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #16a34a;");
-            } else {
-                txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #64748b;");
-            }
-        } catch (Exception e) {
-            txtBalance.setText("0.00 /=");
-            txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
-        }
-    }
+    // private void calculateBalance() {
+    //     try {
+    //         double total = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
+    //         double customerPaid = 0.0;
+    //         String paidText = txtCustomerPaid.getText() == null ? "" : txtCustomerPaid.getText().trim();
+    //         if (!paidText.isEmpty()) {
+    //             customerPaid = Double.parseDouble(paidText);
+    //         }
+    //         double balance = customerPaid - total;
+    //         txtBalance.setText(String.format("%.2f /=", balance));
+    //         
+    //         // Change color based on balance (red for negative, green for positive)
+    //         if (balance < 0) {
+    //             txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+    //         } else if (balance > 0) {
+    //             txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #16a34a;");
+    //         } else {
+    //             txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #64748b;");
+    //         }
+    //     } catch (Exception e) {
+    //         txtBalance.setText("0.00 /=");
+    //         txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+    //     }
+    // }
 
     public void btnCompleteOrder(ActionEvent actionEvent) {
         try {
@@ -644,54 +648,41 @@ public class PlaceOrderFormController extends BaseController {
                 return;
             }
             
-            // Validate customer paid field - must not be null or empty
-            if (txtCustomerPaid == null) {
-                new Alert(Alert.AlertType.ERROR, "Customer paid field is not initialized!").show();
-                return;
-            }
-            
-            String paidText = txtCustomerPaid.getText();
-            if (paidText == null || paidText.trim().isEmpty()) {
-                new Alert(Alert.AlertType.WARNING, "Please enter the amount paid by the customer!").show();
-                txtCustomerPaid.requestFocus();
-                return;
-            }
+            // Payment method and pending payment feature moved to Feature/payment-method branch
+            // All payment-related validations removed - using defaults
             
             // Calculate total discount (unit discount * qty)
             double totalDiscount = tms.stream()
                     .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
                     .sum();
             
-            // Determine payment method and status
-            String selectedPaymentMethod = cmbPaymentMethod.getValue();
-            if (selectedPaymentMethod == null || selectedPaymentMethod.isEmpty()) {
-                selectedPaymentMethod = "Cash";
-            }
+            // Payment method and status - defaults since feature moved to Feature/payment-method branch
+            String paymentMethod = "CASH"; // Default to Cash
+            String paymentStatus = "PAID"; // Default to Paid
+            double customerPaid = 0.0; // Default to 0
+            double balance = 0.0; // Default to 0
             
-            String paymentMethod = selectedPaymentMethod.toUpperCase();
-            String paymentStatus = "PAID";
+            // Payment method and pending payment feature moved to Feature/payment-method branch
+            // String selectedPaymentMethod = cmbPaymentMethod.getValue();
+            // if (selectedPaymentMethod == null || selectedPaymentMethod.isEmpty()) {
+            //     selectedPaymentMethod = "Cash";
+            // }
+            // String paymentMethod = selectedPaymentMethod.toUpperCase();
+            // String paymentStatus = "PAID";
+            // if ("CREDIT".equals(paymentMethod) || "CHEQUE".equals(paymentMethod)) {
+            //     paymentStatus = "PENDING";
+            // }
+            // String paidText = txtCustomerPaid.getText();
+            // if (paidText == null || paidText.trim().isEmpty()) {
+            //     new Alert(Alert.AlertType.WARNING, "Please enter the amount paid by the customer!").show();
+            //     txtCustomerPaid.requestFocus();
+            //     return;
+            // }
+            // double customerPaid = Double.parseDouble(paidText.trim());
+            // double totalCost = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
+            // double balance = customerPaid - totalCost;
             
-            if ("CREDIT".equals(paymentMethod) || "CHEQUE".equals(paymentMethod)) {
-                paymentStatus = "PENDING";
-            }
-            
-            // Get customer paid amount and validate it's a valid number
-            double customerPaid = 0.0;
-            paidText = paidText.trim();
-            try {
-                customerPaid = Double.parseDouble(paidText);
-                if (customerPaid < 0) {
-                    new Alert(Alert.AlertType.WARNING, "Customer paid amount cannot be negative!").show();
-                    txtCustomerPaid.requestFocus();
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                new Alert(Alert.AlertType.WARNING, "Please enter a valid amount for customer paid!").show();
-                txtCustomerPaid.requestFocus();
-                return;
-            }
             double totalCost = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
-            double balance = customerPaid - totalCost;
             
             // Create order detail
             OrderDetail orderDetail = new OrderDetail();
@@ -795,14 +786,15 @@ public class PlaceOrderFormController extends BaseController {
         txtQtyOnHand.clear();
         txtBuyingPrice.clear();
         txtQty.clear();
-        txtCustomerPaid.clear();
-        txtBalance.setText("0.00 /=");
-        txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
+        // Payment method and pending payment feature moved to Feature/payment-method branch
+        // txtCustomerPaid.clear();
+        // txtBalance.setText("0.00 /=");
+        // txtBalance.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #dc2626;");
         selectedCustomerId = null;
-        // Reset payment method to Cash
-        if (cmbPaymentMethod != null) {
-            cmbPaymentMethod.setValue("Cash");
-        }
+        // Reset payment method to Cash - feature moved to Feature/payment-method branch
+        // if (cmbPaymentMethod != null) {
+        //     cmbPaymentMethod.setValue("Cash");
+        // }
     }
     
     public void btnPrintReceipt(ActionEvent actionEvent) {

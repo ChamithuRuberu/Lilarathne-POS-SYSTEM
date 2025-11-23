@@ -38,7 +38,8 @@
             <!-- <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" /> -->
             <JFXButton fx:id="btnProduct" text="📦 Products" onAction="#btnProductOnActions" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPlaceOrder" text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton fx:id="btnPendingPayments" text="💳 Pending Payments" onAction="#btnPendingPaymentsOnAction" styleClass="sidebar-btn-light" />
+            <!-- Pending payment feature moved to Feature/payment-method branch -->
+            <!-- <JFXButton fx:id="btnPendingPayments" text="💳 Pending Payments" onAction="#btnPendingPaymentsOnAction" styleClass="sidebar-btn-light" /> -->
             <JFXButton fx:id="btnReturns" text="🔄 Return Orders" onAction="#btnReturnsOrderOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPurchase" text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnOrderDetails" text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-light" />
@@ -85,22 +86,22 @@
                   <Text fx:id="lblRevenueChange" text="--" styleClass="kpi-change-positive"/>
                </VBox>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="1">
-                  <Text text="Total Customers" styleClass="kpi-label-light"/>
-                  <Text fx:id="lblTotalCustomers" text="0" styleClass="kpi-value-light"/>
+                  <Text text="Total Return Orders" styleClass="kpi-label-light"/>
+                  <Text fx:id="returnOrderCount" text="0" styleClass="kpi-value-light"/>
 <!--                  <Text fx:id="lblTotalProducts" text="Total Products: 0" styleClass="kpi-secondary-light"/>-->
                </VBox>
                <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
+                  <Text text="Total Suppliers" styleClass="kpi-label-light"/>
+                  <Text fx:id="lblTotalSuppliers" text="0" styleClass="kpi-value-light"/>
+<!--                  <Text fx:id="lblTotalProducts" text="Total Products: 0" styleClass="kpi-secondary-light"/>-->
+               </VBox>
+               <!-- Pending payment feature moved to Feature/payment-method branch -->
+               <!-- <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">
                   <Text text="Pending Payments" styleClass="kpi-label-light"/>
                   <Text fx:id="lblPendingPaymentsCount" text="0" styleClass="kpi-value-light"/>
-
-                 <Text fx:id="lblPendingPaymentsAmount" text="Total Products: 0" styleClass="kpi-secondary-light"/>
-               </VBox>
-<!--               <VBox styleClass="kpi-card-light" GridPane.columnIndex="2">-->
-<!--                  <Text text="Pending Payments" styleClass="kpi-label-light"/>-->
-<!--                  <Text fx:id="lblPendingPaymentsCount" text="0" styleClass="kpi-value-light"/>-->
-<!--                  <Text fx:id="lblPendingPaymentsAmount" text="LKR 0.00" styleClass="kpi-secondary-light"/>-->
-<!--                  <Text fx:id="lblPendingPaymentsDetails" text="&#45;&#45;" styleClass="kpi-secondary-light" style="-fx-font-size: 11px;"/>-->
-<!--               </VBox>-->
+                  <Text fx:id="lblPendingPaymentsAmount" text="LKR 0.00" styleClass="kpi-secondary-light"/>
+                  <Text fx:id="lblPendingPaymentsDetails" text="&#45;&#45;" styleClass="kpi-secondary-light" style="-fx-font-size: 11px;"/>
+               </VBox> -->
             </GridPane>
 
             <HBox spacing="25" VBox.vgrow="ALWAYS">

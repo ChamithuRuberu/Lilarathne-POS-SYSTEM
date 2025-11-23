@@ -46,8 +46,9 @@ public class SettingsFormController extends BaseController {
     @FXML
     public JFXButton btnPlaceOrder;
     
-    @FXML
-    public JFXButton btnPendingPayments;
+    // Pending payment feature moved to Feature/payment-method branch
+    // @FXML
+    // public JFXButton btnPendingPayments;
     
     @FXML
     public JFXButton btnReturns;

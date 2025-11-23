@@ -24,7 +24,8 @@
             <JFXButton fx:id="btnCustomer" text="👥 Customers" onAction="#btnCustomerOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnProduct" text="📦 Products" onAction="#btnProductOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPlaceOrder" text="🛒 POS / Orders" onAction="#btnPlaceOrderOnAction" styleClass="sidebar-btn-light" />
-            <JFXButton fx:id="btnPendingPayments" text="💳 Pending Payments" onAction="#btnPendingPaymentsOnAction" styleClass="sidebar-btn-light" />
+            <!-- Pending payment feature moved to Feature/payment-method branch -->
+            <!-- <JFXButton fx:id="btnPendingPayments" text="💳 Pending Payments" onAction="#btnPendingPaymentsOnAction" styleClass="sidebar-btn-light" /> -->
             <JFXButton fx:id="btnReturns" text="🔄 Return Orders" onAction="#btnReturnsOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnPurchase" text="💰 Supplier" onAction="#btnPurchaseOnAction" styleClass="sidebar-btn-light" />
             <JFXButton fx:id="btnOrderDetails" text="📋 All Orders" onAction="#btnOrderDetailsOnAction" styleClass="sidebar-btn-light" />

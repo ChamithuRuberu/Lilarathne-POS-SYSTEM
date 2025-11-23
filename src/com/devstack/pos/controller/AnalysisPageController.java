@@ -191,92 +191,6 @@ public class AnalysisPageController extends BaseController {
     @FXML
     private TableColumn<ProfitLossTm, Double> colPLProfit;
     
-    // Top Customers Tab
-    @FXML
-    private TableView<TopCustomerTm> tblTopCustomers;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Integer> colCustomerRank;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, String> colCustomerEmail;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Integer> colCustomerOrders;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerRevenue;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerRefunds;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerNetRevenue;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerAvgOrder;
-    
-    @FXML
-    private TableColumn<TopCustomerTm, Double> colCustomerPendingPayments;
-    
-    // Customer Purchase History Tab - feature moved to Feature/customer-module branch
-    @FXML
-    private javafx.scene.control.ComboBox<String> cmbCustomerHistory;
-    
-    @FXML
-    private Text lblCustomerTotalOrders;
-    
-    @FXML
-    private Text lblCustomerTotalSpent;
-    
-    @FXML
-    private Text lblCustomerAvgOrder;
-    
-    @FXML
-    private Text lblCustomerLastPurchase;
-    
-    @FXML
-    private TableView<CustomerHistoryTm> tblCustomerHistory;
-    
-    @FXML
-    private TableColumn<CustomerHistoryTm, Long> colHistoryOrderId;
-    
-    @FXML
-    private TableColumn<CustomerHistoryTm, String> colHistoryDate;
-    
-    @FXML
-    private TableColumn<CustomerHistoryTm, Double> colHistoryAmount;
-    
-    @FXML
-    private TableColumn<CustomerHistoryTm, String> colHistoryPaymentMethod;
-    
-    @FXML
-    private TableColumn<CustomerHistoryTm, String> colHistoryPaymentStatus;
-    
-    @FXML
-    private TableView<FavoriteProductTm> tblCustomerFavoriteProducts;
-    
-    @FXML
-    private TableColumn<FavoriteProductTm, String> colFavProductName;
-    
-    @FXML
-    private TableColumn<FavoriteProductTm, Integer> colFavProductQty;
-    
-    @FXML
-    private TableColumn<FavoriteProductTm, Double> colFavProductRevenue;
-    
-    @FXML
-    private TableView<FavoriteCategoryTm> tblCustomerFavoriteCategories;
-    
-    @FXML
-    private TableColumn<FavoriteCategoryTm, String> colFavCategoryName;
-    
-    @FXML
-    private TableColumn<FavoriteCategoryTm, Integer> colFavCategoryQty;
-    
-    @FXML
-    private TableColumn<FavoriteCategoryTm, Double> colFavCategoryRevenue;
-    
     // Product Performance Tab
     @FXML
     private javafx.scene.control.ComboBox<Product> cmbProductPerformance;
@@ -421,79 +335,20 @@ public class AnalysisPageController extends BaseController {
         colPLRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
         colPLProfit.setCellValueFactory(new PropertyValueFactory<>("profit"));
         
-        // Configure Top Customers Table
-        colCustomerRank.setCellValueFactory(new PropertyValueFactory<>("rank"));
-        colCustomerEmail.setCellValueFactory(new PropertyValueFactory<>("customerName"));
-        colCustomerOrders.setCellValueFactory(new PropertyValueFactory<>("orders"));
-        colCustomerRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
-        colCustomerRefunds.setCellValueFactory(new PropertyValueFactory<>("refunds"));
-        colCustomerNetRevenue.setCellValueFactory(new PropertyValueFactory<>("netRevenue"));
-        colCustomerAvgOrder.setCellValueFactory(new PropertyValueFactory<>("avgOrder"));
-        colCustomerPendingPayments.setCellValueFactory(new PropertyValueFactory<>("pendingPayments"));
-        
-        // Format currency columns for Top Customers
-        formatCurrencyColumn(colCustomerRevenue);
-        formatCurrencyColumn(colCustomerRefunds);
-        formatCurrencyColumn(colCustomerNetRevenue);
-        formatCurrencyColumn(colCustomerAvgOrder);
-        formatCurrencyColumn(colCustomerPendingPayments);
-        
         // Set CONSTRAINED_RESIZE_POLICY for all tables
         tblSalesReports.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblTopProducts.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblSalesByCategory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblSalesByCashier.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tblProfitLoss.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tblTopCustomers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Load all reports
         loadAllReports();
         
         // Load weekly sales by default
         loadWeeklySales(null);
         
-        // Initialize Customer Purchase History Tab
-        initializeCustomerHistoryTab();
-        
         // Initialize Product Performance Tab
         initializeProductPerformanceTab();
-    }
-    
-    private void initializeCustomerHistoryTab() {
-        // Customer management feature moved to Feature/customer-module branch
-        if (cmbCustomerHistory != null) {
-            cmbCustomerHistory.setItems(FXCollections.observableArrayList());
-            cmbCustomerHistory.setDisable(true);
-            cmbCustomerHistory.setPromptText("Customer feature moved to Feature/customer-module branch");
-        }
-        
-        // Configure customer history table
-        if (colHistoryOrderId != null) {
-            colHistoryOrderId.setCellValueFactory(new PropertyValueFactory<>("orderId"));
-            colHistoryDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-            colHistoryAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
-            colHistoryPaymentMethod.setCellValueFactory(new PropertyValueFactory<>("paymentMethod"));
-            colHistoryPaymentStatus.setCellValueFactory(new PropertyValueFactory<>("paymentStatus"));
-            formatCurrencyColumn(colHistoryAmount);
-            tblCustomerHistory.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        }
-        
-        // Configure favorite products table
-        if (colFavProductName != null) {
-            colFavProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
-            colFavProductQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-            colFavProductRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
-            formatCurrencyColumn(colFavProductRevenue);
-            tblCustomerFavoriteProducts.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        }
-        
-        // Configure favorite categories table
-        if (colFavCategoryName != null) {
-            colFavCategoryName.setCellValueFactory(new PropertyValueFactory<>("categoryName"));
-            colFavCategoryQty.setCellValueFactory(new PropertyValueFactory<>("quantity"));
-            colFavCategoryRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
-            formatCurrencyColumn(colFavCategoryRevenue);
-            tblCustomerFavoriteCategories.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        }
     }
     
     private void initializeProductPerformanceTab() {
@@ -695,7 +550,6 @@ public class AnalysisPageController extends BaseController {
         loadSalesByCategory();
         loadSalesByCashier();
         loadProfitLoss();
-        loadTopCustomers();
     }
     
     private void loadSummaryStatistics() {
@@ -1010,72 +864,6 @@ public class AnalysisPageController extends BaseController {
         tblProfitLoss.setItems(FXCollections.observableArrayList());
     }
     
-    private void loadTopCustomers() {
-        List<Object[]> topCustomersData;
-        
-        if (filterStartDate != null && filterEndDate != null) {
-            topCustomersData = orderDetailService.getTopCustomersWithOrderCountByDateRange(filterStartDate, filterEndDate);
-        } else {
-            topCustomersData = orderDetailService.getTopCustomersWithOrderCount();
-        }
-        
-        // Get refunds by customer
-        List<Object[]> refundsByCustomer;
-        if (filterStartDate != null && filterEndDate != null) {
-            refundsByCustomer = returnOrderItemService.getRefundsByCustomerByDateRange(filterStartDate, filterEndDate);
-        } else {
-            refundsByCustomer = returnOrderItemService.getRefundsByCustomer();
-        }
-        
-        // Get pending payments by customer
-        List<Object[]> pendingPaymentsByCustomer;
-        if (filterStartDate != null && filterEndDate != null) {
-            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomerByDateRange(filterStartDate, filterEndDate);
-        } else {
-            pendingPaymentsByCustomer = orderDetailService.getPendingPaymentsByCustomer();
-        }
-        
-        // Create a map of customer email/name to refund amount
-        Map<String, Double> refundMap = new HashMap<>();
-        for (Object[] refundData : refundsByCustomer) {
-            String customerEmail = (String) refundData[0];
-            Double refundAmount = ((Number) refundData[1]).doubleValue();
-            refundMap.put(customerEmail != null ? customerEmail : "Guest", refundAmount);
-        }
-        
-        // Create a map of customer name to pending payments total
-        Map<String, Double> pendingPaymentsMap = new HashMap<>();
-        for (Object[] pendingData : pendingPaymentsByCustomer) {
-            String customerName = (String) pendingData[0];
-            Double pendingAmount = ((Number) pendingData[1]).doubleValue();
-            pendingPaymentsMap.put(customerName != null ? customerName : "Guest", pendingAmount);
-        }
-        
-        ObservableList<TopCustomerTm> observableList = FXCollections.observableArrayList();
-        
-        int rank = 1;
-        for (Object[] data : topCustomersData) {
-            String customerName = (String) data[0];
-            String customerKey = customerName != null ? customerName : "Guest";
-            Integer orders = ((Number) data[1]).intValue();
-            Double totalRevenue = ((Number) data[2]).doubleValue();
-            
-            // Get refund amount for this customer
-            Double refundAmount = refundMap.getOrDefault(customerKey, 0.0);
-            Double netRevenue = (totalRevenue != null ? totalRevenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
-            Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
-            
-            // Get pending payments total for this customer
-            Double pendingPayments = pendingPaymentsMap.getOrDefault(customerKey, 0.0);
-            
-            TopCustomerTm tm = new TopCustomerTm(rank++, customerKey, orders, 
-                totalRevenue, refundAmount, netRevenue, avgOrder, pendingPayments);
-            observableList.add(tm);
-        }
-        
-        tblTopCustomers.setItems(observableList);
-    }
-    
     // ===== Table Model Classes =====
     
     public static class SalesReportTm {
@@ -1253,77 +1041,6 @@ public class AnalysisPageController extends BaseController {
         public void setProfit(double profit) { this.profit = profit; }
     }
     
-    public static class TopCustomerTm {
-        private int rank;
-        private String customerName;
-        private int orders;
-        private double totalRevenue;
-        private double refunds;
-        private double netRevenue;
-        private double avgOrder;
-        private double pendingPayments;
-        
-        public TopCustomerTm(int rank, String customerName, int orders, double totalRevenue, double refunds, double netRevenue, double avgOrder, double pendingPayments) {
-            this.rank = rank;
-            this.customerName = customerName;
-            this.orders = orders;
-            this.totalRevenue = totalRevenue;
-            this.refunds = refunds;
-            this.netRevenue = netRevenue;
-            this.avgOrder = avgOrder;
-            this.pendingPayments = pendingPayments;
-        }
-        
-        public int getRank() { return rank; }
-        public void setRank(int rank) { this.rank = rank; }
-        public String getCustomerName() { return customerName; }
-        public void setCustomerName(String customerName) { this.customerName = customerName; }
-        public int getOrders() { return orders; }
-        public void setOrders(int orders) { this.orders = orders; }
-        public double getTotalRevenue() { return totalRevenue; }
-        public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
-        public double getRefunds() { return refunds; }
-        public void setRefunds(double refunds) { this.refunds = refunds; }
-        public double getNetRevenue() { return netRevenue; }
-        public void setNetRevenue(double netRevenue) { this.netRevenue = netRevenue; }
-        public double getAvgOrder() { return avgOrder; }
-        public void setAvgOrder(double avgOrder) { this.avgOrder = avgOrder; }
-        public double getPendingPayments() { return pendingPayments; }
-        public void setPendingPayments(double pendingPayments) { this.pendingPayments = pendingPayments; }
-    }
-    
-    // Customer Purchase History Methods
-    @FXML
-    public void loadCustomerHistory(ActionEvent event) {
-        // Customer management feature moved to Feature/customer-module branch
-        new Alert(Alert.AlertType.INFORMATION, "Customer history feature has been moved to Feature/customer-module branch").show();
-        
-        // Clear customer history tables
-        if (tblCustomerHistory != null) {
-            tblCustomerHistory.setItems(FXCollections.observableArrayList());
-        }
-        if (tblCustomerFavoriteProducts != null) {
-            tblCustomerFavoriteProducts.setItems(FXCollections.observableArrayList());
-        }
-        if (tblCustomerFavoriteCategories != null) {
-            tblCustomerFavoriteCategories.setItems(FXCollections.observableArrayList());
-        }
-        
-        // Clear customer statistics labels
-        if (lblCustomerTotalOrders != null) {
-            lblCustomerTotalOrders.setText("0");
-        }
-        if (lblCustomerTotalSpent != null) {
-            lblCustomerTotalSpent.setText("0.00 /=");
-        }
-        if (lblCustomerAvgOrder != null) {
-            lblCustomerAvgOrder.setText("0.00 /=");
-        }
-        if (lblCustomerLastPurchase != null) {
-            lblCustomerLastPurchase.setText("N/A");
-        }
-    }
-    
     // Product Performance Methods
     @FXML
     public void loadProductPerformance(ActionEvent event) {
@@ -1398,72 +1115,6 @@ public class AnalysisPageController extends BaseController {
             trendList.add(new ProductSalesTrendTm(dateStr, qty, revenue));
         }
         tblProductSalesTrend.setItems(trendList);
-    }
-    
-    // Table Model Classes for Customer Purchase History
-    public static class CustomerHistoryTm {
-        private Long orderId;
-        private String date;
-        private double amount;
-        private String paymentMethod;
-        private String paymentStatus;
-        
-        public CustomerHistoryTm(Long orderId, String date, double amount, String paymentMethod, String paymentStatus) {
-            this.orderId = orderId;
-            this.date = date;
-            this.amount = amount;
-            this.paymentMethod = paymentMethod;
-            this.paymentStatus = paymentStatus;
-        }
-        
-        public Long getOrderId() { return orderId; }
-        public void setOrderId(Long orderId) { this.orderId = orderId; }
-        public String getDate() { return date; }
-        public void setDate(String date) { this.date = date; }
-        public double getAmount() { return amount; }
-        public void setAmount(double amount) { this.amount = amount; }
-        public String getPaymentMethod() { return paymentMethod; }
-        public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
-        public String getPaymentStatus() { return paymentStatus; }
-        public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
-    }
-    
-    public static class FavoriteProductTm {
-        private String productName;
-        private int quantity;
-        private double revenue;
-        
-        public FavoriteProductTm(String productName, int quantity, double revenue) {
-            this.productName = productName;
-            this.quantity = quantity;
-            this.revenue = revenue;
-        }
-        
-        public String getProductName() { return productName; }
-        public void setProductName(String productName) { this.productName = productName; }
-        public int getQuantity() { return quantity; }
-        public void setQuantity(int quantity) { this.quantity = quantity; }
-        public double getRevenue() { return revenue; }
-        public void setRevenue(double revenue) { this.revenue = revenue; }
-    }
-    
-    public static class FavoriteCategoryTm {
-        private String categoryName;
-        private int quantity;
-        private double revenue;
-        
-        public FavoriteCategoryTm(String categoryName, int quantity, double revenue) {
-            this.categoryName = categoryName;
-            this.quantity = quantity;
-            this.revenue = revenue;
-        }
-        
-        public String getCategoryName() { return categoryName; }
-        public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
-        public int getQuantity() { return quantity; }
-        public void setQuantity(int quantity) { this.quantity = quantity; }
-        public double getRevenue() { return revenue; }
-        public void setRevenue(double revenue) { this.revenue = revenue; }
     }
     
     // Table Model Classes for Product Performance

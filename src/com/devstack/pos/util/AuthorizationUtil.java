@@ -6,7 +6,7 @@ public class AuthorizationUtil {
     
     /**
      * Check if current user has admin role
-     * Supports: ROLE_SUPER_ADMIN, SUPER_ADMIN, ADMIN
+     * Supports: ROLE_SUPER_ADMIN, ROLE_ADMIN, SUPER_ADMIN, ADMIN
      */
     public static boolean isAdmin() {
         return UserSessionData.isAdmin();
@@ -19,13 +19,17 @@ public class AuthorizationUtil {
     public static boolean isCashier() {
         return UserSessionData.isCashier();
     }
+
+    public static boolean isSuperAdmin() {
+        return UserSessionData.isSuperAdmin();
+    }
     
     /**
      * Check if user can access POS Orders (Place Orders)
      * Accessible by: ADMIN and CASHIER
      */
     public static boolean canAccessPOSOrders() {
-        return isAdmin() || isCashier();
+        return isAdmin() || isCashier() || isSuperAdmin();
     }
     
     /**
@@ -33,7 +37,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN and CASHIER
      */
     public static boolean canAccessReturnOrders() {
-        return isAdmin() || isCashier();
+        return isAdmin() || isCashier() || isSuperAdmin();
     }
     
     /**
@@ -41,7 +45,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN only
      */
     public static boolean canAccessPurchaseOrders() {
-        return isAdmin();
+        return isAdmin() || isSuperAdmin();
     }
     
     /**
@@ -49,7 +53,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN only
      */
     public static boolean canAccessAllFeatures() {
-        return isAdmin();
+        return isAdmin() || isSuperAdmin();
     }
     
     /**
@@ -57,7 +61,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN and CASHIER
      */
     public static boolean canAccessCustomers() {
-        return isAdmin() || isCashier();
+        return isAdmin() || isCashier() || isSuperAdmin();
     }
     
     /**
@@ -65,7 +69,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN only
      */
     public static boolean canAccessProducts() {
-        return isAdmin();
+        return isAdmin() || isSuperAdmin();
     }
     
     /**
@@ -73,7 +77,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN only
      */
     public static boolean canAccessReports() {
-        return isAdmin();
+        return isAdmin() || isSuperAdmin();
     }
     
     /**
@@ -81,7 +85,7 @@ public class AuthorizationUtil {
      * Accessible by: ADMIN only
      */
     public static boolean canAccessSettings() {
-        return isAdmin();
+        return isAdmin() || isSuperAdmin();
     }
     
     /**

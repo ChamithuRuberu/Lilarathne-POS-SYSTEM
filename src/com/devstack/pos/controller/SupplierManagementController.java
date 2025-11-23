@@ -99,7 +99,7 @@ public class SupplierManagementController extends BaseController {
         // Fix table to prevent extra column
         tblSuppliers.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         // Check authorization
-        if (!AuthorizationUtil.isAdmin()) {
+        if (!AuthorizationUtil.isAdmin() && !AuthorizationUtil.isSuperAdmin()) {
             showError("Access Denied", "You don't have permission to access this page.");
             return;
         }

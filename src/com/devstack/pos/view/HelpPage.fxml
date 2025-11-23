@@ -38,7 +38,6 @@
             <JFXButton fx:id="btnHelp" text="❓ Help" onAction="#btnHelpOnAction" styleClass="sidebar-btn-active-light" />
             <JFXButton fx:id="btnAboutUs" text="ℹ️ About Us" onAction="#btnAboutUsOnAction" styleClass="sidebar-btn-light" />
             <VBox VBox.vgrow="ALWAYS" />
-            <JFXButton fx:id="btnLogout" text="🚪 Logout" onAction="#btnLogoutOnAction" styleClass="sidebar-btn-light" />
         </children>
     </VBox>
     

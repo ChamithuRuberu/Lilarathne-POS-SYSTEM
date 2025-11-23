@@ -1,4 +1,5 @@
 package com.devstack.pos.service;
+
 import com.devstack.pos.entity.AppUser;
 import com.devstack.pos.entity.Role;
 import com.devstack.pos.repository.RoleRepository;
@@ -18,40 +19,66 @@ import java.util.Set;
 public class SuperAdminService implements CommandLineRunner {
 
 
-        private final UserRepository userRepository;
-        private final RoleRepository roleRepository;
-        private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-        @Override
-        public void run(String... args) {
-            createSuperAdmin();
-        }
+    @Override
+    public void run(String... args) {
+        createSuperAdmin();
+    }
 
-        @Bean
-        @Order(1)
-        @Transient
-        public CommandLineRunner createSuperAdmin() {
+    @Bean
+    @Order(1)
+    @Transient
+    public CommandLineRunner createSuperAdmin() {
 
-            return args -> {
-                if (!userRepository.existsByEmail(("admin"))) {
+        return args -> {
+            if (!userRepository.existsByEmail(("superadmin"))) {
 
-                    Role superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN")
-                            .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_SUPER_ADMIN").build()));
+                Role superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN")
+                        .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_SUPER_ADMIN").build()));
 
-                    AppUser appUser = AppUser.builder()
-                            .password(passwordEncoder.encode("ADMIN")) // Encode the password
-                            .email("admin") // Provide a valid email
-                            .status("ACTIVE")
-                            .roles(Set.of(superAdminRole)) // Assign the role as a Set
-                            .build();
+                AppUser appUser = AppUser.builder()
+                        .password(passwordEncoder.encode("ADMIN")) // Encode the password
+                        .email("superadmin") // Provide a valid email
+                        .status("ACTIVE")
+                        .roles(Set.of(superAdminRole)) // Assign the role as a Set
+                        .build();
 
 
-                    userRepository.save(appUser);
-                    System.out.println("Super admin user seeded!");
-                }
-            };
+                userRepository.save(appUser);
+                System.out.println("Super admin user seeded!");
+            }
+        };
 
-        }
+    }
+
+    @Bean
+    @Order(1)
+    @Transient
+    public CommandLineRunner createAdmin() {
+
+        return args -> {
+            if (!userRepository.existsByEmail(("admin"))) {
+
+                Role superAdminRole = roleRepository.findByName("ROLE_ADMIN")
+                        .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_ADMIN").build()));
+
+                AppUser appUser = AppUser.builder()
+                        .password(passwordEncoder.encode("ADMIN")) // Encode the password
+                        .email("admin") // Provide a valid email
+                        .status("ACTIVE")
+                        .roles(Set.of(superAdminRole)) // Assign the role as a Set
+                        .build();
+
+
+                userRepository.save(appUser);
+                System.out.println("Super admin user seeded!");
+            }
+        };
+
+    }
 
     @Bean
     @Order(2)

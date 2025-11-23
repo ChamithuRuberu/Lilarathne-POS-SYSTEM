@@ -7,14 +7,19 @@ import com.devstack.pos.service.UserService;
 import com.devstack.pos.util.JwtUtil;
 import com.devstack.pos.util.StageManager;
 import com.devstack.pos.util.UserSessionData;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -23,7 +28,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class LoginFormController {
+public class LoginFormController implements Initializable {
     public VBox context;
     public TextField txtEmail;
     public PasswordField txtPassword;
@@ -33,8 +38,19 @@ public class LoginFormController {
     private final SessionManager sessionManager;
     private final TrialService trialService;
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Set default focus on email field when form loads
+        Platform.runLater(() -> txtEmail.requestFocus());
+    }
+
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");
+    }
+
+    public void txtEmailOnAction(ActionEvent actionEvent) {
+        // Move focus to password field when Enter is pressed in email field
+        txtPassword.requestFocus();
     }
 
     public void btnSignInOnAction(ActionEvent actionEvent) {

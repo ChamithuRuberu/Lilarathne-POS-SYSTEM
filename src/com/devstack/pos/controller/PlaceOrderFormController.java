@@ -342,12 +342,12 @@ public class PlaceOrderFormController extends BaseController {
                 
                 // Show success message
                 String productName = product != null ? product.getDescription() : "Product";
-                new Alert(Alert.AlertType.INFORMATION, 
-                    "Product loaded successfully!\n\n" +
-                    "Product: " + productName + "\n" +
-                    "Batch Code: " + productDetail.getCode() + "\n" +
-                    "Stock: " + (qtyOnHand == (int)qtyOnHand ? String.valueOf((int)qtyOnHand) : String.format("%.2f", qtyOnHand)) + " units"
-                ).show();
+//                new Alert(Alert.AlertType.INFORMATION,
+//                    "Product loaded successfully!\n\n" +
+//                    "Product: " + productName + "\n" +
+//                    "Batch Code: " + productDetail.getCode() + "\n" +
+//                    "Stock: " + (qtyOnHand == (int)qtyOnHand ? String.valueOf((int)qtyOnHand) : String.format("%.2f", qtyOnHand)) + " units"
+//                ).show();
                 
                 txtQty.requestFocus();
             } else {
@@ -561,14 +561,14 @@ public class PlaceOrderFormController extends BaseController {
                 setTotal();
             }
             
-            // Show success message for first item
-            if (tms.size() == 1) {
-                javafx.application.Platform.runLater(() -> {
-                    new Alert(Alert.AlertType.INFORMATION, 
-                        "Product added to cart!\n\n" +
-                        "You can continue adding more products or complete the order.").show();
-                });
-            }
+//            // Show success message for first item
+//            if (tms.size() == 1) {
+//                javafx.application.Platform.runLater(() -> {
+//                    new Alert(Alert.AlertType.INFORMATION,
+//                        "Product added to cart!\n\n" +
+//                        "You can continue adding more products or complete the order.").show();
+//                });
+//            }
             
         } catch (Exception e) {
             e.printStackTrace();

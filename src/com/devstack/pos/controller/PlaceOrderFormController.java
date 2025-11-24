@@ -864,6 +864,9 @@ public class PlaceOrderFormController extends BaseController {
                 for (CartTm tm : tms) {
                     ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
                     
+                    // Check if this is a general item (not in product_detail table)
+                    boolean isGeneralItem = (tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"));
+                    
                     double itemTotalDiscount = tm.getDiscount() * tm.getQty();
                     
                     SuperAdminOrderItem superAdminOrderItem = SuperAdminOrderItem.builder()
@@ -877,6 +880,7 @@ public class PlaceOrderFormController extends BaseController {
                         .discountPerUnit(tm.getDiscount())
                         .totalDiscount(itemTotalDiscount)
                         .lineTotal(tm.getTotalCost())
+                        .isGeneralItem(isGeneralItem) // Set flag to identify general items at DB level
                         .build();
                     superAdminOrderItems.add(superAdminOrderItem);
                 }
@@ -924,83 +928,83 @@ public class PlaceOrderFormController extends BaseController {
                 }
             } else {
                 // Regular user - save to existing tables (existing logic)
-                OrderDetail orderDetail = new OrderDetail();
-                orderDetail.setIssuedDate(LocalDateTime.now());
-                orderDetail.setTotalCost(totalCost);
-                orderDetail.setCustomerId(selectedCustomerId);
-                orderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
-                orderDetail.setDiscount(totalDiscount);
-                orderDetail.setOperatorEmail(UserSessionData.email);
-                orderDetail.setPaymentMethod(paymentMethod);
-                orderDetail.setPaymentStatus(paymentStatus);
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setIssuedDate(LocalDateTime.now());
+            orderDetail.setTotalCost(totalCost);
+            orderDetail.setCustomerId(selectedCustomerId);
+            orderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
+            orderDetail.setDiscount(totalDiscount);
+            orderDetail.setOperatorEmail(UserSessionData.email);
+            orderDetail.setPaymentMethod(paymentMethod);
+            orderDetail.setPaymentStatus(paymentStatus);
                 orderDetail.setOrderType(getCurrentOrderType());
-                orderDetail.setCustomerPaid(customerPaid);
-                orderDetail.setBalance(balance);
-                
-                // Save order
-                OrderDetail savedOrder = orderDetailService.saveOrderDetail(orderDetail);
-                
+            orderDetail.setCustomerPaid(customerPaid);
+            orderDetail.setBalance(balance);
+            
+            // Save order
+            OrderDetail savedOrder = orderDetailService.saveOrderDetail(orderDetail);
+            
                 // Save order items
-                List<OrderItem> orderItems = new ArrayList<>();
-                for (CartTm tm : tms) {
-                    ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
-                    
-                    double itemTotalDiscount = tm.getDiscount() * tm.getQty();
-                    
-                    OrderItem orderItem = OrderItem.builder()
-                        .orderId(savedOrder.getCode())
-                        .productCode(productDetail != null ? productDetail.getProductCode() : null)
-                        .productName(tm.getDescription())
-                        .batchCode(tm.getCode())
-                        .batchNumber(productDetail != null ? productDetail.getBatchNumber() : null)
-                        .quantity(tm.getQty())
-                        .unitPrice(tm.getSellingPrice())
-                        .discountPerUnit(tm.getDiscount())
-                        .totalDiscount(itemTotalDiscount)
-                        .lineTotal(tm.getTotalCost())
-                        .build();
-                    orderItems.add(orderItem);
-                }
-                orderItemService.saveAllOrderItems(orderItems);
+            List<OrderItem> orderItems = new ArrayList<>();
+            for (CartTm tm : tms) {
+                ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
                 
+                double itemTotalDiscount = tm.getDiscount() * tm.getQty();
+                
+                OrderItem orderItem = OrderItem.builder()
+                    .orderId(savedOrder.getCode())
+                    .productCode(productDetail != null ? productDetail.getProductCode() : null)
+                    .productName(tm.getDescription())
+                    .batchCode(tm.getCode())
+                    .batchNumber(productDetail != null ? productDetail.getBatchNumber() : null)
+                        .quantity(tm.getQty())
+                    .unitPrice(tm.getSellingPrice())
+                    .discountPerUnit(tm.getDiscount())
+                    .totalDiscount(itemTotalDiscount)
+                    .lineTotal(tm.getTotalCost())
+                    .build();
+                orderItems.add(orderItem);
+            }
+            orderItemService.saveAllOrderItems(orderItems);
+            
                 // Reduce stock immediately (skip general items and transport fees)
-                for (CartTm tm : tms) {
+            for (CartTm tm : tms) {
                     // Skip stock reduction for general items (GEN_*) and transport fees (TRANSPORT_*)
                     if (!tm.getCode().startsWith("GEN_") && !tm.getCode().startsWith("TRANSPORT_")) {
                         try {
-                            productDetailService.reduceStock(tm.getCode(), tm.getQty());
+                productDetailService.reduceStock(tm.getCode(), tm.getQty());
                         } catch (Exception e) {
                             // Log error but don't fail the order if stock reduction fails for a specific item
                             System.err.println("Warning: Could not reduce stock for " + tm.getCode() + ": " + e.getMessage());
                         }
                     }
+            }
+            
+            // Store the order code for printing later
+            lastCompletedOrderCode = savedOrder.getCode();
+            
+            // Generate PDF for record keeping (no automatic printing)
+            try {
+                String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
+                
+                if ("PAID".equals(paymentStatus)) {
+                    new Alert(Alert.AlertType.CONFIRMATION, 
+                        "Order Completed Successfully!\nPDF saved to: " + receiptPath + 
+                        "\nClick Print button to print receipt.").show();
+                } else {
+                    new Alert(Alert.AlertType.INFORMATION, 
+                        "Order created with " + paymentMethod + " payment. Status: PENDING.\nPDF saved to: " + receiptPath + 
+                        "\nStock reduced immediately to reflect pending order.\nClick Print button to print receipt.").show();
                 }
                 
-                // Store the order code for printing later
-                lastCompletedOrderCode = savedOrder.getCode();
-                
-                // Generate PDF for record keeping (no automatic printing)
-                try {
-                    String receiptPath = pdfReportService.generateBillReceipt(savedOrder.getCode());
-                    
-                    if ("PAID".equals(paymentStatus)) {
-                        new Alert(Alert.AlertType.CONFIRMATION, 
-                            "Order Completed Successfully!\nPDF saved to: " + receiptPath + 
-                            "\nClick Print button to print receipt.").show();
-                    } else {
-                        new Alert(Alert.AlertType.INFORMATION, 
-                            "Order created with " + paymentMethod + " payment. Status: PENDING.\nPDF saved to: " + receiptPath + 
-                            "\nStock reduced immediately to reflect pending order.\nClick Print button to print receipt.").show();
-                    }
-                    
-                } catch (Exception receiptEx) {
-                    receiptEx.printStackTrace();
-                    if ("PAID".equals(paymentStatus)) {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Order completed but PDF generation failed: " + receiptEx.getMessage()).show();
-                    } else {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Order created but PDF generation failed: " + receiptEx.getMessage()).show();
+            } catch (Exception receiptEx) {
+                receiptEx.printStackTrace();
+                if ("PAID".equals(paymentStatus)) {
+                    new Alert(Alert.AlertType.WARNING, 
+                        "Order completed but PDF generation failed: " + receiptEx.getMessage()).show();
+                } else {
+                    new Alert(Alert.AlertType.WARNING, 
+                        "Order created but PDF generation failed: " + receiptEx.getMessage()).show();
                     }
                 }
             }
@@ -1053,7 +1057,7 @@ public class PlaceOrderFormController extends BaseController {
             if (isSuperAdmin) {
                 // Print super admin receipt using separate service
                 boolean printed = superAdminReceiptPrinter.printSuperAdminReceipt(lastCompletedOrderCode);
-                
+            
                 if (printed) {
                     new Alert(Alert.AlertType.INFORMATION, "Super Admin Receipt printed successfully!").show();
                 } else {
@@ -1062,12 +1066,12 @@ public class PlaceOrderFormController extends BaseController {
             } else {
                 // Regular user - use existing printing service
                 String receiptText = pdfReportService.generatePlainTextReceipt(lastCompletedOrderCode);
-                boolean printed = receiptPrinter.printRawText(receiptText);
-                
-                if (printed) {
-                    new Alert(Alert.AlertType.INFORMATION, "Receipt printed successfully!").show();
-                } else {
-                    new Alert(Alert.AlertType.WARNING, "Printing failed. Please check printer connection.").show();
+            boolean printed = receiptPrinter.printRawText(receiptText);
+            
+            if (printed) {
+                new Alert(Alert.AlertType.INFORMATION, "Receipt printed successfully!").show();
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Printing failed. Please check printer connection.").show();
                 }
             }
         } catch (Exception e) {

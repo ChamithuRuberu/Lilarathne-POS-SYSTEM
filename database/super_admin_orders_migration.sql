@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS super_admin_order_item (
     discount_per_unit DECIMAL(10,2),
     total_discount DECIMAL(10,2),
     line_total DECIMAL(10,2) NOT NULL,
+    is_general_item BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_super_admin_order_item_order 
         FOREIGN KEY (order_id) REFERENCES super_admin_order_detail(code) ON DELETE CASCADE
@@ -82,5 +83,6 @@ COMMENT ON COLUMN super_admin_order_item.unit_price IS 'Price per unit';
 COMMENT ON COLUMN super_admin_order_item.discount_per_unit IS 'Discount per unit';
 COMMENT ON COLUMN super_admin_order_item.total_discount IS 'Total discount for this line item';
 COMMENT ON COLUMN super_admin_order_item.line_total IS 'Total cost for this line item (quantity * unit_price - discount)';
+COMMENT ON COLUMN super_admin_order_item.is_general_item IS 'Flag to identify general items (true) vs regular products (false). General items are not in product_detail table.';
 COMMENT ON COLUMN super_admin_order_item.created_at IS 'Timestamp when item was created';
 

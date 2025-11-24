@@ -164,8 +164,8 @@ public class GeneralItemsDialogController {
                                 if (index >= 0 && getTableView() != null && getTableView().getItems() != null 
                                     && index < getTableView().getItems().size()) {
                                     GeneralItemSelectedTm item = getTableView().getItems().get(index);
-                                    calculateItemTotal(item);
-                                    calculateTotals();
+                                calculateItemTotal(item);
+                                calculateTotals();
                                 }
                             }
                         });
@@ -195,8 +195,8 @@ public class GeneralItemsDialogController {
                                 if (index >= 0 && getTableView() != null && getTableView().getItems() != null 
                                     && index < getTableView().getItems().size()) {
                                     GeneralItemSelectedTm item = getTableView().getItems().get(index);
-                                    calculateItemTotal(item);
-                                    calculateTotals();
+                                calculateItemTotal(item);
+                                calculateTotals();
                                 }
                             }
                         });

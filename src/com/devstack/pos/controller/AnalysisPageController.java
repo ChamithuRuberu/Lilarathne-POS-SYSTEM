@@ -12,6 +12,10 @@ import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.PDFReportService;
 import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ReturnOrderService;
+import com.devstack.pos.service.SuperAdminOrderDetailService;
+import com.devstack.pos.service.SuperAdminOrderItemService;
+import com.devstack.pos.util.AuthorizationUtil;
+import com.devstack.pos.util.UserSessionData;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -368,6 +372,8 @@ public class AnalysisPageController extends BaseController {
     private final ReturnOrderItemService returnOrderItemService;
     private final CustomerService customerService;
     private final CustomerRepository customerRepository;
+    private final SuperAdminOrderDetailService superAdminOrderDetailService;
+    private final SuperAdminOrderItemService superAdminOrderItemService;
     
     private LocalDateTime filterStartDate = null;
     private LocalDateTime filterEndDate = null;
@@ -812,10 +818,83 @@ public class AnalysisPageController extends BaseController {
         // Calculate profit (net revenue - cost, simplified for now)
         profit = netRevenue; // This can be enhanced with actual cost calculations
         
+        // For Super Admin: Add general items totals to regular totals (combined view)
+        // For Regular Users: Show only regular totals (no general items)
+        if (UserSessionData.isSuperAdmin()) {
+            // Get general items totals using separate methods
+            Double generalItemsRevenue;
+            if (filterStartDate != null && filterEndDate != null) {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(filterStartDate, filterEndDate);
+            } else {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsTotalRevenue();
+            }
+            
+            // Combine regular totals + general items totals (only for super admin)
+            Double combinedRevenue = (netRevenue != null ? netRevenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            Double combinedProfit = (profit != null ? profit : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            
+            // Display combined totals for super admin
+            lblTotalRevenue.setText(String.format("%.2f /=", combinedRevenue));
+            lblTotalOrders.setText(String.valueOf(orders != null ? orders : 0));
+            lblTotalProfit.setText(String.format("%.2f /=", combinedProfit));
+            lblAvgOrderValue.setText(String.format("%.2f /=", avgOrder != null ? avgOrder : 0.0));
+            
+            // Load detailed super admin totals
+            loadSuperAdminTotals();
+        } else {
+            // Regular users see only their totals (no general items)
         lblTotalRevenue.setText(String.format("%.2f /=", netRevenue != null ? netRevenue : 0.0));
         lblTotalOrders.setText(String.valueOf(orders != null ? orders : 0));
         lblTotalProfit.setText(String.format("%.2f /=", profit != null ? profit : 0.0));
         lblAvgOrderValue.setText(String.format("%.2f /=", avgOrder != null ? avgOrder : 0.0));
+        }
+    }
+    
+    /**
+     * Load Super Admin totals using separate methods (not using existing methods)
+     * Only visible to super admin users
+     */
+    private void loadSuperAdminTotals() {
+        try {
+            // Get super admin order totals
+            Double superAdminRevenue;
+            Long superAdminOrders;
+            Double superAdminAvgOrder;
+            Double generalItemsRevenue;
+            Double generalItemsQuantity;
+            Long generalItemsOrderCount;
+            
+            if (filterStartDate != null && filterEndDate != null) {
+                superAdminRevenue = superAdminOrderDetailService.getSuperAdminRevenueByDateRange(filterStartDate, filterEndDate);
+                superAdminOrders = superAdminOrderDetailService.countSuperAdminOrdersByDateRange(filterStartDate, filterEndDate);
+                superAdminAvgOrder = superAdminOrderDetailService.getSuperAdminAverageOrderValueByDateRange(filterStartDate, filterEndDate);
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(filterStartDate, filterEndDate);
+                generalItemsQuantity = superAdminOrderItemService.getGeneralItemsQuantityByDateRange(filterStartDate, filterEndDate);
+                generalItemsOrderCount = superAdminOrderItemService.getGeneralItemsOrderCountByDateRange(filterStartDate, filterEndDate);
+            } else {
+                superAdminRevenue = superAdminOrderDetailService.getSuperAdminTotalRevenue();
+                superAdminOrders = superAdminOrderDetailService.getSuperAdminTotalOrderCount();
+                superAdminAvgOrder = superAdminOrderDetailService.getSuperAdminAverageOrderValue();
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsTotalRevenue();
+                generalItemsQuantity = superAdminOrderItemService.getGeneralItemsTotalQuantity();
+                generalItemsOrderCount = superAdminOrderItemService.getGeneralItemsOrderCount();
+            }
+            
+            // Update labels with super admin totals (append to existing labels or show in console for now)
+            // For now, we'll log them - you can add separate UI labels later
+            System.out.println("=== SUPER ADMIN TOTALS (Super Admin Only) ===");
+            System.out.println("Super Admin Revenue: " + String.format("%.2f /=", superAdminRevenue != null ? superAdminRevenue : 0.0));
+            System.out.println("Super Admin Orders: " + (superAdminOrders != null ? superAdminOrders : 0));
+            System.out.println("Super Admin Avg Order: " + String.format("%.2f /=", superAdminAvgOrder != null ? superAdminAvgOrder : 0.0));
+            System.out.println("General Items Revenue: " + String.format("%.2f /=", generalItemsRevenue != null ? generalItemsRevenue : 0.0));
+            System.out.println("General Items Quantity: " + String.format("%.2f", generalItemsQuantity != null ? generalItemsQuantity : 0.0));
+            System.out.println("General Items Order Count: " + (generalItemsOrderCount != null ? generalItemsOrderCount : 0));
+            System.out.println("=============================================");
+            
+        } catch (Exception e) {
+            System.err.println("Error loading super admin totals: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     @FXML
@@ -835,6 +914,15 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to regular totals (combined view)
+            // For Regular Users: Show only regular totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                netRevenue = netRevenue + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
@@ -865,6 +953,15 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to regular totals (combined view)
+            // For Regular Users: Show only regular totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                netRevenue = netRevenue + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
@@ -894,6 +991,15 @@ public class AnalysisPageController extends BaseController {
             Double refundAmount = returnOrderService.getTotalRefundAmountByDateRange(startDateTime, endDateTime);
             Double netRevenue = (revenue != null ? revenue : 0.0) - (refundAmount != null ? refundAmount : 0.0);
             Long orders = orderDetailService.countOrdersByDateRange(startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to regular totals (combined view)
+            // For Regular Users: Show only regular totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                netRevenue = netRevenue + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (netRevenue / orders) : 0.0;
 
             String period = String.valueOf(yearStart.getYear());
@@ -921,6 +1027,14 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
             Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to construction totals (combined view)
+            // For Regular Users: Show only construction totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
             
             String period = weekStart.format(DateTimeFormatter.ofPattern("MMM dd")) + " - " + 
@@ -946,6 +1060,14 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
             Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to construction totals (combined view)
+            // For Regular Users: Show only construction totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
             
             String period = monthStart.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
@@ -970,6 +1092,14 @@ public class AnalysisPageController extends BaseController {
             
             Double revenue = orderDetailService.getRevenueByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
             Long orders = orderDetailService.getOrderCountByOrderTypeAndDateRange("CONSTRUCTION", startDateTime, endDateTime);
+            
+            // For Super Admin: Add general items totals to construction totals (combined view)
+            // For Regular Users: Show only construction totals (no general items)
+            if (UserSessionData.isSuperAdmin()) {
+                Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDateTime, endDateTime);
+                revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            }
+            
             Double avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
             
             String period = String.valueOf(yearStart.getYear());
@@ -993,6 +1123,20 @@ public class AnalysisPageController extends BaseController {
             revenue = orderDetailService.getRevenueByOrderType("CONSTRUCTION");
             orders = orderDetailService.getOrderCountByOrderType("CONSTRUCTION");
             avgOrder = orderDetailService.getAverageOrderValueByOrderType("CONSTRUCTION");
+        }
+        
+        // For Super Admin: Add general items totals to construction totals (combined view)
+        // For Regular Users: Show only construction totals (no general items)
+        if (UserSessionData.isSuperAdmin()) {
+            Double generalItemsRevenue;
+            if (filterStartDate != null && filterEndDate != null) {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(filterStartDate, filterEndDate);
+            } else {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsTotalRevenue();
+            }
+            revenue = (revenue != null ? revenue : 0.0) + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            // Recalculate avg order with combined revenue
+            avgOrder = orders != null && orders > 0 ? (revenue / orders) : 0.0;
         }
         
         if (lblConstructionTotalRevenue != null) {
@@ -1182,6 +1326,18 @@ public class AnalysisPageController extends BaseController {
             .mapToDouble(data -> ((Number) data[2]).doubleValue())
             .sum();
         
+        // For Super Admin: Add general items totals to total revenue (combined view)
+        // For Regular Users: Show only regular totals (no general items)
+        Double generalItemsRevenue = 0.0;
+        if (UserSessionData.isSuperAdmin()) {
+            if (filterStartDate != null && filterEndDate != null) {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(filterStartDate, filterEndDate);
+            } else {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsTotalRevenue();
+            }
+            totalRevenue = totalRevenue + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+        }
+        
         ObservableList<CashierReportTm> observableList = FXCollections.observableArrayList();
         
         int rank = 1;
@@ -1201,6 +1357,32 @@ public class AnalysisPageController extends BaseController {
             CashierReportTm tm = new CashierReportTm(rank++, cashierEmail != null ? cashierEmail : "Unknown", 
                 orders, revenue, proportionalRefund, netRevenue, avgOrder);
             observableList.add(tm);
+        }
+        
+        // For Super Admin: Add general items as a separate line item in cashier report
+        if (UserSessionData.isSuperAdmin() && generalItemsRevenue != null && generalItemsRevenue > 0) {
+            Long generalItemsOrderCount;
+            if (filterStartDate != null && filterEndDate != null) {
+                generalItemsOrderCount = superAdminOrderItemService.getGeneralItemsOrderCountByDateRange(filterStartDate, filterEndDate);
+            } else {
+                generalItemsOrderCount = superAdminOrderItemService.getGeneralItemsOrderCount();
+            }
+            
+            // Add general items as a separate entry (shown as "Super Admin - General Items")
+            Double generalItemsNetRevenue = generalItemsRevenue; // No refunds for general items typically
+            Double generalItemsAvgOrder = generalItemsOrderCount != null && generalItemsOrderCount > 0 
+                ? (generalItemsNetRevenue / generalItemsOrderCount) : 0.0;
+            
+            CashierReportTm generalItemsTm = new CashierReportTm(
+                rank++, 
+                "Super Admin - General Items", 
+                generalItemsOrderCount != null ? generalItemsOrderCount.intValue() : 0, 
+                generalItemsRevenue, 
+                0.0, // No refunds
+                generalItemsNetRevenue, 
+                generalItemsAvgOrder
+            );
+            observableList.add(generalItemsTm);
         }
         
         tblSalesByCashier.setItems(observableList);
@@ -1227,12 +1409,37 @@ public class AnalysisPageController extends BaseController {
             grossProfit = netSales; // Net sales as profit (can be enhanced with cost calculations)
         }
         
+        // For Super Admin: Add general items totals to regular totals (combined view)
+        // For Regular Users: Show only regular totals (no general items)
+        if (UserSessionData.isSuperAdmin()) {
+            // Get general items revenue using separate methods
+            Double generalItemsRevenue;
+            if (filterStartDate != null && filterEndDate != null) {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(filterStartDate, filterEndDate);
+            } else {
+                generalItemsRevenue = superAdminOrderItemService.getGeneralItemsTotalRevenue();
+            }
+            
+            // Combine regular totals + general items totals (only for super admin)
+            Double combinedNetSales = netSales + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            Double combinedGrossProfit = grossProfit + (generalItemsRevenue != null ? generalItemsRevenue : 0.0);
+            
+            // Display combined totals for super admin
+            lblPLTotalSales.setText(String.format("%.2f /=", combinedNetSales != null ? combinedNetSales : 0.0));
+            lblPLCostOfGoods.setText(String.format("%.2f /=", costOfGoods != null ? costOfGoods : 0.0));
+            lblPLGrossProfit.setText(String.format("%.2f /=", combinedGrossProfit != null ? combinedGrossProfit : 0.0));
+            
+            double profitMargin = (combinedNetSales != null && combinedNetSales > 0) ? (combinedGrossProfit / combinedNetSales * 100) : 0.0;
+            lblPLProfitMargin.setText(String.format("%.2f%%", profitMargin));
+        } else {
+            // Regular users see only their totals (no general items)
         lblPLTotalSales.setText(String.format("%.2f /=", netSales != null ? netSales : 0.0));
         lblPLCostOfGoods.setText(String.format("%.2f /=", costOfGoods != null ? costOfGoods : 0.0));
         lblPLGrossProfit.setText(String.format("%.2f /=", grossProfit != null ? grossProfit : 0.0));
         
         double profitMargin = (netSales != null && netSales > 0) ? (grossProfit / netSales * 100) : 0.0;
         lblPLProfitMargin.setText(String.format("%.2f%%", profitMargin));
+        }
         
         // Load detailed profit by product
         tblProfitLoss.setItems(FXCollections.observableArrayList());

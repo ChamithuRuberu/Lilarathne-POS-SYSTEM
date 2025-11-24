@@ -18,6 +18,8 @@ import com.devstack.pos.service.ReturnOrderService;
 import com.devstack.pos.service.ReturnOrderItemService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.CategoryService;
+import com.devstack.pos.service.SuperAdminOrderDetailService;
+import com.devstack.pos.service.SuperAdminOrderItemService;
 import com.jfoenix.controls.JFXButton;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -59,6 +61,8 @@ public class DashboardFormController extends BaseController {
     private final ReturnOrderItemService returnOrderItemService;
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final SuperAdminOrderDetailService superAdminOrderDetailService;
+    private final SuperAdminOrderItemService superAdminOrderItemService;
     private final com.devstack.pos.service.SessionManager sessionManager;
     
     // KPI Labels
@@ -399,13 +403,24 @@ public class DashboardFormController extends BaseController {
             LocalDateTime startOfDay = today.atStartOfDay();
             LocalDateTime endOfDay = today.atTime(23, 59, 59);
             
-            // Today's revenue and orders
+            // Today's revenue and orders (regular orders only)
             Double todayRevenue = orderDetailService.getRevenueByDateRange(startOfDay, endOfDay);
             Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
             
             // Subtract today's refunds from revenue (net revenue)
             Double todayRefundAmount = returnOrderService.getTotalRefundAmountByDateRange(startOfDay, endOfDay);
             Double todayNetRevenue = (todayRevenue != null ? todayRevenue : 0.0) - (todayRefundAmount != null ? todayRefundAmount : 0.0);
+            
+            // For Super Admin: Add super admin revenue (which includes general items) to regular revenue
+            Double todaySuperAdminRevenue = 0.0;
+            Long todaySuperAdminOrders = 0L;
+            if (UserSessionData.isSuperAdmin()) {
+                todaySuperAdminRevenue = superAdminOrderDetailService.getSuperAdminRevenueByDateRange(startOfDay, endOfDay);
+                todaySuperAdminOrders = superAdminOrderDetailService.countSuperAdminOrdersByDateRange(startOfDay, endOfDay);
+                // Combine: Regular Revenue + Super Admin Revenue (which already includes general items)
+                todayNetRevenue = todayNetRevenue + (todaySuperAdminRevenue != null ? todaySuperAdminRevenue : 0.0);
+                todayOrders = (todayOrders != null ? todayOrders : 0L) + (todaySuperAdminOrders != null ? todaySuperAdminOrders : 0L);
+            }
             
             // Yesterday's revenue for comparison
             LocalDate yesterday = today.minusDays(1);
@@ -416,6 +431,12 @@ public class DashboardFormController extends BaseController {
             // Subtract yesterday's refunds from revenue
             Double yesterdayRefundAmount = returnOrderService.getTotalRefundAmountByDateRange(yesterdayStart, yesterdayEnd);
             Double yesterdayNetRevenue = (yesterdayRevenue != null ? yesterdayRevenue : 0.0) - (yesterdayRefundAmount != null ? yesterdayRefundAmount : 0.0);
+            
+            // For Super Admin: Add super admin revenue to yesterday's revenue for comparison
+            if (UserSessionData.isSuperAdmin()) {
+                Double yesterdaySuperAdminRevenue = superAdminOrderDetailService.getSuperAdminRevenueByDateRange(yesterdayStart, yesterdayEnd);
+                yesterdayNetRevenue = yesterdayNetRevenue + (yesterdaySuperAdminRevenue != null ? yesterdaySuperAdminRevenue : 0.0);
+            }
             
             // Last week's revenue for profit comparison
             LocalDate lastWeekStart = today.minusDays(7);
@@ -429,10 +450,14 @@ public class DashboardFormController extends BaseController {
             LocalDateTime thisWeekStartTime = thisWeekStart.atStartOfDay();
             Double thisWeekRevenue = orderDetailService.getRevenueByDateRange(thisWeekStartTime, endOfDay);
             
-            // Calculate percentage changes based on net revenue
+            // For Super Admin: Combined revenue already calculated above
+            Double todayCombinedRevenue = todayNetRevenue;
+            
+            // Calculate percentage changes based on combined revenue for super admin, or regular for others
             String revenueChangeText = "--";
-            if (yesterdayNetRevenue != null && yesterdayNetRevenue > 0 && todayNetRevenue != null) {
-                double change = ((todayNetRevenue - yesterdayNetRevenue) / yesterdayNetRevenue) * 100;
+            Double revenueForComparison = UserSessionData.isSuperAdmin() ? todayCombinedRevenue : todayNetRevenue;
+            if (yesterdayNetRevenue != null && yesterdayNetRevenue > 0 && revenueForComparison != null) {
+                double change = ((revenueForComparison - yesterdayNetRevenue) / yesterdayNetRevenue) * 100;
                 String symbol = change >= 0 ? "▲" : "▼";
                 String style = change >= 0 ? "kpi-change-positive" : "kpi-change-negative";
                 revenueChangeText = String.format("%s %.1f%% vs Yesterday", symbol, Math.abs(change));
@@ -457,8 +482,20 @@ public class DashboardFormController extends BaseController {
                 totalProducts = productService.findAllProducts().size();
             } catch (Exception ignored) {}
             
-            // Format and set texts - use net revenue (revenue minus refunds)
-            String revenueText = String.format("LKR %,.2f", todayNetRevenue != null ? todayNetRevenue : 0.0);
+            // For Super Admin: Combined revenue already calculated (Regular + Super Admin which includes general items)
+            // For Regular Users: Show only regular totals (no general items)
+            String revenueText;
+            if (UserSessionData.isSuperAdmin()) {
+                // Use the combined revenue calculated above (Regular Revenue + Super Admin Revenue)
+                revenueText = String.format("LKR %,.2f", todayCombinedRevenue != null ? todayCombinedRevenue : 0.0);
+                
+                // Load detailed super admin totals
+                loadSuperAdminTotals(startOfDay, endOfDay);
+            } else {
+                // Regular users see only their totals (no general items)
+                revenueText = String.format("LKR %,.2f", todayNetRevenue != null ? todayNetRevenue : 0.0);
+            }
+            
             String totalCustomersText = String.valueOf(totalCustomers);
             String totalProductsText = "Total Products: " + totalProducts;
             
@@ -467,6 +504,38 @@ public class DashboardFormController extends BaseController {
             if (lblTotalProducts != null) lblTotalProducts.setText(totalProductsText);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+    
+    /**
+     * Load Super Admin totals using separate methods (not using existing methods)
+     * Only visible to super admin users
+     */
+    private void loadSuperAdminTotals(LocalDateTime startDate, LocalDateTime endDate) {
+        try {
+            // Get super admin order totals for today
+            Double superAdminRevenue = superAdminOrderDetailService.getSuperAdminRevenueByDateRange(startDate, endDate);
+            Long superAdminOrders = superAdminOrderDetailService.countSuperAdminOrdersByDateRange(startDate, endDate);
+            Double superAdminAvgOrder = superAdminOrderDetailService.getSuperAdminAverageOrderValueByDateRange(startDate, endDate);
+            
+            // Get general items totals for today
+            Double generalItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startDate, endDate);
+            Double generalItemsQuantity = superAdminOrderItemService.getGeneralItemsQuantityByDateRange(startDate, endDate);
+            Long generalItemsOrderCount = superAdminOrderItemService.getGeneralItemsOrderCountByDateRange(startDate, endDate);
+            
+            // Log super admin totals (you can add UI labels later)
+            System.out.println("=== SUPER ADMIN TOTALS (Today) - Super Admin Only ===");
+            System.out.println("Super Admin Revenue: " + String.format("%.2f /=", superAdminRevenue != null ? superAdminRevenue : 0.0));
+            System.out.println("Super Admin Orders: " + (superAdminOrders != null ? superAdminOrders : 0));
+            System.out.println("Super Admin Avg Order: " + String.format("%.2f /=", superAdminAvgOrder != null ? superAdminAvgOrder : 0.0));
+            System.out.println("General Items Revenue: " + String.format("%.2f /=", generalItemsRevenue != null ? generalItemsRevenue : 0.0));
+            System.out.println("General Items Quantity: " + String.format("%.2f", generalItemsQuantity != null ? generalItemsQuantity : 0.0));
+            System.out.println("General Items Order Count: " + (generalItemsOrderCount != null ? generalItemsOrderCount : 0));
+            System.out.println("=====================================================");
+            
+        } catch (Exception e) {
+            System.err.println("Error loading super admin totals: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -756,6 +825,13 @@ public class DashboardFormController extends BaseController {
                 
                 double netRevenue = (dailyRevenue != null ? dailyRevenue : 0.0) - (dailyRefunds != null ? dailyRefunds : 0.0);
                 
+                // For Super Admin: Add general items totals to daily revenue (combined view)
+                // For Regular Users: Show only regular totals (no general items)
+                if (UserSessionData.isSuperAdmin()) {
+                    Double dailyGeneralItemsRevenue = superAdminOrderItemService.getGeneralItemsRevenueByDateRange(startOfDay, endOfDay);
+                    netRevenue = netRevenue + (dailyGeneralItemsRevenue != null ? dailyGeneralItemsRevenue : 0.0);
+                }
+                
                 String dayLabel = date.format(DateTimeFormatter.ofPattern("MM/dd"));
                 series.getData().add(new XYChart.Data<>(dayLabel, netRevenue));
             }
@@ -778,7 +854,7 @@ public class DashboardFormController extends BaseController {
             // Create a list to hold transactions with their dates for sorting
             List<TransactionWithDate> allTransactions = new ArrayList<>();
             
-            // Get recent orders
+            // Get recent orders (regular orders)
             List<OrderDetail> recentOrders = orderDetailService.findAllOrderDetails();
             for (OrderDetail order : recentOrders) {
                 String customerName = order.getCustomerName();
@@ -796,6 +872,33 @@ public class DashboardFormController extends BaseController {
                     new RecentTransactionTm(customerName, formattedAmount, formattedDiscount, formattedDate),
                     order.getIssuedDate()
                 ));
+            }
+            
+            // For Super Admin: Get super admin orders using separate methods
+            if (UserSessionData.isSuperAdmin()) {
+                try {
+                    List<com.devstack.pos.entity.SuperAdminOrderDetail> superAdminOrders = 
+                        superAdminOrderDetailService.findAllSuperAdminOrderDetails();
+                    for (com.devstack.pos.entity.SuperAdminOrderDetail order : superAdminOrders) {
+                        String customerName = order.getCustomerName();
+                        if (customerName == null || customerName.isEmpty()) {
+                            customerName = "Guest";
+                        }
+                        
+                        String formattedDate = order.getIssuedDate().format(formatter);
+                        String formattedAmount = String.format("LKR %,.2f", order.getTotalCost());
+                        String formattedDiscount = order.getDiscount() > 0 
+                            ? String.format("LKR %,.2f", order.getDiscount()) 
+                            : "No discount";
+                        
+                        allTransactions.add(new TransactionWithDate(
+                            new RecentTransactionTm(customerName, formattedAmount, formattedDiscount, formattedDate),
+                            order.getIssuedDate()
+                        ));
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error loading super admin orders for recent transactions: " + e.getMessage());
+                }
             }
             
             // Get recent return orders
@@ -860,14 +963,26 @@ public class DashboardFormController extends BaseController {
             LocalDateTime startOfDay = today.atStartOfDay();
             LocalDateTime endOfDay = today.atTime(23, 59, 59);
             
-            // Today's orders
+            // Today's orders (regular orders)
             Long todayOrders = orderDetailService.countOrdersByDateRange(startOfDay, endOfDay);
+            
+            // For Super Admin: Add super admin orders to today's count
+            if (UserSessionData.isSuperAdmin()) {
+                Long todaySuperAdminOrders = superAdminOrderDetailService.countSuperAdminOrdersByDateRange(startOfDay, endOfDay);
+                todayOrders = (todayOrders != null ? todayOrders : 0L) + (todaySuperAdminOrders != null ? todaySuperAdminOrders : 0L);
+            }
             
             // Yesterday's orders for comparison
             LocalDate yesterday = today.minusDays(1);
             LocalDateTime yesterdayStart = yesterday.atStartOfDay();
             LocalDateTime yesterdayEnd = yesterday.atTime(23, 59, 59);
             Long yesterdayOrders = orderDetailService.countOrdersByDateRange(yesterdayStart, yesterdayEnd);
+            
+            // For Super Admin: Add super admin orders to yesterday's count for comparison
+            if (UserSessionData.isSuperAdmin()) {
+                Long yesterdaySuperAdminOrders = superAdminOrderDetailService.countSuperAdminOrdersByDateRange(yesterdayStart, yesterdayEnd);
+                yesterdayOrders = (yesterdayOrders != null ? yesterdayOrders : 0L) + (yesterdaySuperAdminOrders != null ? yesterdaySuperAdminOrders : 0L);
+            }
             
             if (lblTodayOrders != null) {
                 long ordersCount = todayOrders != null ? todayOrders : 0L;
@@ -896,13 +1011,30 @@ public class DashboardFormController extends BaseController {
             Double todayRefunds = returnOrderService.getTotalRefundAmountByDateRange(startOfDay, endOfDay);
             Double todayNetRevenue = (todayRevenue != null ? todayRevenue : 0.0) - (todayRefunds != null ? todayRefunds : 0.0);
             
+            // For Super Admin: Add super admin revenue (which includes general items) to regular revenue for average calculation
+            // For Regular Users: Show only regular totals (no general items)
+            Long totalOrdersForAvg = todayOrders;
+            if (UserSessionData.isSuperAdmin()) {
+                // Add super admin revenue (which already includes general items)
+                Double superAdminRevenue = superAdminOrderDetailService.getSuperAdminRevenueByDateRange(startOfDay, endOfDay);
+                todayNetRevenue = todayNetRevenue + (superAdminRevenue != null ? superAdminRevenue : 0.0);
+                // totalOrdersForAvg already includes super admin orders from above calculation
+            }
+            
             // Calculate average order value from net revenue
             Double avgOrderValue = null;
-            if (todayOrders != null && todayOrders > 0) {
-                avgOrderValue = todayNetRevenue / todayOrders;
+            if (totalOrdersForAvg != null && totalOrdersForAvg > 0) {
+                avgOrderValue = todayNetRevenue / totalOrdersForAvg;
             } else {
                 // Fallback to service method if no orders today
+                if (UserSessionData.isSuperAdmin()) {
+                    Double superAdminAvg = superAdminOrderDetailService.getSuperAdminAverageOrderValueByDateRange(startOfDay, endOfDay);
+                    Double regularAvg = orderDetailService.getAverageOrderValueByDateRange(startOfDay, endOfDay);
+                    // Weighted average or simple average
+                    avgOrderValue = (regularAvg != null ? regularAvg : 0.0);
+                } else {
                 avgOrderValue = orderDetailService.getAverageOrderValueByDateRange(startOfDay, endOfDay);
+                }
             }
             
             if (lblAvgOrderValue != null) {

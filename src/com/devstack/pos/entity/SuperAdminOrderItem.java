@@ -55,6 +55,9 @@ public class SuperAdminOrderItem {
     @Column(name = "line_total", nullable = false)
     private Double lineTotal;
     
+    @Column(name = "is_general_item", nullable = false)
+    private Boolean isGeneralItem = false; // Flag to identify general items (not in product_detail table)
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

@@ -33,14 +33,14 @@ public class SuperAdminService implements CommandLineRunner {
         public CommandLineRunner createSuperAdmin() {
 
             return args -> {
-                if (!userRepository.existsByEmail(("admin"))) {
+                if (!userRepository.existsByEmail(("superadmin"))) {
 
                     Role superAdminRole = roleRepository.findByName("ROLE_SUPER_ADMIN")
                             .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_SUPER_ADMIN").build()));
 
                     AppUser appUser = AppUser.builder()
                             .password(passwordEncoder.encode("ADMIN")) // Encode the password
-                            .email("admin") // Provide a valid email
+                            .email("superadmin") // Provide a valid email
                             .status("ACTIVE")
                             .roles(Set.of(superAdminRole)) // Assign the role as a Set
                             .build();
@@ -55,6 +55,30 @@ public class SuperAdminService implements CommandLineRunner {
 
     @Bean
     @Order(2)
+    @Transient
+    public CommandLineRunner createAdminRole() {
+        return args -> {
+            if (!userRepository.existsByEmail(("admin"))) {
+
+                Role superAdminRole = roleRepository.findByName("ROLE_ADMIN")
+                        .orElseGet(() -> roleRepository.save(Role.builder().name("ROLE_ADMIN").build()));
+
+                AppUser appUser = AppUser.builder()
+                        .password(passwordEncoder.encode("ADMIN")) // Encode the password
+                        .email("admin") // Provide a valid email
+                        .status("ACTIVE")
+                        .roles(Set.of(superAdminRole)) // Assign the role as a Set
+                        .build();
+
+
+                userRepository.save(appUser);
+                System.out.println("Super admin user seeded!");
+            }
+        };
+    }
+
+    @Bean
+    @Order(3)
     @Transient
     public CommandLineRunner createCashierRole() {
 
@@ -80,7 +104,7 @@ public class SuperAdminService implements CommandLineRunner {
     }
 
     @Bean
-    @Order(3)
+    @Order(4)
     @Transient
     public CommandLineRunner createCashierRole2() {
 
@@ -106,7 +130,7 @@ public class SuperAdminService implements CommandLineRunner {
     }
 
     @Bean
-    @Order(4)
+    @Order(5)
     @Transient
     public CommandLineRunner createCashierRole3() {
 

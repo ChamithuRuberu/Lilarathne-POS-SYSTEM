@@ -85,6 +85,14 @@ public class AuthorizationUtil {
     }
     
     /**
+     * Check if user can access General Items
+     * Accessible by: SUPER_ADMIN only
+     */
+    public static boolean canAccessGeneralItems() {
+        return UserSessionData.isSuperAdmin();
+    }
+    
+    /**
      * Show unauthorized access alert
      */
     public static void showUnauthorizedAlert() {

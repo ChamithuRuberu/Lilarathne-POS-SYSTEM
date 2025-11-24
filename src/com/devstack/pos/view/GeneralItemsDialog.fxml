@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="dialogContext" prefWidth="900" prefHeight="700" style="-fx-background-color: white; -fx-background-radius: 10;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devstack.pos.controller.GeneralItemsDialogController">
+   <children>
+      <VBox spacing="20" style="-fx-padding: 30;" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+         
+         <!-- Header -->
+         <HBox alignment="CENTER_LEFT">
+            <Text text="General Items" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-fill: #1e293b;">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Text>
+            <Region HBox.hgrow="ALWAYS" />
+         </HBox>
+         
+         <Separator />
+         
+         <!-- Products Table Section -->
+         <VBox spacing="12" VBox.vgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT">
+               <Text text="Available Products" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-fill: #475569;">
+                  <font>
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Text>
+               <Region HBox.hgrow="ALWAYS" />
+            </HBox>
+            
+            <TableView fx:id="tblProducts" VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
+               <columns>
+                  <TableColumn fx:id="colProductName" prefWidth="150" text="Item Name" />
+                  <TableColumn fx:id="colSelect" prefWidth="80" text="Select" />
+               </columns>
+            </TableView>
+         </VBox>
+         
+         <Separator />
+         
+         <!-- Selected Items Section -->
+         <VBox spacing="12">
+            <Text text="Selected Items" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-fill: #475569;">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Text>
+            
+            <TableView fx:id="tblSelectedItems" prefHeight="400.0" style="-fx-background-color: white;">
+               <columns>
+                  <TableColumn fx:id="colSelProductName" prefWidth="200" text="Product Name" />
+                  <TableColumn fx:id="colSelQuantity" prefWidth="120" text="Quantity" />
+                  <TableColumn fx:id="colSelUnitPrice" prefWidth="120" text="Unit Price" />
+                  <TableColumn fx:id="colSelTotal" prefWidth="120" text="Total" />
+                  <TableColumn fx:id="colSelRemove" prefWidth="130" text="Action" />
+               </columns>
+            </TableView>
+         </VBox>
+         
+         <Separator />
+         
+         <!-- Summary Section -->
+         <GridPane hgap="20" vgap="16">
+            <columnConstraints>
+               <ColumnConstraints percentWidth="50" />
+               <ColumnConstraints percentWidth="50" />
+            </columnConstraints>
+            
+            <!-- Transport Fee Section -->
+            <VBox spacing="8" GridPane.columnIndex="0">
+               <Text text="Transport Fee" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-fill: #475569;">
+                  <font>
+                     <Font name="System Bold" size="14.0" />
+                  </font>
+               </Text>
+               <JFXTextField fx:id="txtTransportFee" promptText="Enter transport fee for general items" styleClass="text-field-modern" prefWidth="300.0" prefHeight="40.0">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+                  <tooltip>
+                     <Tooltip text="Enter transport cost for general items. This will be added to the total bill." />
+                  </tooltip>
+               </JFXTextField>
+            </VBox>
+            
+            <!-- Total Section -->
+            <VBox spacing="8" GridPane.columnIndex="1" alignment="CENTER_RIGHT">
+               <HBox spacing="12" alignment="CENTER_RIGHT">
+                  <Text text="Subtotal:" style="-fx-font-size: 14; -fx-fill: #64748b;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblSubtotal" text="0.00 /=" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-fill: #1e293b;">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Text>
+               </HBox>
+               <HBox spacing="12" alignment="CENTER_RIGHT">
+                  <Text text="Transport Fee:" style="-fx-font-size: 14; -fx-fill: #64748b;">
+                     <font>
+                        <Font name="System" size="14.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblTransportFee" text="0.00 /=" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-fill: #1e293b;">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Text>
+               </HBox>
+               <Separator />
+               <HBox spacing="12" alignment="CENTER_RIGHT">
+                  <Text text="Total:" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-fill: #1e293b;">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Text>
+                  <Text fx:id="lblTotal" text="0.00 /=" style="-fx-font-size: 22; -fx-font-weight: bold; -fx-fill: #2563eb;">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Text>
+               </HBox>
+            </VBox>
+         </GridPane>
+         
+         <Separator />
+         
+         <!-- Action Buttons -->
+         <HBox spacing="12" alignment="CENTER_RIGHT">
+            <JFXButton onAction="#btnCancel" text="Cancel" buttonType="RAISED" styleClass="btn-secondary" prefWidth="120">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </JFXButton>
+            
+            <JFXButton onAction="#btnAddToCart" text="Add to Cart" buttonType="RAISED" styleClass="btn-success" prefWidth="150">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </JFXButton>
+         </HBox>
+         
+      </VBox>
+   </children>
+</AnchorPane>
+

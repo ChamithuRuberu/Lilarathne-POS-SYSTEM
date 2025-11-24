@@ -11,12 +11,40 @@ public class UserSessionData {
     public static boolean isAdmin() {
         return "ROLE_SUPER_ADMIN".equalsIgnoreCase(userRole) || 
                "SUPER_ADMIN".equalsIgnoreCase(userRole) ||
+               "ROLE_ADMIN".equalsIgnoreCase(userRole) ||
+               "ADMIN".equalsIgnoreCase(userRole);
+    }
+    
+    /**
+     * Check if current user has regular ADMIN role (not SUPER_ADMIN)
+     * Supports: ROLE_ADMIN, ADMIN
+     */
+    public static boolean isAdminRole() {
+        return "ROLE_ADMIN".equalsIgnoreCase(userRole) || 
                "ADMIN".equalsIgnoreCase(userRole);
     }
     
     public static boolean isCashier() {
         return "ROLE_CASHIER".equalsIgnoreCase(userRole) || 
                "CASHIER".equalsIgnoreCase(userRole);
+    }
+    
+    /**
+     * Check if current user has manager role
+     * Supports: ROLE_MANAGER, MANAGER
+     */
+    public static boolean isManager() {
+        return "ROLE_MANAGER".equalsIgnoreCase(userRole) || 
+               "MANAGER".equalsIgnoreCase(userRole);
+    }
+    
+    /**
+     * Check if current user is super admin (not just regular admin)
+     * Supports: ROLE_SUPER_ADMIN, SUPER_ADMIN
+     */
+    public static boolean isSuperAdmin() {
+        return "ROLE_SUPER_ADMIN".equalsIgnoreCase(userRole) || 
+               "SUPER_ADMIN".equalsIgnoreCase(userRole);
     }
     
     /**

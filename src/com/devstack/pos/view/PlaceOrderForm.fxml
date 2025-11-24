@@ -130,6 +130,17 @@
                      <Tooltip text="Enter quantity. Supports decimals for items like sand (kg) or pipes (meters). Example: 2.5" />
                   </tooltip>
                </JFXTextField>
+               <JFXButton fx:id="btnGeneralItems" onAction="#btnGeneralItemsOnAction" text="📦 General Items" buttonType="RAISED" styleClass="btn-outline" prefWidth="160.0" prefHeight="36.0">
+                  <font>
+                     <Font name="System Bold" size="12.0" />
+                  </font>
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+                  <tooltip>
+                     <Tooltip text="Add general items to cart (Super Admin only)" />
+                  </tooltip>
+               </JFXButton>
             </HBox>
             
             <!-- Cart Section -->

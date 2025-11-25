@@ -149,6 +149,12 @@
             <artifactId>layout</artifactId>
             <version>8.0.2</version>
         </dependency>
+        <!-- iText Font support for Unicode (Sinhala, etc.) -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>font-asian</artifactId>
+            <version>8.0.2</version>
+        </dependency>
 
         <!-- Spring Boot Test -->
         <dependency>

@@ -94,13 +94,11 @@ public class SuperAdminReceiptPrinter {
             data.add((byte) 0x1B); // ESC
             data.add((byte) 0x40); // @  - Initialize printer
             
-            // Set character code table to PC437 (USA, Standard Europe)
-            data.add((byte) 0x1B); // ESC
-            data.add((byte) 0x74); // t
-            data.add((byte) 0x00); // 0 = PC437
+            // Set character code table to UTF-8 for Unicode support (Sinhala, etc.)
+            // Note: Some thermal printers may not support UTF-8, but modern ones should
             
-            // Convert receipt text to bytes (using US-ASCII for thermal printer compatibility)
-            byte[] textBytes = receiptText.getBytes(StandardCharsets.US_ASCII);
+            // Convert receipt text to bytes using UTF-8 for Unicode support (Sinhala, etc.)
+            byte[] textBytes = receiptText.getBytes(StandardCharsets.UTF_8);
             for (byte b : textBytes) {
                 data.add(b);
             }

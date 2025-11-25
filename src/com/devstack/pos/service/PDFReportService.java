@@ -1032,7 +1032,7 @@ public class PDFReportService {
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
-        document.setMargins(30, 30, 30, 30);
+        document.setMargins(15, 15, 15, 15);
         
         // Get system settings
         SystemSettings settings = systemSettingsService.getSystemSettings();
@@ -1054,14 +1054,14 @@ public class PDFReportService {
         borderTable.setWidth(UnitValue.createPercentValue(100));
         borderTable.setBorder(new SolidBorder(borderColor, 2));
         
-        Cell borderCell = new Cell().setBorder(Border.NO_BORDER).setPadding(15);
+        Cell borderCell = new Cell().setBorder(Border.NO_BORDER).setPadding(8);
         
         // Header Section with GSTIN
         Paragraph gstinPara = new Paragraph();
         if (settings.getTaxNumber() != null && !settings.getTaxNumber().trim().isEmpty()) {
             gstinPara.add(new Text("GSTIN: " + settings.getTaxNumber())
                 .setFont(getUnicodeFont())
-                .setFontSize(10)
+                .setFontSize(8)
                 .setFontColor(headerTextColor));
         }
         gstinPara.setTextAlignment(TextAlignment.LEFT);
@@ -1070,12 +1070,12 @@ public class PDFReportService {
         // Sales Invoice Title
         Paragraph invoiceTitle = new Paragraph("Sales Invoice")
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(20)
+            .setFontSize(14)
             .setFont(getUnicodeFont())
             .setBold()
             .setFontColor(headerTextColor)
-            .setMarginTop(5)
-            .setMarginBottom(10);
+            .setMarginTop(2)
+            .setMarginBottom(5);
         borderCell.add(invoiceTitle);
         
         // Business Name
@@ -1084,11 +1084,11 @@ public class PDFReportService {
             : "Kumara Enterprises";
         Paragraph businessNamePara = new Paragraph(businessName)
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(18)
+            .setFontSize(12)
             .setFont(getUnicodeFont())
             .setBold()
             .setFontColor(headerTextColor)
-            .setMarginBottom(5);
+            .setMarginBottom(2);
         borderCell.add(businessNamePara);
         
         // Business Address
@@ -1101,10 +1101,10 @@ public class PDFReportService {
         
         Paragraph addressPara = new Paragraph(addressText.toString())
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10)
+            .setFontSize(8)
             .setFont(getUnicodeFont())
             .setFontColor(textColor)
-            .setMarginBottom(3);
+            .setMarginBottom(1);
         borderCell.add(addressPara);
         
         // Contact and Email
@@ -1120,18 +1120,22 @@ public class PDFReportService {
         
         Paragraph contactPara = new Paragraph(contactText.toString())
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10)
+            .setFontSize(8)
             .setFont(getUnicodeFont())
             .setFontColor(textColor)
-            .setMarginBottom(15);
+            .setMarginBottom(5);
         borderCell.add(contactPara);
         
-        // Invoice Details Table
-        Table invoiceDetailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
-        invoiceDetailsTable.setWidth(UnitValue.createPercentValue(100));
-        invoiceDetailsTable.setMarginBottom(10);
+        // Invoice Details and User/Transaction Details in Two Columns
+        Table detailsContainerTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}));
+        detailsContainerTable.setWidth(UnitValue.createPercentValue(100));
+        detailsContainerTable.setMarginBottom(5);
         
         PdfFont detailFont = getUnicodeFont();
+        
+        // Left Column: Invoice Details
+        Table invoiceDetailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        invoiceDetailsTable.setWidth(UnitValue.createPercentValue(100));
         
         // Invoice Number
         invoiceDetailsTable.addCell(createInfoCell("No.:", true, detailFont));
@@ -1147,34 +1151,69 @@ public class PDFReportService {
         invoiceDetailsTable.addCell(createInfoCell("Time:", true, detailFont));
         invoiceDetailsTable.addCell(createInfoCell(timeStr, false, detailFont));
         
-        borderCell.add(invoiceDetailsTable);
+        // Customer Mobile Number
+        String customerMobile = "";
+        if (customer != null && customer.getContact() != null && !customer.getContact().trim().isEmpty()) {
+            customerMobile = customer.getContact();
+        }
+        invoiceDetailsTable.addCell(createInfoCell("Mobile:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(customerMobile.isEmpty() ? "-" : customerMobile, false, detailFont));
+        
+        Cell leftCell = new Cell().setBorder(Border.NO_BORDER).setPadding(0);
+        leftCell.add(invoiceDetailsTable);
+        detailsContainerTable.addCell(leftCell);
+        
+        // Right Column: User/Transaction Details
+        Table userTransactionTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        userTransactionTable.setWidth(UnitValue.createPercentValue(100));
+        
+        // Operator/User Details
+        if (orderDetail.getOperatorEmail() != null && !orderDetail.getOperatorEmail().trim().isEmpty()) {
+            String operatorName = orderDetail.getOperatorEmail();
+            // Extract name from email if possible
+            if (operatorName.contains("@")) {
+                operatorName = operatorName.substring(0, operatorName.indexOf("@"));
+            }
+            userTransactionTable.addCell(createInfoCell("Operator:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(operatorName, false, detailFont));
+        }
+        
+        // Payment Method
+        if (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Method:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentMethod(), false, detailFont));
+        }
+        
+        // Payment Status
+        if (orderDetail.getPaymentStatus() != null && !orderDetail.getPaymentStatus().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Status:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentStatus(), false, detailFont));
+        }
+        
+        // Transaction ID/Reference
+        userTransactionTable.addCell(createInfoCell("Transaction ID:", true, detailFont));
+        userTransactionTable.addCell(createInfoCell("ORD-" + orderDetail.getCode(), false, detailFont));
+        
+        Cell rightCell = new Cell().setBorder(Border.NO_BORDER).setPadding(0);
+        rightCell.add(userTransactionTable);
+        detailsContainerTable.addCell(rightCell);
+        
+        borderCell.add(detailsContainerTable);
         
         // Customer Section
         Paragraph customerLabel = new Paragraph("To, " + orderDetail.getCustomerName())
             .setFont(getUnicodeFont())
-            .setFontSize(11)
+            .setFontSize(9)
             .setBold()
             .setFontColor(textColor)
-            .setMarginTop(10)
+            .setMarginTop(5)
             .setMarginBottom(5);
         borderCell.add(customerLabel);
-        
-        // Customer contact if available
-        if (customer != null && customer.getContact() != null && !customer.getContact().trim().isEmpty()) {
-            Paragraph customerContact = new Paragraph("Ph: " + customer.getContact())
-                .setFont(getUnicodeFont())
-                .setFontSize(10)
-                .setFontColor(textColor)
-                .setMarginBottom(10);
-            borderCell.add(customerContact);
-        } else {
-            borderCell.add(new Paragraph().setMarginBottom(10));
-        }
         
         // Items Table
         Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{0.5f, 3f, 1f, 1f, 1f}));
         itemsTable.setWidth(UnitValue.createPercentValue(100));
-        itemsTable.setMarginBottom(10);
+        itemsTable.setMarginBottom(5);
         
         // Table Header
         DeviceRgb headerBgColor = new DeviceRgb(139, 0, 0);
@@ -1199,8 +1238,8 @@ public class PDFReportService {
             
             // Serial Number
             Cell srCell = new Cell()
-                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(6)
+                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
@@ -1210,8 +1249,8 @@ public class PDFReportService {
             
             // Description
             Cell descCell = new Cell()
-                .add(new Paragraph(itemName).setFont(itemFont).setFontSize(10))
-                .setPadding(6)
+                .add(new Paragraph(itemName).setFont(itemFont).setFontSize(8))
+                .setPadding(4)
                 .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
                 descCell.setBackgroundColor(lightGray);
@@ -1220,8 +1259,8 @@ public class PDFReportService {
             
             // Quantity
             Cell qtyCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(6)
+                .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
@@ -1231,8 +1270,8 @@ public class PDFReportService {
             
             // Rate
             Cell rateCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", rate)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(6)
+                .add(new Paragraph(String.format("%.2f", rate)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
@@ -1242,8 +1281,8 @@ public class PDFReportService {
             
             // Total
             Cell totalCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", total)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(6)
+                .add(new Paragraph(String.format("%.2f", total)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
@@ -1263,7 +1302,7 @@ public class PDFReportService {
         Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
         summaryTable.setWidth(UnitValue.createPercentValue(50));
         summaryTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
-        summaryTable.setMarginBottom(10);
+        summaryTable.setMarginBottom(5);
         
         // Less (discount)
         if (discount > 0) {
@@ -1283,8 +1322,8 @@ public class PDFReportService {
             Table paymentTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
             paymentTable.setWidth(UnitValue.createPercentValue(50));
             paymentTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
-            paymentTable.setMarginTop(10);
-            paymentTable.setMarginBottom(10);
+            paymentTable.setMarginTop(5);
+            paymentTable.setMarginBottom(5);
             
             // Customer Paid
             if (orderDetail.getCustomerPaid() != null && orderDetail.getCustomerPaid() > 0) {
@@ -1308,50 +1347,13 @@ public class PDFReportService {
             borderCell.add(paymentTable);
         }
         
-        // User and Transaction Details Section
-        Table userTransactionTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
-        userTransactionTable.setWidth(UnitValue.createPercentValue(100));
-        userTransactionTable.setMarginTop(10);
-        userTransactionTable.setMarginBottom(10);
-        
-        PdfFont infoFont = getUnicodeFont();
-        
-        // Operator/User Details
-        if (orderDetail.getOperatorEmail() != null && !orderDetail.getOperatorEmail().trim().isEmpty()) {
-            String operatorName = orderDetail.getOperatorEmail();
-            // Extract name from email if possible
-            if (operatorName.contains("@")) {
-                operatorName = operatorName.substring(0, operatorName.indexOf("@"));
-            }
-            userTransactionTable.addCell(createInfoCell("Operator:", true, infoFont));
-            userTransactionTable.addCell(createInfoCell(operatorName, false, infoFont));
-        }
-        
-        // Payment Method
-        if (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().trim().isEmpty()) {
-            userTransactionTable.addCell(createInfoCell("Payment Method:", true, infoFont));
-            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentMethod(), false, infoFont));
-        }
-        
-        // Payment Status
-        if (orderDetail.getPaymentStatus() != null && !orderDetail.getPaymentStatus().trim().isEmpty()) {
-            userTransactionTable.addCell(createInfoCell("Payment Status:", true, infoFont));
-            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentStatus(), false, infoFont));
-        }
-        
-        // Transaction ID/Reference
-        userTransactionTable.addCell(createInfoCell("Transaction ID:", true, infoFont));
-        userTransactionTable.addCell(createInfoCell("ORD-" + orderDetail.getCode(), false, infoFont));
-        
-        borderCell.add(userTransactionTable);
-        
         // Signature line
         Paragraph signatureLine = new Paragraph("For " + businessName)
             .setFont(getUnicodeFont())
-            .setFontSize(10)
+            .setFontSize(8)
             .setFontColor(textColor)
             .setTextAlignment(TextAlignment.RIGHT)
-            .setMarginTop(20);
+            .setMarginTop(10);
         borderCell.add(signatureLine);
         
         borderTable.addCell(borderCell);
@@ -1366,8 +1368,8 @@ public class PDFReportService {
      */
     private Cell createInfoCell(String text, boolean isLabel, PdfFont font) {
         Cell cell = new Cell()
-            .add(new Paragraph(text).setFont(font).setFontSize(10))
-            .setPadding(6)
+            .add(new Paragraph(text).setFont(font).setFontSize(8))
+            .setPadding(4)
             .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f));
         
         if (isLabel) {
@@ -1384,9 +1386,9 @@ public class PDFReportService {
      */
     private Cell createTableHeaderCell(String text, DeviceRgb bgColor) {
         return new Cell()
-            .add(new Paragraph(text).setBold().setFontSize(11).setFontColor(ColorConstants.WHITE))
+            .add(new Paragraph(text).setBold().setFontSize(9).setFontColor(ColorConstants.WHITE))
             .setBackgroundColor(bgColor)
-            .setPadding(10)
+            .setPadding(5)
             .setTextAlignment(TextAlignment.CENTER)
             .setBorder(Border.NO_BORDER);
     }
@@ -1400,8 +1402,8 @@ public class PDFReportService {
     
     private Cell createTotalLabelCell(String text, PdfFont font, boolean bold) {
         Cell cell = new Cell()
-            .add(new Paragraph(text).setFont(font).setFontSize(10))
-            .setPadding(6)
+            .add(new Paragraph(text).setFont(font).setFontSize(8))
+            .setPadding(4)
             .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f))
             .setTextAlignment(TextAlignment.RIGHT);
         
@@ -1421,8 +1423,8 @@ public class PDFReportService {
     
     private Cell createTotalValueCell(String text, PdfFont font, boolean bold) {
         Cell cell = new Cell()
-            .add(new Paragraph(text).setFont(font).setFontSize(10))
-            .setPadding(6)
+            .add(new Paragraph(text).setFont(font).setFontSize(8))
+            .setPadding(4)
             .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f))
             .setTextAlignment(TextAlignment.RIGHT);
         

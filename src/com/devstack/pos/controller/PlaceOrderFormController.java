@@ -1097,12 +1097,30 @@ public class PlaceOrderFormController extends BaseController {
             for (GeneralItemSelectedTm item : selectedItems) {
                 try {
                     String productName = item.getProductName();
-                    double quantity = Double.parseDouble(item.getQuantity().getText().trim());
+                    String qtyText = item.getQuantity().getText() != null ? item.getQuantity().getText().trim() : "";
                     double unitPrice = Double.parseDouble(item.getUnitPrice().getText().trim());
+                    
+                    // Extract numeric value from quantity text (allows text like "2 kg", "3 pieces", etc.)
+                    double quantity = 0.0;
+                    if (!qtyText.isEmpty()) {
+                        try {
+                            // Try to extract numeric value from text (e.g., "2 kg" -> 2.0, "3.5 pieces" -> 3.5)
+                            String numericPart = qtyText.replaceAll("[^0-9.]", "").trim();
+                            if (!numericPart.isEmpty()) {
+                                // Get first number found
+                                String[] parts = numericPart.split("\\s+");
+                                if (parts.length > 0 && !parts[0].isEmpty()) {
+                                    quantity = Double.parseDouble(parts[0]);
+                                }
+                            }
+                        } catch (NumberFormatException e) {
+                            // If no valid number found, quantity remains 0
+                        }
+                    }
                     
                     if (quantity <= 0) {
                         new Alert(Alert.AlertType.WARNING, 
-                            "Skipping " + productName + ": Quantity must be greater than zero").show();
+                            "Skipping " + productName + ": Quantity must contain a valid number greater than zero").show();
                         continue;
                     }
                     
@@ -1112,16 +1130,25 @@ public class PlaceOrderFormController extends BaseController {
                         continue;
                     }
                     
+                    // Include quantity text in product name if it contains text (e.g., "Product Name (2 kg)")
+                    String displayName = productName;
+                    if (!qtyText.isEmpty() && !qtyText.matches("^\\d*\\.?\\d*$")) {
+                        // If quantity text contains non-numeric characters, include it in the name
+                        displayName = productName + " (" + qtyText + ")";
+                    }
+                    
                     // Create a unique code for general items (using product name + timestamp)
                     String generalItemCode = "GEN_" + productName.replaceAll("\\s+", "_") + "_" + System.currentTimeMillis();
                     
-                    // Calculate total cost
+                    // Calculate total cost using numeric quantity
                     double totalCost = quantity * unitPrice;
                     
-                    // Check if item already exists in cart (by description)
+                    // Check if item already exists in cart (by original product name, not display name)
                     CartTm existingItem = null;
                     for (CartTm tm : tms) {
-                        if (tm.getDescription().equals(productName)) {
+                        // Check if description starts with the product name (to handle cases with quantity text)
+                        String desc = tm.getDescription();
+                        if (desc != null && (desc.equals(productName) || desc.startsWith(productName + " ("))) {
                             existingItem = tm;
                             break;
                         }
@@ -1133,17 +1160,27 @@ public class PlaceOrderFormController extends BaseController {
                         double newTotalCost = existingItem.getTotalCost() + totalCost;
                         existingItem.setQty(newQty);
                         existingItem.setTotalCost(newTotalCost);
+                        // Update description to include quantity text if it contains text
+                        if (!qtyText.isEmpty() && !qtyText.matches("^\\d*\\.?\\d*$")) {
+                            // Extract original product name from existing description
+                            String existingDesc = existingItem.getDescription();
+                            String originalName = existingDesc;
+                            if (existingDesc != null && existingDesc.contains(" (")) {
+                                originalName = existingDesc.substring(0, existingDesc.indexOf(" ("));
+                            }
+                            existingItem.setDescription(originalName + " (" + qtyText + ")");
+                        }
                         tblCart.refresh();
                     } else {
                         // Add new item to cart
                         Button btn = new Button("Remove");
                         CartTm tm = new CartTm(
                             generalItemCode,
-                            productName,
+                            displayName, // Use display name which may include quantity text
                             0.0, // No discount for general items
                             unitPrice,
                             0.0, // showPrice
-                            quantity,
+                            quantity, // Store numeric quantity for calculations
                             totalCost,
                             btn
                         );

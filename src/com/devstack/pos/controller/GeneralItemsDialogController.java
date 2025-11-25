@@ -252,9 +252,16 @@ public class GeneralItemsDialogController {
         
         TextField quantityField = new TextField("1");
         quantityField.setPrefWidth(100);
+        // Allow any text input for quantity (no validation restriction)
         quantityField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("^\\d*\\.?\\d*$")) {
-                quantityField.setText(oldVal);
+            // Allow any text input - user can enter strings like "2 kg", "3 pieces", etc.
+            // Recalculate totals when quantity changes
+            if (newVal != null) {
+                calculateItemTotal(selectedItemsList.stream()
+                    .filter(item -> item.getQuantity() == quantityField)
+                    .findFirst()
+                    .orElse(null));
+                calculateTotals();
             }
         });
         
@@ -291,11 +298,23 @@ public class GeneralItemsDialogController {
     }
     
     private void calculateItemTotal(GeneralItemSelectedTm item) {
+        if (item == null) return;
+        
         try {
             double quantity = 0.0;
             String qtyText = item.getQuantity().getText();
             if (qtyText != null && !qtyText.trim().isEmpty()) {
-                quantity = Double.parseDouble(qtyText.trim());
+                // Try to parse as number, if it fails, use 0 (allows text input)
+                try {
+                    // Extract numeric value from text (e.g., "2 kg" -> 2.0)
+                    String numericPart = qtyText.trim().replaceAll("[^0-9.]", "").split("\\s")[0];
+                    if (!numericPart.isEmpty()) {
+                        quantity = Double.parseDouble(numericPart);
+                    }
+                } catch (NumberFormatException e) {
+                    // If text doesn't contain valid number, quantity remains 0
+                    quantity = 0.0;
+                }
             }
             
             double unitPrice = 0.0;
@@ -380,19 +399,13 @@ public class GeneralItemsDialogController {
             String qtyText = item.getQuantity().getText();
             String priceText = item.getUnitPrice().getText();
             
+            // Quantity can be any text (e.g., "2 kg", "3 pieces", etc.)
+            // Just check that it's not empty
             if (qtyText == null || qtyText.trim().isEmpty()) {
                 errors.add(item.getProductName() + ": Quantity is required");
-            } else {
-                try {
-                    double qty = Double.parseDouble(qtyText.trim());
-                    if (qty <= 0) {
-                        errors.add(item.getProductName() + ": Quantity must be greater than zero");
-                    }
-                } catch (NumberFormatException e) {
-                    errors.add(item.getProductName() + ": Invalid quantity");
-                }
             }
             
+            // Price must be a valid number
             if (priceText == null || priceText.trim().isEmpty()) {
                 errors.add(item.getProductName() + ": Price is required");
             } else {

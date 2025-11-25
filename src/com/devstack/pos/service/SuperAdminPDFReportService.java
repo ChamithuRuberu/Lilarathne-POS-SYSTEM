@@ -68,8 +68,6 @@ public class SuperAdminPDFReportService {
             }
             
             receipt.append("\n");
-            receipt.append(centerText("*** SUPER ADMIN ORDER ***", 48)).append("\n");
-            receipt.append("\n");
             
             // Invoice number and date
             String invoiceLine = String.format("Invoice                 %s",
@@ -152,12 +150,12 @@ public class SuperAdminPDFReportService {
             receipt.append("------------------------------------------------\n");
             
             // Order type
-            String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
-                ? "Construction" : "Hardware";
-            receipt.append(String.format("Type: %s\n", orderType));
-            
-            receipt.append("------------------------------------------------\n");
-            
+//            String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION")
+//                ? "Construction" : "Hardware";
+//            receipt.append(String.format("Type: %s\n", orderType));
+//
+//            receipt.append("------------------------------------------------\n");
+//
             // Balance
             double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
             if (balance != 0.00) {

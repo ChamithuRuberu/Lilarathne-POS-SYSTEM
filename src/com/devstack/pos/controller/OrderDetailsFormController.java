@@ -487,11 +487,11 @@ public class OrderDetailsFormController extends BaseController {
                 loadSuperAdminTotals(startDateTime, endDateTime, todayStart, todayEnd);
             } else {
                 // Regular users see only their totals (no general items)
-                String ordersText = String.valueOf(totalOrders != null ? totalOrders : 0L);
-                if (totalReturnOrders != null && totalReturnOrders > 0) {
-                    ordersText += " (" + totalReturnOrders + " returns)";
-                }
-                lblTotalOrders.setText(ordersText);
+            String ordersText = String.valueOf(totalOrders != null ? totalOrders : 0L);
+            if (totalReturnOrders != null && totalReturnOrders > 0) {
+                ordersText += " (" + totalReturnOrders + " returns)";
+            }
+            lblTotalOrders.setText(ordersText);
             lblTotalRevenue.setText(String.format("LKR %,.2f", netRevenue));
             lblAvgOrder.setText(String.format("LKR %,.2f", avgOrder != null ? avgOrder : 0.0));
             

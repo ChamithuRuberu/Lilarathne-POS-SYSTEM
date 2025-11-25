@@ -1357,21 +1357,72 @@ public class SuperAdminPDFReportService {
         
         borderCell.add(summaryTable);
         
-        // Footer with legal notes
-        Paragraph footerNote1 = new Paragraph("Subject to Vadodara jurisdiction E & ce")
-            .setFont(getUnicodeFont())
-            .setFontSize(9)
-            .setFontColor(textColor)
-            .setMarginTop(15)
-            .setMarginBottom(3);
-        borderCell.add(footerNote1);
+        // Payment Details Section
+        if (orderDetail.getCustomerPaid() != null || orderDetail.getBalance() != null || 
+            (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().isEmpty())) {
+            Table paymentTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
+            paymentTable.setWidth(UnitValue.createPercentValue(50));
+            paymentTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+            paymentTable.setMarginTop(10);
+            paymentTable.setMarginBottom(10);
+            
+            // Customer Paid
+            if (orderDetail.getCustomerPaid() != null && orderDetail.getCustomerPaid() > 0) {
+                paymentTable.addCell(createTotalLabelCell("Paid:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", orderDetail.getCustomerPaid()), monospaceFont));
+            }
+            
+            // Change (if customer paid more than total)
+            if (orderDetail.getCustomerPaid() != null && orderDetail.getCustomerPaid() > finalTotal) {
+                double change = orderDetail.getCustomerPaid() - finalTotal;
+                paymentTable.addCell(createTotalLabelCell("Change:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", change), monospaceFont));
+            }
+            
+            // Balance (if customer paid less than total)
+            if (orderDetail.getBalance() != null && orderDetail.getBalance() > 0) {
+                paymentTable.addCell(createTotalLabelCell("Balance:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", orderDetail.getBalance()), monospaceFont));
+            }
+            
+            borderCell.add(paymentTable);
+        }
         
-        Paragraph footerNote2 = new Paragraph("Goods once sold will not be taken back")
-            .setFont(getUnicodeFont())
-            .setFontSize(9)
-            .setFontColor(textColor)
-            .setMarginBottom(15);
-        borderCell.add(footerNote2);
+        // User and Transaction Details Section
+        Table userTransactionTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        userTransactionTable.setWidth(UnitValue.createPercentValue(100));
+        userTransactionTable.setMarginTop(10);
+        userTransactionTable.setMarginBottom(10);
+        
+        PdfFont infoFont = getUnicodeFont();
+        
+        // Operator/User Details
+        if (orderDetail.getOperatorEmail() != null && !orderDetail.getOperatorEmail().trim().isEmpty()) {
+            // Extr,act name from email if possible
+            if (operatorName.contains("@")) {
+                operatorName = operatorName.substring(0, operatorName.indexOf("@"));
+            }
+            userTransactionTable.addCell(createInfoCell("Operator:", true, infoFont));
+            userTransactionTable.addCell(createInfoCell(operatorName, false, infoFont));
+        }
+        
+        // Payment Method
+        if (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Method:", true, infoFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentMethod(), false, infoFont));
+        }
+        
+        // Payment Status
+        if (orderDetail.getPaymentStatus() != null && !orderDetail.getPaymentStatus().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Status:", true, infoFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentStatus(), false, infoFont));
+        }
+        
+        // Transaction ID/Reference
+        userTransactionTable.addCell(createInfoCell("Transaction ID:", true, infoFont));
+        userTransactionTable.addCell(createInfoCell("SA-ORD-" + orderDetail.getCode(), false, infoFont));
+        
+        borderCell.add(userTransactionTable);
         
         // Signature line
         Paragraph signatureLine = new Paragraph("For " + businessName)

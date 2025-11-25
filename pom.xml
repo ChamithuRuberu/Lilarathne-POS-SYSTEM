@@ -182,6 +182,8 @@
                 <directory>src/resources</directory>
                 <includes>
                     <include>**/*.properties</include>
+                    <include>**/*.ttf</include>
+                    <include>**/*.otf</include>
                 </includes>
             </resource>
         </resources>

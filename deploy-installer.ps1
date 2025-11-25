@@ -8,7 +8,7 @@ Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Configuration - Auto-detect JDK path
-Write-Host "[0/7] Detecting JDK installation..." -ForegroundColor Green
+Write-Host "[0/8] Detecting JDK installation..." -ForegroundColor Green
 
 function Find-JDK {
     # Try multiple methods to find JDK 21
@@ -145,7 +145,7 @@ Write-Host "  JDK Path: $JDK_PATH" -ForegroundColor Green
 Write-Host ""
 
 # Step 1: Clean previous builds
-Write-Host "[1/7] Cleaning previous builds..." -ForegroundColor Green
+Write-Host "[1/8] Cleaning previous builds..." -ForegroundColor Green
 if (Test-Path installer_staging) {
     Remove-Item installer_staging -Recurse -Force
 }
@@ -158,8 +158,37 @@ if (Test-Path "KumaraPOS") {
 Write-Host "Cleanup complete!" -ForegroundColor Green
 Write-Host ""
 
-# Step 2: Build the application
-Write-Host "[2/7] Building application with Maven..." -ForegroundColor Green
+# Step 2: Verify bundled font exists before building
+Write-Host "[2/8] Verifying bundled resources..." -ForegroundColor Green
+$fontPath = "src\resources\fonts\NotoSansSinhala-Regular.ttf"
+if (Test-Path $fontPath) {
+    $fontSize = (Get-Item $fontPath).Length / 1KB
+    Write-Host "  ✓ Bundled Sinhala font found: $([math]::Round($fontSize, 2)) KB" -ForegroundColor Green
+    Write-Host "  ✓ Font will be included in installer (no separate installation needed)" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ WARNING: Bundled Sinhala font not found!" -ForegroundColor Yellow
+    Write-Host "  ⚠ Location: $fontPath" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  To include the font in the installer:" -ForegroundColor Cyan
+    Write-Host "    1. Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala" -ForegroundColor White
+    Write-Host "    2. Extract and copy NotoSansSinhala-Regular.ttf to: $fontPath" -ForegroundColor White
+    Write-Host "    3. Run this script again" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  OR run the download script:" -ForegroundColor Cyan
+    Write-Host "    .\download-font.ps1" -ForegroundColor White
+    Write-Host ""
+    $continue = Read-Host "  Continue without font? (Y/N)"
+    if ($continue -ne "Y" -and $continue -ne "y") {
+        Write-Host "Build cancelled. Please add the font and try again." -ForegroundColor Yellow
+        pause
+        exit 1
+    }
+    Write-Host "  Continuing without bundled font (Sinhala text may not display correctly)" -ForegroundColor Yellow
+}
+Write-Host ""
+
+# Step 3: Build the application
+Write-Host "[3/8] Building application with Maven..." -ForegroundColor Green
 mvn clean package -DskipTests
 
 if ($LASTEXITCODE -ne 0) {
@@ -173,8 +202,8 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Build completed successfully!" -ForegroundColor Green
 Write-Host ""
 
-# Step 3: Find the JAR file
-Write-Host "[3/7] Looking for JAR file..." -ForegroundColor Green
+# Step 4: Find the JAR file
+Write-Host "[4/8] Looking for JAR file..." -ForegroundColor Green
 
 # Try to find shaded JAR first, then fall back to regular JAR
 $jarFile = Get-ChildItem target\pos-shaded-*.jar -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -201,8 +230,8 @@ Write-Host "Skipping JAR test (optional step)..." -ForegroundColor Yellow
 Write-Host "Note: If JAR fails to run, check JavaFX dependencies are included." -ForegroundColor Yellow
 Write-Host ""
 
-# Step 4: Verify JAR contains JavaFX dependencies
-Write-Host "[4/7] Verifying JAR contents..." -ForegroundColor Green
+# Step 5: Verify JAR contains required resources
+Write-Host "[5/8] Verifying JAR contents..." -ForegroundColor Green
 
 # Check if JAR contains JavaFX dependencies (Spring Boot puts them in BOOT-INF/lib)
 $jarList = jar tf $jarFile.FullName 2>&1 | Select-String -Pattern "(javafx|BOOT-INF/lib)" | Select-Object -First 5
@@ -219,10 +248,22 @@ if ($jarList) {
         Write-Host "Warning: This might not be a Spring Boot fat JAR" -ForegroundColor Yellow
     }
 }
+
+# Check if bundled font is in JAR
+$fontInJar = jar tf $jarFile.FullName 2>&1 | Select-String -Pattern "NotoSansSinhala|fonts.*\.ttf" | Select-Object -First 1
+if ($fontInJar) {
+    Write-Host "✓ Bundled Sinhala font found in JAR" -ForegroundColor Green
+    Write-Host "  $fontInJar" -ForegroundColor Gray
+    Write-Host "  ✓ Font will be included in installer - no separate installation needed!" -ForegroundColor Green
+} else {
+    Write-Host "⚠ Bundled font not found in JAR" -ForegroundColor Yellow
+    Write-Host "  Sinhala text may not display correctly on target computers" -ForegroundColor Yellow
+    Write-Host "  Make sure font file exists at: src\resources\fonts\NotoSansSinhala-Regular.ttf" -ForegroundColor Yellow
+}
 Write-Host ""
 
-# Step 5: Create custom Java runtime (bundled with installer)
-Write-Host "[5/7] Creating custom Java runtime (for bundling with installer)..." -ForegroundColor Green
+# Step 6: Create custom Java runtime (bundled with installer)
+Write-Host "[6/8] Creating custom Java runtime (for bundling with installer)..." -ForegroundColor Green
 
 $runtimeDir = "installer_staging\runtime"
 if (Test-Path $runtimeDir) {
@@ -373,8 +414,8 @@ $runtimeSize = (Get-ChildItem $runtimeDir -Recurse | Measure-Object -Property Le
 Write-Host "  Runtime size: $([math]::Round($runtimeSize, 2)) MB" -ForegroundColor Gray
 Write-Host ""
 
-# Step 6: Prepare staging directory
-Write-Host "[6/7] Preparing staging directory..." -ForegroundColor Green
+# Step 7: Prepare staging directory
+Write-Host "[7/8] Preparing staging directory..." -ForegroundColor Green
 if (Test-Path installer_staging\app.jar) {
     Remove-Item installer_staging\app.jar -Force -ErrorAction SilentlyContinue
 }
@@ -393,8 +434,8 @@ Write-Host "  JAR copied to: installer_staging\app.jar" -ForegroundColor Gray
 Write-Host "  Logs directory created: logs\" -ForegroundColor Gray
 Write-Host ""
 
-# Step 7: Create installer with jpackage
-Write-Host "[7/7] Creating Windows installer with jpackage..." -ForegroundColor Green
+# Step 8: Create installer with jpackage
+Write-Host "[8/8] Creating Windows installer with jpackage..." -ForegroundColor Green
 
 if (-not (Test-Path $JPACKAGE)) {
     Write-Host ""

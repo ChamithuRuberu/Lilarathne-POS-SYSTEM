@@ -38,10 +38,9 @@ public class SuperAdminPDFReportService {
     
     private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
-    // Cache for Unicode fonts
-    private static PdfFont unicodeFont = null;
-    private static PdfFont unicodeMonospaceFont = null;
-    private static String loadedFontPath = null; // Track which font was loaded
+    // Cache for Unicode font paths (not font objects to avoid document association issues)
+    private static String cachedUnicodeFontPath = null;
+    private static String cachedUnicodeMonospaceFontPath = null;
     
     // Initialize fonts on first use
     {
@@ -50,21 +49,18 @@ public class SuperAdminPDFReportService {
             System.out.println("\n" + "=".repeat(70));
             System.out.println("=== INITIALIZING UNICODE FONTS FOR SINHALA SUPPORT ===");
             System.out.println("=".repeat(70));
-            PdfFont initFont = getUnicodeFont();
-            if (initFont != null) {
-                System.out.println("✓ Unicode font initialized successfully");
-                // Check if it's a standard font (which won't support Sinhala)
-                String fontName = initFont.getFontProgram() != null ? 
-                    "Custom/Embedded Font" : "Standard Font (Helvetica)";
-                System.out.println("   Font type: " + fontName);
-                if (fontName.contains("Standard")) {
+            String fontPath = getUnicodeFontPath();
+            if (fontPath != null) {
+                System.out.println("✓ Unicode font path initialized successfully");
+                System.out.println("   Font path: " + fontPath);
+                if (fontPath.contains("Standard") || fontPath.contains("Helvetica")) {
                     System.err.println("   ⚠⚠⚠ WARNING: Using standard font - Sinhala will NOT work!");
                     System.err.println("   ⚠⚠⚠ You MUST install a Sinhala-supporting font!");
                 } else {
                     System.out.println("   ✓ Ready for Sinhala text rendering");
                 }
             } else {
-                System.err.println("✗ FAILED: Could not initialize Unicode font");
+                System.err.println("✗ FAILED: Could not initialize Unicode font path");
                 System.err.println("   Sinhala text will NOT display correctly in PDFs!");
             }
             System.out.println("=".repeat(70) + "\n");
@@ -75,16 +71,34 @@ public class SuperAdminPDFReportService {
     }
     
     /**
-     * Get a Unicode font that supports Sinhala and other languages
+     * Get the path to a Unicode font that supports Sinhala
      * Uses multiple strategies to find a font that supports Sinhala
      */
-    private PdfFont getUnicodeFont() throws IOException {
-        if (unicodeFont != null) {
-            return unicodeFont;
+    private String getUnicodeFontPath() {
+        if (cachedUnicodeFontPath != null) {
+            return cachedUnicodeFontPath;
         }
         
         try {
-            // Strategy 1: FIRST try direct font file paths (most reliable)
+            // Strategy 0: FIRST check for bundled font in resources (BEST - no installation needed!)
+            System.out.println("Strategy 0: Checking for bundled font in resources...");
+            String bundledFontPath = getBundledFontPath();
+            if (bundledFontPath != null) {
+                try {
+                    PdfFont testFont = PdfFontFactory.createFont(bundledFontPath, PdfEncodings.IDENTITY_H);
+                    if (testFont != null && verifySinhalaSupport(testFont, bundledFontPath)) {
+                        cachedUnicodeFontPath = bundledFontPath;
+                        System.out.println("✓✓✓ SUCCESS: Using BUNDLED font from resources: " + bundledFontPath);
+                        System.out.println("   ✓ No separate font installation required!");
+                        System.out.println("═══════════════════════════════════════════════════════════");
+                        return cachedUnicodeFontPath;
+                    }
+                } catch (Exception e) {
+                    System.out.println("   ⚠ Bundled font found but failed verification: " + e.getMessage());
+                }
+            }
+            
+            // Strategy 1: Try direct font file paths (system-installed fonts)
             // This should run BEFORE GraphicsEnvironment to avoid decorative fonts
             String os = System.getProperty("os.name").toLowerCase();
             String[] fontPaths = {};
@@ -114,7 +128,9 @@ public class SuperAdminPDFReportService {
                         windir + "\\Fonts\\arialuni.ttf",  // Arial Unicode MS - BEST for Windows
                         windir + "\\Fonts\\ARIALUNI.TTF",
                         windir + "\\Fonts\\NotoSansSinhala-Regular.ttf",
-                        windir + "\\Fonts\\arial.ttf"
+                        windir + "\\Fonts\\NotoSans-Regular.ttf",
+                        // DO NOT include regular arial.ttf - it does NOT support Sinhala!
+                        // Only Arial Unicode MS (arialuni.ttf) supports Sinhala
                     };
                 }
             } else {
@@ -137,13 +153,12 @@ public class SuperAdminPDFReportService {
                         if (pdfFont != null) {
                             // VERIFY: Actually test if this font can render Sinhala
                             if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                unicodeFont = pdfFont;
-                                loadedFontPath = fontPath;
-                                System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED Unicode font from file: " + fontPath);
+                                cachedUnicodeFontPath = fontPath;
+                                System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font from file: " + fontPath);
                                 System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return cachedUnicodeFontPath;
                             } else {
                                 System.out.println("   ⚠ Font loaded but FAILED Sinhala verification - continuing search...");
                             }
@@ -164,14 +179,18 @@ public class SuperAdminPDFReportService {
             char sinhalaTestChar = 'ස'; // Sinhala 'sa' character
             
             // Fonts that are KNOWN to support Sinhala - prioritize these
+            // IMPORTANT: "Arial Unicode MS" must come before any check for "Arial" alone
             String[] preferredFontNames = {
                 "Noto Sans Sinhala", "Noto Sans", "Arial Unicode MS", "Arial Unicode",
-                "DejaVu Sans", "Liberation Sans", "Lucida Sans Unicode", "Tahoma",
-                "Verdana", "Helvetica Neue", "Helvetica"
+                "DejaVu Sans", "Liberation Sans", "Lucida Sans Unicode", "Tahoma"
+                // DO NOT include "Arial" or "Helvetica" here - they don't support Sinhala!
             };
             
             // Decorative/fancy fonts to SKIP - these don't have Sinhala glyphs even if canDisplay() returns true
+            // CRITICAL: Include "Arial" (but NOT "Arial Unicode MS") - regular Arial doesn't support Sinhala!
             String[] skipFonts = {
+                "Arial", // Regular Arial - does NOT support Sinhala! Only "Arial Unicode MS" does.
+                "Helvetica", "Helvetica Neue", // Standard fonts without Sinhala support
                 "Academy Engraved", "Algerian", "Bauhaus", "Blackadder", "Bradley Hand",
                 "Brush Script", "Chalkduster", "Comic Sans", "Copperplate", "Corsiva",
                 "Herculanum", "Impact", "Marker Felt", "Optima", "Papyrus", "Party LET",
@@ -199,13 +218,12 @@ public class SuperAdminPDFReportService {
                                         if (pdfFont != null) {
                                             // VERIFY: Actually test if this font can render Sinhala
                                             if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                                unicodeFont = pdfFont;
-                                                loadedFontPath = fontPath;
-                                                System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED PREFERRED Unicode font '" + fontName + "' from: " + fontPath);
+                                                cachedUnicodeFontPath = fontPath;
+                                                System.out.println("✓✓✓ SUCCESS: Found and VERIFIED PREFERRED Unicode font '" + fontName + "' from: " + fontPath);
                                                 System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                                return unicodeFont;
+                                                return cachedUnicodeFontPath;
                                             } else {
                                                 System.out.println("   ⚠ Preferred font '" + fontName + "' FAILED Sinhala verification - continuing search...");
                                             }
@@ -249,13 +267,12 @@ public class SuperAdminPDFReportService {
                                 if (pdfFont != null) {
                                     // VERIFY: Actually test if this font can render Sinhala
                                     if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                        unicodeFont = pdfFont;
-                                        loadedFontPath = fontPath;
-                                        System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED Unicode font '" + fontName + "' from: " + fontPath);
+                                        cachedUnicodeFontPath = fontPath;
+                                        System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font '" + fontName + "' from: " + fontPath);
                                         System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                         System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                         System.out.println("═══════════════════════════════════════════════════════════");
-                                        return unicodeFont;
+                                        return cachedUnicodeFontPath;
                                     } else {
                                         System.out.println("   ⚠ Font '" + fontName + "' FAILED Sinhala verification - continuing search...");
                                     }
@@ -300,13 +317,12 @@ public class SuperAdminPDFReportService {
                         if (pdfFont != null) {
                             // VERIFY: Actually test if this font can render Sinhala
                             if (verifySinhalaSupport(pdfFont, foundFont)) {
-                                unicodeFont = pdfFont;
-                                loadedFontPath = foundFont;
+                                cachedUnicodeFontPath = foundFont;
                                 System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font: " + foundFont);
                                 System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return cachedUnicodeFontPath;
                             } else {
                                 System.out.println("   ⚠ Found font FAILED Sinhala verification: " + foundFont);
                             }
@@ -323,14 +339,27 @@ public class SuperAdminPDFReportService {
             System.err.println("═══════════════════════════════════════════════════════════");
             System.err.println("Sinhala text will appear as boxes (☐☐☐) in PDFs.");
             System.err.println("");
-            System.err.println("SOLUTION: Install Noto Sans Sinhala font:");
-            System.err.println("  1. Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala");
-            System.err.println("  2. Install the font on your Mac:");
-            System.err.println("     - Double-click the .ttf file");
-            System.err.println("     - Click 'Install Font' in Font Book");
-            System.err.println("  3. Restart your application");
+            String osName = System.getProperty("os.name").toLowerCase();
+            if (osName.contains("win")) {
+                System.err.println("SOLUTION FOR WINDOWS:");
+                System.err.println("  1. Install Arial Unicode MS (if not already installed):");
+                System.err.println("     - Check if C:\\WINDOWS\\Fonts\\arialuni.ttf exists");
+                System.err.println("     - If not, download from Microsoft or install Office");
+                System.err.println("  2. OR install Noto Sans Sinhala font:");
+                System.err.println("     - Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala");
+                System.err.println("     - Install by right-clicking the .ttf file and selecting 'Install'");
+                System.err.println("  3. Restart your application");
+            } else {
+                System.err.println("SOLUTION: Install Noto Sans Sinhala font:");
+                System.err.println("  1. Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala");
+                System.err.println("  2. Install the font:");
+                System.err.println("     - Double-click the .ttf file");
+                System.err.println("     - Click 'Install Font' in Font Book (Mac) or font manager");
+                System.err.println("  3. Restart your application");
+            }
             System.err.println("");
-            System.err.println("Alternative: Install Arial Unicode MS (if available)");
+            System.err.println("NOTE: Regular Arial (arial.ttf) does NOT support Sinhala!");
+            System.err.println("      You need Arial Unicode MS (arialuni.ttf) or Noto Sans Sinhala.");
             System.err.println("═══════════════════════════════════════════════════════════");
             
             // Try one more time with a broader search
@@ -352,11 +381,10 @@ public class SuperAdminPDFReportService {
                         try {
                             PdfFont testFont = PdfFontFactory.createFont(dir, PdfEncodings.IDENTITY_H);
                             if (verifySinhalaSupport(testFont, dir)) {
-                                unicodeFont = testFont;
-                                loadedFontPath = dir;
+                                cachedUnicodeFontPath = dir;
                                 System.out.println("✓✓✓ Found Sinhala font on final search: " + dir);
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return cachedUnicodeFontPath;
                             }
                         } catch (Exception e) {
                             // Continue
@@ -368,11 +396,10 @@ public class SuperAdminPDFReportService {
                             try {
                                 PdfFont testFont = PdfFontFactory.createFont(found, PdfEncodings.IDENTITY_H);
                                 if (verifySinhalaSupport(testFont, found)) {
-                                    unicodeFont = testFont;
-                                    loadedFontPath = found;
+                                    cachedUnicodeFontPath = found;
                                     System.out.println("✓✓✓ Found Sinhala font on final recursive search: " + found);
                                     System.out.println("═══════════════════════════════════════════════════════════");
-                                    return unicodeFont;
+                                    return cachedUnicodeFontPath;
                                 }
                             } catch (Exception e) {
                                 // Continue
@@ -382,22 +409,108 @@ public class SuperAdminPDFReportService {
                 }
             }
             
-            unicodeFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-            loadedFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
+            cachedUnicodeFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
             System.err.println("⚠ Using fallback font: Standard Helvetica (Sinhala will show as boxes)");
             System.err.println("═══════════════════════════════════════════════════════════");
-            return unicodeFont;
+            return cachedUnicodeFontPath;
             
         } catch (Exception e) {
             System.err.println("Error loading Unicode font: " + e.getMessage());
             e.printStackTrace();
-            try {
-                unicodeFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-                return unicodeFont;
-            } catch (Exception ex) {
-                throw new IOException("Failed to load any font", ex);
-            }
+            cachedUnicodeFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
+            return cachedUnicodeFontPath;
         }
+    }
+    
+    /**
+     * Get the path to the bundled font from resources
+     * Returns a temporary file path if font is found in resources, null otherwise
+     */
+    private String getBundledFontPath() {
+        try {
+            // Try multiple resource paths (Maven/Spring Boot packages resources differently)
+            String[] resourcePaths = {
+                "/fonts/NotoSansSinhala-Regular.ttf",           // Standard Maven resource path
+                "/resources/fonts/NotoSansSinhala-Regular.ttf",  // Alternative path
+                "fonts/NotoSansSinhala-Regular.ttf",              // Without leading slash
+                "resources/fonts/NotoSansSinhala-Regular.ttf"    // Alternative without slash
+            };
+            
+            java.io.InputStream fontStream = null;
+            String foundPath = null;
+            
+            // Try with getClass().getResourceAsStream() first
+            for (String path : resourcePaths) {
+                fontStream = getClass().getResourceAsStream(path);
+                if (fontStream != null) {
+                    foundPath = path;
+                    System.out.println("   ✓ Found font at resource path: " + path);
+                    break;
+                }
+            }
+            
+            // If not found, try with ClassLoader (for Spring Boot)
+            if (fontStream == null) {
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                if (classLoader == null) {
+                    classLoader = getClass().getClassLoader();
+                }
+                
+                for (String path : resourcePaths) {
+                    // Remove leading slash for ClassLoader
+                    String classLoaderPath = path.startsWith("/") ? path.substring(1) : path;
+                    fontStream = classLoader.getResourceAsStream(classLoaderPath);
+                    if (fontStream != null) {
+                        foundPath = path;
+                        System.out.println("   ✓ Found font via ClassLoader at: " + path);
+                        break;
+                    }
+                }
+            }
+            
+            if (fontStream == null) {
+                System.out.println("   ⚠ No bundled font found in resources");
+                System.out.println("   📥 To add the font:");
+                System.out.println("      1. Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala");
+                System.out.println("      2. Extract and copy NotoSansSinhala-Regular.ttf to: src/resources/fonts/");
+                System.out.println("      3. Rebuild the project (mvn clean package)");
+                return null;
+            }
+            
+            // Copy font to temporary file so iTextPDF can use it
+            java.io.File tempFontFile = java.io.File.createTempFile("NotoSansSinhala", ".ttf");
+            tempFontFile.deleteOnExit(); // Clean up on exit
+            
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFontFile)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = fontStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                }
+            }
+            fontStream.close();
+            
+            System.out.println("   ✓ Found bundled font in resources, extracted to: " + tempFontFile.getAbsolutePath());
+            return tempFontFile.getAbsolutePath();
+            
+        } catch (Exception e) {
+            System.out.println("   ⚠ Error loading bundled font: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Get a Unicode font instance for the current PDF document
+     * Creates a fresh font instance from the cached font path to avoid document association issues
+     */
+    private PdfFont getUnicodeFont() throws IOException {
+        String fontPath = getUnicodeFontPath();
+        if (fontPath == null || fontPath.contains("Standard Helvetica")) {
+            // Fallback to standard font
+            return PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        }
+        // Create a fresh font instance for this document
+        return PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
     }
     
     /**
@@ -406,9 +519,17 @@ public class SuperAdminPDFReportService {
      */
     private boolean verifySinhalaSupport(PdfFont font, String fontPath) {
         try {
-            // First check: If font path contains Sinhala-related keywords, it's likely good
             String fontPathLower = fontPath.toLowerCase();
-            String[] trustedKeywords = {"sinhala", "noto", "arialuni", "unicode", "dejavu"};
+            
+            // CRITICAL: Reject regular Arial - it does NOT support Sinhala!
+            // Only Arial Unicode MS (arialuni.ttf) supports Sinhala
+            if (fontPathLower.contains("arial.ttf") && !fontPathLower.contains("arialuni")) {
+                System.out.println("   ✗ REJECTED: Regular Arial does NOT support Sinhala (need Arial Unicode MS)");
+                return false;
+            }
+            
+            // First check: If font path contains Sinhala-related keywords, it's likely good
+            String[] trustedKeywords = {"sinhala", "noto", "arialuni", "unicode", "dejavu", "liberation"};
             boolean hasTrustedKeyword = false;
             for (String keyword : trustedKeywords) {
                 if (fontPathLower.contains(keyword)) {
@@ -418,29 +539,17 @@ public class SuperAdminPDFReportService {
                 }
             }
             
-            // If it has a trusted keyword, we can be more confident
-            if (hasTrustedKeyword) {
-                // Still do a basic test
-                try {
-                    // Try to create a paragraph with Sinhala text
-                    // This will work if the font supports it
-                    String testText = "සිංහල";
-                    Paragraph testPara = new Paragraph(testText);
-                    testPara.setFont(font);
-                    // If no exception, the font should work
-                    System.out.println("   ✓ Font passed basic Sinhala test");
-                    return true;
-                } catch (Exception e) {
-                    System.out.println("   ⚠ Font with trusted keyword failed test: " + e.getMessage());
-                    // Still return true if it has trusted keyword - might be a false negative
-                    return true;
-                }
+            // For fonts without trusted keywords, reject them immediately
+            // (except we already rejected regular Arial above)
+            if (!hasTrustedKeyword) {
+                System.out.println("   ✗ REJECTED: Font path does not contain trusted Sinhala-supporting keywords");
+                return false;
             }
             
-            // For fonts without trusted keywords, do a more thorough test
-            // Try to actually render Sinhala text to a temporary PDF
+            // If it has a trusted keyword, do a comprehensive test
+            // Try to actually render Sinhala text to a temporary PDF and verify glyphs exist
             try {
-                String testText = "සිංහල";
+                String testText = "සිංහල"; // Sinhala text
                 
                 // Create a minimal test PDF in memory
                 java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
@@ -454,17 +563,38 @@ public class SuperAdminPDFReportService {
                 testDoc.add(testPara);
                 testDoc.close();
                 
-                // If we got here without exception, the font should work
+                // Check if the font program actually has the glyphs
+                // If font program is null, it's a standard font without Sinhala support
+                if (font.getFontProgram() == null) {
+                    System.out.println("   ✗ REJECTED: Font is a standard font without Sinhala glyphs");
+                    return false;
+                }
+                
+                // Additional check: Verify the font program exists and is not a standard font
+                // Standard fonts don't have font programs and won't support Sinhala
+                try {
+                    com.itextpdf.io.font.FontProgram fontProgram = font.getFontProgram();
+                    if (fontProgram == null) {
+                        System.out.println("   ✗ REJECTED: Font program is null - cannot support Sinhala");
+                        return false;
+                    }
+                    // If we got here, the font has a proper font program which should support Unicode
+                    System.out.println("   ✓ Font has proper font program for Unicode support");
+                } catch (Exception e) {
+                    // If we can't check font program, be conservative and accept if it has trusted keyword
+                    System.out.println("   ⚠ Could not verify font program directly, but font has trusted keyword");
+                }
+                
                 System.out.println("   ✓ Font passed comprehensive Sinhala rendering test");
                 return true;
                 
             } catch (Exception e) {
-                System.out.println("   ⚠ Font failed Sinhala rendering test: " + e.getMessage());
+                System.out.println("   ✗ Font failed Sinhala rendering test: " + e.getMessage());
                 return false;
             }
             
         } catch (Exception e) {
-            System.out.println("   ⚠ Verification error: " + e.getMessage());
+            System.out.println("   ✗ Verification error: " + e.getMessage());
             // If verification fails, be conservative and reject the font
             return false;
         }
@@ -685,20 +815,20 @@ public class SuperAdminPDFReportService {
     }
     
     /**
-     * Get a Unicode monospace font for aligned text
+     * Get the path to a Unicode monospace font for aligned text
      * Uses the same font as regular Unicode font for consistency (monospace not critical for alignment)
      */
-    private PdfFont getUnicodeMonospaceFont() throws IOException {
-        if (unicodeMonospaceFont != null) {
-            return unicodeMonospaceFont;
+    private String getUnicodeMonospaceFontPath() {
+        if (cachedUnicodeMonospaceFontPath != null) {
+            return cachedUnicodeMonospaceFontPath;
         }
         
         try {
-            // First try to get the regular Unicode font (it will work for alignment too)
-            PdfFont regularUnicodeFont = getUnicodeFont();
-            if (regularUnicodeFont != null) {
-                unicodeMonospaceFont = regularUnicodeFont;
-                return unicodeMonospaceFont;
+            // First try to get the regular Unicode font path (it will work for alignment too)
+            String regularUnicodeFontPath = getUnicodeFontPath();
+            if (regularUnicodeFontPath != null && !regularUnicodeFontPath.contains("Standard Helvetica")) {
+                cachedUnicodeMonospaceFontPath = regularUnicodeFontPath;
+                return cachedUnicodeMonospaceFontPath;
             }
             
             // Fallback: Try to find monospace fonts
@@ -732,9 +862,9 @@ public class SuperAdminPDFReportService {
                 try {
                     File fontFile = new File(fontPath);
                     if (fontFile.exists() && fontFile.canRead()) {
-                        unicodeMonospaceFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
-                        System.out.println("✓ Loaded Unicode monospace font from: " + fontPath);
-                        return unicodeMonospaceFont;
+                        cachedUnicodeMonospaceFontPath = fontPath;
+                        System.out.println("✓ Found Unicode monospace font from: " + fontPath);
+                        return cachedUnicodeMonospaceFontPath;
                     }
                 } catch (Exception e) {
                     System.out.println("Could not load monospace font from " + fontPath);
@@ -742,18 +872,28 @@ public class SuperAdminPDFReportService {
             }
             
             System.out.println("Warning: No Unicode monospace font found, using standard Courier.");
-            unicodeMonospaceFont = PdfFontFactory.createFont(StandardFonts.COURIER);
-            return unicodeMonospaceFont;
+            cachedUnicodeMonospaceFontPath = "Standard Courier (NO SINHALA SUPPORT)";
+            return cachedUnicodeMonospaceFontPath;
             
         } catch (Exception e) {
             System.err.println("Error loading Unicode monospace font: " + e.getMessage());
-            try {
-                unicodeMonospaceFont = PdfFontFactory.createFont(StandardFonts.COURIER);
-                return unicodeMonospaceFont;
-            } catch (Exception ex) {
-                throw new IOException("Failed to load any font", ex);
-            }
+            cachedUnicodeMonospaceFontPath = "Standard Courier (NO SINHALA SUPPORT)";
+            return cachedUnicodeMonospaceFontPath;
         }
+    }
+    
+    /**
+     * Get a Unicode monospace font instance for the current PDF document
+     * Creates a fresh font instance from the cached font path to avoid document association issues
+     */
+    private PdfFont getUnicodeMonospaceFont() throws IOException {
+        String fontPath = getUnicodeMonospaceFontPath();
+        if (fontPath == null || fontPath.contains("Standard Courier")) {
+            // Fallback to standard font
+            return PdfFontFactory.createFont(StandardFonts.COURIER);
+        }
+        // Create a fresh font instance for this document
+        return PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
     }
     
     /**

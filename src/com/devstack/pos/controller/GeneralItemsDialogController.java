@@ -2,9 +2,10 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.GeneralItem;
 import com.devstack.pos.service.GeneralItemService;
+import com.devstack.pos.util.AuthorizationUtil;
+import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.GeneralItemSelectedTm;
 import com.devstack.pos.view.tm.GeneralItemTm;
-import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -75,6 +76,22 @@ public class GeneralItemsDialogController {
     
     @FXML
     public void initialize() {
+        // Check if user is super admin before loading general items
+        if (!AuthorizationUtil.canAccessGeneralItems()) {
+            // User is not super admin - show error and close dialog
+            new Alert(Alert.AlertType.ERROR, 
+                "Access Denied: General Items are only accessible by Super Admin users.\n" +
+                "Your Role: " + UserSessionData.userRole).showAndWait();
+            // Close the dialog
+            if (dialogContext != null && dialogContext.getScene() != null) {
+                Stage stage = (Stage) dialogContext.getScene().getWindow();
+                if (stage != null) {
+                    stage.close();
+                }
+            }
+            return;
+        }
+        
         loadProducts();
         setupTableColumns();
         setupTransportFeeListener();
@@ -86,6 +103,15 @@ public class GeneralItemsDialogController {
     }
     
     private void loadProducts() {
+        // Double check super admin access before loading
+        if (!UserSessionData.isSuperAdmin()) {
+            productList.clear();
+            tblProducts.setItems(productList);
+            new Alert(Alert.AlertType.ERROR, 
+                "Access Denied: General Items are only accessible by Super Admin users.").show();
+            return;
+        }
+        
         try {
             List<GeneralItem> generalItems = generalItemService.findAllGeneralItems();
             productList.clear();

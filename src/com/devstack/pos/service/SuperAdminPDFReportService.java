@@ -13,8 +13,14 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Text;
+import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -516,6 +522,8 @@ public class SuperAdminPDFReportService {
     /**
      * Verify that a PdfFont actually supports Sinhala by testing rendering
      * This is more reliable than canDisplay() which can return true for fonts without glyphs
+     * 
+     * IMPORTANT: Creates a NEW font for testing to avoid associating the passed font with a test PDF
      */
     private boolean verifySinhalaSupport(PdfFont font, String fontPath) {
         try {
@@ -557,15 +565,19 @@ public class SuperAdminPDFReportService {
                 PdfDocument testPdf = new PdfDocument(testWriter);
                 Document testDoc = new Document(testPdf);
                 
+                // CRITICAL: Create a NEW font from the path for testing (don't use the passed font)
+                // This prevents the original font from being associated with the test PDF
+                PdfFont testFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+                
                 // Try to add Sinhala text
                 Paragraph testPara = new Paragraph(testText);
-                testPara.setFont(font);
+                testPara.setFont(testFont);
                 testDoc.add(testPara);
                 testDoc.close();
                 
                 // Check if the font program actually has the glyphs
                 // If font program is null, it's a standard font without Sinhala support
-                if (font.getFontProgram() == null) {
+                if (testFont.getFontProgram() == null) {
                     System.out.println("   ✗ REJECTED: Font is a standard font without Sinhala glyphs");
                     return false;
                 }
@@ -573,7 +585,7 @@ public class SuperAdminPDFReportService {
                 // Additional check: Verify the font program exists and is not a standard font
                 // Standard fonts don't have font programs and won't support Sinhala
                 try {
-                    com.itextpdf.io.font.FontProgram fontProgram = font.getFontProgram();
+                    com.itextpdf.io.font.FontProgram fontProgram = testFont.getFontProgram();
                     if (fontProgram == null) {
                         System.out.println("   ✗ REJECTED: Font program is null - cannot support Sinhala");
                         return false;
@@ -1118,290 +1130,334 @@ public class SuperAdminPDFReportService {
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
-        document.setMargins(20, 20, 20, 20);
+        document.setMargins(30, 30, 30, 30);
         
         // Get system settings
         SystemSettings settings = systemSettingsService.getSystemSettings();
         
-        // Store/Company Header
-        String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
-            ? settings.getBusinessName().toUpperCase()
-            : "KUMARA ENTERPRISES";
-        Paragraph storeName = new Paragraph(businessName)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(22)
-            .setFont(getUnicodeFont()) // Use Unicode font for Sinhala support
-            .setBold()
-            .setMarginBottom(5);
-        document.add(storeName);
+        // Color scheme matching invoice format
+        DeviceRgb borderColor = new DeviceRgb(139, 0, 0); // Dark red/burgundy border
+        DeviceRgb headerTextColor = new DeviceRgb(139, 0, 0); // Dark red for headers
+        DeviceRgb textColor = new DeviceRgb(0, 0, 0); // Black text
+        DeviceRgb lightGray = new DeviceRgb(245, 245, 245); // Light gray for table rows
         
-        // Store Address
+        // Add border around entire document
+        Table borderTable = new Table(1);
+        borderTable.setWidth(UnitValue.createPercentValue(100));
+        borderTable.setBorder(new SolidBorder(borderColor, 2));
+        
+        Cell borderCell = new Cell().setBorder(Border.NO_BORDER).setPadding(15);
+        
+        // Header Section with GSTIN
+        Paragraph gstinPara = new Paragraph();
+        if (settings.getTaxNumber() != null && !settings.getTaxNumber().trim().isEmpty()) {
+            gstinPara.add(new Text("GSTIN: " + settings.getTaxNumber())
+                .setFont(getUnicodeFont())
+                .setFontSize(10)
+                .setFontColor(headerTextColor));
+        }
+        gstinPara.setTextAlignment(TextAlignment.LEFT);
+        borderCell.add(gstinPara);
+        
+        // Sales Invoice Title
+        Paragraph invoiceTitle = new Paragraph("Sales Invoice")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(20)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginTop(5)
+            .setMarginBottom(10);
+        borderCell.add(invoiceTitle);
+        
+        // Business Name
+        String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
+            ? settings.getBusinessName()
+            : "Kumara Enterprises";
+        Paragraph businessNamePara = new Paragraph(businessName)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(18)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginBottom(5);
+        borderCell.add(businessNamePara);
+        
+        // Business Address
         StringBuilder addressText = new StringBuilder();
         if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
             addressText.append(settings.getAddress());
-            if (!settings.getAddress().toLowerCase().contains("wewala")) {
-                addressText.append("\nWewala,Piliyandala");
-            }
         } else {
-            addressText.append("58k Gagabada Rd,");
-            addressText.append("\nWewala,Piliyandala");
+            addressText.append("58k Gagabada Rd, Wewala, Piliyandala");
         }
         
+        Paragraph addressPara = new Paragraph(addressText.toString())
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(10)
+            .setFont(getUnicodeFont())
+            .setFontColor(textColor)
+            .setMarginBottom(3);
+        borderCell.add(addressPara);
+        
+        // Contact and Email
+        StringBuilder contactText = new StringBuilder();
         if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
-            if (addressText.length() > 0) {
-                addressText.append("\n");
-            }
-            addressText.append(settings.getContactNumber());
+            contactText.append("Ph. ").append(settings.getContactNumber());
         } else {
-            if (addressText.length() > 0) {
-                addressText.append("\n");
-            }
-            addressText.append("077 781 5955 / 011 261 3606");
+            contactText.append("Ph. 077 781 5955 / 011 261 3606");
+        }
+        if (settings.getEmail() != null && !settings.getEmail().trim().isEmpty()) {
+            contactText.append(", Email: ").append(settings.getEmail());
         }
         
-        Paragraph storeAddress = new Paragraph(addressText.toString())
+        Paragraph contactPara = new Paragraph(contactText.toString())
             .setTextAlignment(TextAlignment.CENTER)
             .setFontSize(10)
-            .setFont(getUnicodeFont()) // Use Unicode font for Sinhala support
+            .setFont(getUnicodeFont())
+            .setFontColor(textColor)
             .setMarginBottom(15);
-        document.add(storeAddress);
+        borderCell.add(contactPara);
         
-        // Get Unicode font once for reuse
-        PdfFont unicodeFontForAll = getUnicodeFont();
+        // Invoice Details Table
+        Table invoiceDetailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        invoiceDetailsTable.setWidth(UnitValue.createPercentValue(100));
+        invoiceDetailsTable.setMarginBottom(10);
         
-        // Super Admin Order Label
-        Paragraph superAdminLabel = new Paragraph("*** SUPER ADMIN ORDER ***")
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(14)
-            .setFont(unicodeFontForAll) // Ensure Unicode font
+        PdfFont detailFont = getUnicodeFont();
+        
+        // Invoice Number
+        invoiceDetailsTable.addCell(createInfoCell("No.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(String.valueOf(orderDetail.getCode()), false, detailFont));
+        
+        // Invoice Date
+        String dateStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+        invoiceDetailsTable.addCell(createInfoCell("Dt.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(dateStr, false, detailFont));
+        
+        // Invoice Time
+        String timeStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        invoiceDetailsTable.addCell(createInfoCell("Time:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(timeStr, false, detailFont));
+        
+        borderCell.add(invoiceDetailsTable);
+        
+        // Customer Section
+        Paragraph customerLabel = new Paragraph("To, " + orderDetail.getCustomerName())
+            .setFont(getUnicodeFont())
+            .setFontSize(11)
             .setBold()
+            .setFontColor(textColor)
+            .setMarginTop(10)
             .setMarginBottom(10);
-        document.add(superAdminLabel);
+        borderCell.add(customerLabel);
         
-        // Divider line
-        document.add(new Paragraph("=" .repeat(50))
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10)
-            .setFont(unicodeFontForAll) // Ensure Unicode font
-            .setMarginBottom(10));
-        
-        // Receipt Title
-        Paragraph receiptTitle = new Paragraph("SALES RECEIPT")
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(14)
-            .setFont(unicodeFontForAll) // Ensure Unicode font
-            .setBold()
-            .setMarginBottom(15);
-        document.add(receiptTitle);
-        
-        // Order Information - use Unicode font for all text
-        PdfFont unicodeFontForText = getUnicodeFont();
-        
-        document.add(new Paragraph("Receipt No: " + orderDetail.getCode())
-            .setFontSize(10)
-            .setFont(unicodeFontForText)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("Date: " + orderDetail.getIssuedDate().format(RECEIPT_DATE_FORMATTER))
-            .setFontSize(10)
-            .setFont(unicodeFontForText)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("Customer: " + orderDetail.getCustomerName())
-            .setFontSize(10)
-            .setFont(unicodeFontForText) // Use Unicode font for Sinhala customer names
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("Operator: " + orderDetail.getOperatorEmail())
-            .setFontSize(10)
-            .setFont(unicodeFontForText)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("Payment Method: " + orderDetail.getPaymentMethod())
-            .setFontSize(10)
-            .setFont(unicodeFontForText)
-            .setMarginBottom(3));
-        
-        // Order Type
-        String orderTypeDisplay = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
-            ? "Construction" 
-            : "Hardware";
-        document.add(new Paragraph("Order Type: " + orderTypeDisplay)
-            .setFontSize(10)
-            .setFont(unicodeFontForText)
-            .setMarginBottom(10));
-        
-        // Divider line
-        document.add(new Paragraph("-" .repeat(50))
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10)
-            .setFont(unicodeFontForText) // Ensure Unicode font
-            .setMarginBottom(10));
-        
-        // Items table for better alignment with Sinhala text
-        // IMPORTANT: Use Unicode font for item names to support Sinhala
-        PdfFont unicodeFontForItems = getUnicodeFont();
-        PdfFont unicodeMonospaceFont = getUnicodeMonospaceFont();
-        
-        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1.5f, 1f, 1f, 1.5f}));
+        // Items Table
+        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{0.5f, 3f, 1f, 1f, 1f}));
         itemsTable.setWidth(UnitValue.createPercentValue(100));
-        itemsTable.setFontSize(9);
-        itemsTable.setFont(unicodeMonospaceFont);
+        itemsTable.setMarginBottom(10);
         
-        // Header row - use Unicode font
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Item").setBold()).setFont(unicodeFontForItems));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Price").setBold()).setFont(unicodeFontForItems));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Qty").setBold()).setFont(unicodeFontForItems));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Disc").setBold()).setFont(unicodeFontForItems));
-        itemsTable.addHeaderCell(new Cell().add(new Paragraph("Total").setBold()).setFont(unicodeFontForItems));
+        // Table Header
+        DeviceRgb headerBgColor = new DeviceRgb(139, 0, 0);
+        itemsTable.addHeaderCell(createTableHeaderCell("Sr.", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Description", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Qty", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Rate", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Total", headerBgColor));
         
         // Items rows
+        PdfFont itemFont = getUnicodeFont();
+        PdfFont monospaceFont = getUnicodeMonospaceFont();
+        boolean alternate = false;
+        int srNo = 1;
+        
         for (SuperAdminOrderItem item : orderItems) {
             String itemName = item.getProductName();
-            // Don't truncate Sinhala text - let it wrap naturally
-            if (itemName.length() > 20) {
-                itemName = itemName.substring(0, 17) + "...";
-            }
-            
-            double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
-            
             Double qty = item.getQuantity();
-            String qtyStr;
-            if (qty != null) {
-                if (qty == qty.intValue()) {
-                    qtyStr = "x" + qty.intValue();
-                } else {
-                    qtyStr = String.format("x%.2f", qty);
-                }
-            } else {
-                qtyStr = "x0";
-            }
+            double quantity = qty != null ? qty : 0.0;
+            double rate = item.getUnitPrice();
+            double total = item.getLineTotal();
             
-            // Use Unicode font for item names to support Sinhala
-            // IMPORTANT: Set font on Paragraph, not just Cell, to ensure it's applied
-            Paragraph itemNamePara = new Paragraph(itemName);
-            itemNamePara.setFont(unicodeFontForItems); // Use the pre-loaded Unicode font
-            Cell itemNameCell = new Cell().add(itemNamePara);
-            itemNameCell.setFont(unicodeFontForItems); // Also set on cell for extra safety
-            itemsTable.addCell(itemNameCell);
-            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.1f", item.getUnitPrice()))).setFont(getUnicodeMonospaceFont()));
-            itemsTable.addCell(new Cell().add(new Paragraph(qtyStr)).setFont(getUnicodeMonospaceFont()));
-            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", discount))).setFont(getUnicodeMonospaceFont()));
-            itemsTable.addCell(new Cell().add(new Paragraph(String.format("%.2f", item.getLineTotal()))).setFont(getUnicodeMonospaceFont()));
+            // Serial Number
+            Cell srCell = new Cell()
+                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                srCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(srCell);
+            
+            // Description
+            Cell descCell = new Cell()
+                .add(new Paragraph(itemName).setFont(itemFont).setFontSize(10))
+                .setPadding(6)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                descCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(descCell);
+            
+            // Quantity
+            Cell qtyCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                qtyCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(qtyCell);
+            
+            // Rate
+            Cell rateCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", rate)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                rateCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(rateCell);
+            
+            // Total
+            Cell totalCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", total)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                totalCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(totalCell);
+            
+            alternate = !alternate;
         }
         
-        document.add(itemsTable);
-        document.add(new Paragraph().setMarginBottom(10));
+        borderCell.add(itemsTable);
         
-        // Divider line
-        document.add(new Paragraph("-" .repeat(50))
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10)
-            .setFont(unicodeFontForText) // Ensure Unicode font
-            .setMarginBottom(10));
+        // Summary Section
+        double discount = orderDetail.getDiscount();
+        double finalTotal = orderDetail.getTotalCost();
         
-        // Total section
-        double subtotal = orderItems.stream().mapToDouble(item -> 
-            item.getUnitPrice() * item.getQuantity()).sum();
-        double totalDiscount = orderDetail.getDiscount();
+        Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
+        summaryTable.setWidth(UnitValue.createPercentValue(50));
+        summaryTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        summaryTable.setMarginBottom(10);
         
-        // Use monospace font for proper alignment (with Unicode support)
-        PdfFont monospaceFont = getUnicodeMonospaceFont();
-        
-        document.add(new Paragraph(String.format("%-30s %17.2f", "Subtotal", subtotal))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph(String.format("%-30s %17.2f", "Total Discount", totalDiscount))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph(String.format("%-30s %17.2f", "Items", (double)orderItems.size()))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("-" .repeat(48))
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph(String.format("%-30s %17.2f", "TOTAL", orderDetail.getTotalCost()))
-            .setFont(monospaceFont)
-            .setFontSize(12)
-            .setBold()
-            .setMarginBottom(3));
-        
-        // Customer Paid
-        double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
-        document.add(new Paragraph(String.format("%-30s %17.2f", "Customer Paid", customerPaid))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        // Payment method
-        document.add(new Paragraph(String.format("%-30s %17s", "Payment: " + orderDetail.getPaymentMethod(), ""))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        // Change
-        if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
-            double change = customerPaid - orderDetail.getTotalCost();
-            document.add(new Paragraph(String.format("%-30s %17.2f", "Change", change))
-                .setFont(monospaceFont)
-                .setFontSize(10)
-                .setMarginBottom(3));
+        // Less (discount)
+        if (discount > 0) {
+            summaryTable.addCell(createTotalLabelCell("Less:", monospaceFont));
+            summaryTable.addCell(createTotalValueCell(String.format("%.2f", discount), monospaceFont));
         }
         
-        document.add(new Paragraph("-" .repeat(48))
+        // Total
+        summaryTable.addCell(createTotalLabelCell("Total:", monospaceFont, true));
+        summaryTable.addCell(createTotalValueCell(String.format("%.2f", finalTotal), monospaceFont, true));
+        
+        borderCell.add(summaryTable);
+        
+        // Footer with legal notes
+        Paragraph footerNote1 = new Paragraph("Subject to Vadodara jurisdiction E & ce")
+            .setFont(getUnicodeFont())
+            .setFontSize(9)
+            .setFontColor(textColor)
+            .setMarginTop(15)
+            .setMarginBottom(3);
+        borderCell.add(footerNote1);
+        
+        Paragraph footerNote2 = new Paragraph("Goods once sold will not be taken back")
+            .setFont(getUnicodeFont())
+            .setFontSize(9)
+            .setFontColor(textColor)
+            .setMarginBottom(15);
+        borderCell.add(footerNote2);
+        
+        // Signature line
+        Paragraph signatureLine = new Paragraph("For " + businessName)
+            .setFont(getUnicodeFont())
             .setFontSize(10)
-            .setMarginBottom(3));
+            .setFontColor(textColor)
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setMarginTop(20);
+        borderCell.add(signatureLine);
         
-        // Order Type
-        String orderType = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
-            ? "Construction" : "Hardware";
-        document.add(new Paragraph(String.format("Type: %s", orderType))
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        document.add(new Paragraph("-" .repeat(48))
-            .setFontSize(10)
-            .setMarginBottom(3));
-        
-        // Balance
-        double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
-        document.add(new Paragraph(String.format("%-30s %17.2f", "Balance", balance))
-            .setFont(monospaceFont)
-            .setFontSize(10)
-            .setBold()
-            .setMarginBottom(5));
-        
-        // Payment Status
-        String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 
-            "*** PAID ***" : "*** PAYMENT PENDING ***";
-        document.add(new Paragraph(paymentStatusText)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(12)
-            .setBold()
-            .setMarginBottom(20));
-        
-        // Footer
-        String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
-            ? settings.getFooterMessage()
-            : "Thank you for your business!";
-        document.add(new Paragraph(footerMessage)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(11)
-            .setFont(getUnicodeFont()) // Use Unicode font for Sinhala footer messages
-            .setMarginBottom(10));
-        
-        document.add(new Paragraph("=" .repeat(50))
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(10));
+        borderTable.addCell(borderCell);
+        document.add(borderTable);
         
         document.close();
         return filePath;
+    }
+    
+    /**
+     * Helper method to create info table cells
+     */
+    private Cell createInfoCell(String text, boolean isLabel, PdfFont font) {
+        Cell cell = new Cell()
+            .add(new Paragraph(text).setFont(font).setFontSize(10))
+            .setPadding(6)
+            .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f));
+        
+        if (isLabel) {
+            cell.setBackgroundColor(new DeviceRgb(245, 245, 245))
+                .setFontColor(new DeviceRgb(52, 73, 94))
+                .setBold();
+        }
+        
+        return cell;
+    }
+    
+    /**
+     * Helper method to create table header cells
+     */
+    private Cell createTableHeaderCell(String text, DeviceRgb bgColor) {
+        return new Cell()
+            .add(new Paragraph(text).setBold().setFontSize(11).setFontColor(ColorConstants.WHITE))
+            .setBackgroundColor(bgColor)
+            .setPadding(10)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setBorder(Border.NO_BORDER);
+    }
+    
+    /**
+     * Helper method to create total label cells
+     */
+    private Cell createTotalLabelCell(String text, PdfFont font) {
+        return createTotalLabelCell(text, font, false);
+    }
+    
+    private Cell createTotalLabelCell(String text, PdfFont font, boolean bold) {
+        Cell cell = new Cell()
+            .add(new Paragraph(text).setFont(font).setFontSize(10))
+            .setPadding(6)
+            .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f))
+            .setTextAlignment(TextAlignment.RIGHT);
+        
+        if (bold) {
+            cell.setBold();
+        }
+        
+        return cell;
+    }
+    
+    /**
+     * Helper method to create total value cells
+     */
+    private Cell createTotalValueCell(String text, PdfFont font) {
+        return createTotalValueCell(text, font, false);
+    }
+    
+    private Cell createTotalValueCell(String text, PdfFont font, boolean bold) {
+        Cell cell = new Cell()
+            .add(new Paragraph(text).setFont(font).setFontSize(10))
+            .setPadding(6)
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setBorder(new SolidBorder(new DeviceRgb(236, 240, 241), 0.5f));
+        
+        if (bold) {
+            cell.setBold();
+        }
+        
+        return cell;
     }
 }

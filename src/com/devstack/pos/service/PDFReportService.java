@@ -13,6 +13,7 @@ import java.awt.GraphicsEnvironment;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.HorizontalAlignment;
@@ -53,22 +54,86 @@ public class PDFReportService {
     private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
-    // Cache for Unicode font to avoid repeated font creation
-    private static PdfFont unicodeFont = null;
-    private static PdfFont unicodeMonospaceFont = null;
-    private static String loadedFontPath = null; // Track which font was loaded
+    // Cache for font file paths only (not PdfFont objects - they must be created per document)
+    private static String loadedUnicodeFontPath = null; // Track which Unicode font file was loaded
+    private static String loadedMonospaceFontPath = null; // Track which monospace font file was loaded
+    
+    // Initialize fonts on first use to ensure Sinhala support is available
+    {
+        try {
+            // Pre-load fonts to see what we get
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("=== INITIALIZING UNICODE FONTS FOR SINHALA SUPPORT (Regular Orders) ===");
+            System.out.println("=".repeat(70));
+            // Force font path loading
+            try {
+                String fontPath = getUnicodeFontPath();
+                if (fontPath != null) {
+                    System.out.println("✓ Unicode font path initialized successfully");
+                    System.out.println("   Font path: " + fontPath);
+                    if (fontPath.contains("Standard") || fontPath.contains("Helvetica")) {
+                        System.err.println("   ⚠⚠⚠ WARNING: Using standard font - Sinhala will NOT work!");
+                        System.err.println("   ⚠⚠⚠ You MUST install a Sinhala-supporting font!");
+                    } else {
+                        System.out.println("   ✓ Ready for Sinhala text rendering");
+                    }
+                } else {
+                    System.err.println("✗ FAILED: Could not initialize Unicode font path");
+                    System.err.println("   Sinhala text will NOT display correctly in PDFs!");
+                }
+            } catch (Exception e) {
+                System.err.println("✗ ERROR during font initialization: " + e.getMessage());
+            }
+            System.out.println("=".repeat(70) + "\n");
+        } catch (Exception e) {
+            System.err.println("✗ ERROR initializing Unicode font: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
     
     /**
      * Get a Unicode font that supports Sinhala and other languages
-     * Uses multiple strategies to find a font that supports Sinhala
+     * IMPORTANT: Creates a new font instance for each call to avoid PDF document conflicts
      */
     private PdfFont getUnicodeFont() throws IOException {
-        if (unicodeFont != null) {
-            return unicodeFont;
+        String fontPath = getUnicodeFontPath();
+        if (fontPath == null || fontPath.contains("Standard Helvetica")) {
+            // Fallback to standard font
+            return PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        }
+        // Create a fresh font instance for this document
+        return PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+    }
+    
+    /**
+     * Get the path to a Unicode font that supports Sinhala
+     * Uses multiple strategies to find a font that supports Sinhala
+     */
+    private String getUnicodeFontPath() {
+        if (loadedUnicodeFontPath != null) {
+            return loadedUnicodeFontPath;
         }
         
         try {
-            // Strategy 1: FIRST try direct font file paths (most reliable)
+            // Strategy 0: FIRST check for bundled font in resources (BEST - no installation needed!)
+            System.out.println("Strategy 0: Checking for bundled font in resources...");
+            String bundledFontPath = getBundledFontPath();
+            if (bundledFontPath != null) {
+                try {
+                    PdfFont testFont = PdfFontFactory.createFont(bundledFontPath, PdfEncodings.IDENTITY_H);
+                    if (testFont != null && verifySinhalaSupport(testFont, bundledFontPath)) {
+                        loadedUnicodeFontPath = bundledFontPath;
+                        System.out.println("✓✓✓ SUCCESS: Using BUNDLED font from resources: " + bundledFontPath);
+                        System.out.println("   ✓ No separate font installation required!");
+                        System.out.println("═══════════════════════════════════════════════════════════");
+                        return loadedUnicodeFontPath;
+                    }
+                } catch (Exception e) {
+                    System.out.println("   ⚠ Bundled font found but failed verification: " + e.getMessage());
+                }
+            }
+            
+            // Strategy 1: Try direct font file paths (system-installed fonts)
             // This should run BEFORE GraphicsEnvironment to avoid decorative fonts
             String os = System.getProperty("os.name").toLowerCase();
             String[] fontPaths = {};
@@ -121,13 +186,13 @@ public class PDFReportService {
                         if (pdfFont != null) {
                             // VERIFY: Actually test if this font can render Sinhala
                             if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                unicodeFont = pdfFont;
-                                loadedFontPath = fontPath;
-                                System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED Unicode font from file: " + fontPath);
+                                // Cache only the font path, not the font object
+                                loadedUnicodeFontPath = fontPath;
+                                System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font from file: " + fontPath);
                                 System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return loadedUnicodeFontPath;
                             } else {
                                 System.out.println("   ⚠ Font loaded but FAILED Sinhala verification - continuing search...");
                             }
@@ -183,13 +248,13 @@ public class PDFReportService {
                                         if (pdfFont != null) {
                                             // VERIFY: Actually test if this font can render Sinhala
                                             if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                                unicodeFont = pdfFont;
-                                                loadedFontPath = fontPath;
-                                                System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED PREFERRED Unicode font '" + fontName + "' from: " + fontPath);
+                                                // Cache only the font path, not the font object
+                                                loadedUnicodeFontPath = fontPath;
+                                                System.out.println("✓✓✓ SUCCESS: Found and VERIFIED PREFERRED Unicode font '" + fontName + "' from: " + fontPath);
                                                 System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                                return unicodeFont;
+                                                return loadedUnicodeFontPath;
                                             } else {
                                                 System.out.println("   ⚠ Preferred font '" + fontName + "' FAILED Sinhala verification - continuing search...");
                                             }
@@ -233,13 +298,13 @@ public class PDFReportService {
                                 if (pdfFont != null) {
                                     // VERIFY: Actually test if this font can render Sinhala
                                     if (verifySinhalaSupport(pdfFont, fontPath)) {
-                                        unicodeFont = pdfFont;
-                                        loadedFontPath = fontPath;
-                                        System.out.println("✓✓✓ SUCCESS: Loaded and VERIFIED Unicode font '" + fontName + "' from: " + fontPath);
+                                        // Cache only the font path, not the font object
+                                        loadedUnicodeFontPath = fontPath;
+                                        System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font '" + fontName + "' from: " + fontPath);
                                         System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                         System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                         System.out.println("═══════════════════════════════════════════════════════════");
-                                        return unicodeFont;
+                                        return loadedUnicodeFontPath;
                                     } else {
                                         System.out.println("   ⚠ Font '" + fontName + "' FAILED Sinhala verification - continuing search...");
                                     }
@@ -283,12 +348,13 @@ public class PDFReportService {
                         if (pdfFont != null) {
                             // VERIFY: Actually test if this font can render Sinhala
                             if (verifySinhalaSupport(pdfFont, foundFont)) {
-                                unicodeFont = pdfFont;
-                                loadedFontPath = foundFont;
-                                System.out.println("✓✓✓ Found and VERIFIED Unicode font: " + foundFont);
+                                // Cache only the font path, not the font object
+                                loadedUnicodeFontPath = foundFont;
+                                System.out.println("✓✓✓ SUCCESS: Found and VERIFIED Unicode font: " + foundFont);
+                                System.out.println("   Font encoding: IDENTITY_H (Unicode)");
                                 System.out.println("   ✓✓✓ VERIFIED: This font CAN render Sinhala characters!");
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return loadedUnicodeFontPath;
                             } else {
                                 System.out.println("   ⚠ Found font FAILED Sinhala verification: " + foundFont);
                             }
@@ -333,11 +399,11 @@ public class PDFReportService {
                         try {
                             PdfFont testFont = PdfFontFactory.createFont(dir, PdfEncodings.IDENTITY_H);
                             if (verifySinhalaSupport(testFont, dir)) {
-                                unicodeFont = testFont;
-                                loadedFontPath = dir;
+                                // Cache only the font path, not the font object
+                                loadedUnicodeFontPath = dir;
                                 System.out.println("✓✓✓ Found Sinhala font on final search: " + dir);
                                 System.out.println("═══════════════════════════════════════════════════════════");
-                                return unicodeFont;
+                                return loadedUnicodeFontPath;
                             }
                         } catch (Exception e) {
                             // Continue
@@ -349,11 +415,11 @@ public class PDFReportService {
                             try {
                                 PdfFont testFont = PdfFontFactory.createFont(found, PdfEncodings.IDENTITY_H);
                                 if (verifySinhalaSupport(testFont, found)) {
-                                    unicodeFont = testFont;
-                                    loadedFontPath = found;
+                                    // Cache only the font path, not the font object
+                                    loadedUnicodeFontPath = found;
                                     System.out.println("✓✓✓ Found Sinhala font on final recursive search: " + found);
                                     System.out.println("═══════════════════════════════════════════════════════════");
-                                    return unicodeFont;
+                                    return loadedUnicodeFontPath;
                                 }
                             } catch (Exception e) {
                                 // Continue
@@ -363,27 +429,101 @@ public class PDFReportService {
                 }
             }
             
-            unicodeFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-            loadedFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
+            loadedUnicodeFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
             System.err.println("⚠ Using fallback font: Standard Helvetica (Sinhala will show as boxes)");
             System.err.println("═══════════════════════════════════════════════════════════");
-            return unicodeFont;
+            return loadedUnicodeFontPath;
             
         } catch (Exception e) {
             System.err.println("Error loading Unicode font: " + e.getMessage());
             e.printStackTrace();
-            try {
-                unicodeFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-                return unicodeFont;
-            } catch (Exception ex) {
-                return PdfFontFactory.createFont(StandardFonts.HELVETICA);
+            loadedUnicodeFontPath = "Standard Helvetica (NO SINHALA SUPPORT)";
+            return loadedUnicodeFontPath;
+        }
+    }
+    
+    /**
+     * Get the path to the bundled font from resources
+     * Returns a temporary file path if font is found in resources, null otherwise
+     */
+    private String getBundledFontPath() {
+        try {
+            // Try multiple resource paths (Maven/Spring Boot packages resources differently)
+            String[] resourcePaths = {
+                "/fonts/NotoSansSinhala-Regular.ttf",           // Standard Maven resource path
+                "/resources/fonts/NotoSansSinhala-Regular.ttf",  // Alternative path
+                "fonts/NotoSansSinhala-Regular.ttf",              // Without leading slash
+                "resources/fonts/NotoSansSinhala-Regular.ttf"    // Alternative without slash
+            };
+            
+            java.io.InputStream fontStream = null;
+            String foundPath = null;
+            
+            // Try with getClass().getResourceAsStream() first
+            for (String path : resourcePaths) {
+                fontStream = getClass().getResourceAsStream(path);
+                if (fontStream != null) {
+                    foundPath = path;
+                    System.out.println("   ✓ Found font at resource path: " + path);
+                    break;
+                }
             }
+            
+            // If not found, try with ClassLoader (for Spring Boot)
+            if (fontStream == null) {
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                if (classLoader == null) {
+                    classLoader = getClass().getClassLoader();
+                }
+                
+                for (String path : resourcePaths) {
+                    // Remove leading slash for ClassLoader
+                    String classLoaderPath = path.startsWith("/") ? path.substring(1) : path;
+                    fontStream = classLoader.getResourceAsStream(classLoaderPath);
+                    if (fontStream != null) {
+                        foundPath = path;
+                        System.out.println("   ✓ Found font via ClassLoader at: " + path);
+                        break;
+                    }
+                }
+            }
+            
+            if (fontStream == null) {
+                System.out.println("   ⚠ No bundled font found in resources");
+                System.out.println("   📥 To add the font:");
+                System.out.println("      1. Download from: https://fonts.google.com/noto/specimen/Noto+Sans+Sinhala");
+                System.out.println("      2. Extract and copy NotoSansSinhala-Regular.ttf to: src/resources/fonts/");
+                System.out.println("      3. Rebuild the project (mvn clean package)");
+                return null;
+            }
+            
+            // Copy font to temporary file so iTextPDF can use it
+            java.io.File tempFontFile = java.io.File.createTempFile("NotoSansSinhala", ".ttf");
+            tempFontFile.deleteOnExit(); // Clean up on exit
+            
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFontFile)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = fontStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                }
+            }
+            fontStream.close();
+            
+            System.out.println("   ✓ Found bundled font in resources, extracted to: " + tempFontFile.getAbsolutePath());
+            return tempFontFile.getAbsolutePath();
+            
+        } catch (Exception e) {
+            System.out.println("   ⚠ Error loading bundled font: " + e.getMessage());
+            return null;
         }
     }
     
     /**
      * Verify that a PdfFont actually supports Sinhala by testing rendering
      * This is more reliable than canDisplay() which can return true for fonts without glyphs
+     * 
+     * IMPORTANT: Creates a NEW font for testing to avoid associating the passed font with a test PDF
      */
     private boolean verifySinhalaSupport(PdfFont font, String fontPath) {
         try {
@@ -401,13 +541,13 @@ public class PDFReportService {
             
             // If it has a trusted keyword, we can be more confident
             if (hasTrustedKeyword) {
-                // Still do a basic test
+                // Still do a basic test - but create a NEW font for testing
                 try {
-                    // Try to create a paragraph with Sinhala text
-                    // This will work if the font supports it
+                    // Create a NEW font from the path for testing (don't use the passed font)
+                    PdfFont testFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
                     String testText = "සිංහල";
                     Paragraph testPara = new Paragraph(testText);
-                    testPara.setFont(font);
+                    testPara.setFont(testFont);
                     // If no exception, the font should work
                     System.out.println("   ✓ Font passed basic Sinhala test");
                     return true;
@@ -429,9 +569,13 @@ public class PDFReportService {
                 PdfDocument testPdf = new PdfDocument(testWriter);
                 Document testDoc = new Document(testPdf);
                 
+                // CRITICAL: Create a NEW font from the path for testing (don't use the passed font)
+                // This prevents the original font from being associated with the test PDF
+                PdfFont testFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+                
                 // Try to add Sinhala text
                 Paragraph testPara = new Paragraph(testText);
-                testPara.setFont(font);
+                testPara.setFont(testFont);
                 testDoc.add(testPara);
                 testDoc.close();
                 
@@ -595,10 +739,17 @@ public class PDFReportService {
     
     /**
      * Get a Unicode monospace font for aligned text (like item lists)
+     * IMPORTANT: Creates a new font instance for each call to avoid PDF document conflicts
      */
     private PdfFont getUnicodeMonospaceFont() throws IOException {
-        if (unicodeMonospaceFont != null) {
-            return unicodeMonospaceFont;
+        // If we have a cached font path, use it to create a new font instance
+        if (loadedMonospaceFontPath != null) {
+            try {
+                return PdfFontFactory.createFont(loadedMonospaceFontPath, PdfEncodings.IDENTITY_H);
+            } catch (Exception e) {
+                // If cached path fails, clear it and search again
+                loadedMonospaceFontPath = null;
+            }
         }
         
         try {
@@ -630,25 +781,25 @@ public class PDFReportService {
                     File fontFile = new File(fontPath);
                     if (fontFile.exists()) {
                         // Use IDENTITY_H encoding for Unicode/Sinhala support
-                        unicodeMonospaceFont = PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
+                        // Cache only the font path, not the font object
+                        loadedMonospaceFontPath = fontPath;
                         System.out.println("Loaded Unicode monospace font from: " + fontPath);
-                        return unicodeMonospaceFont;
+                        // Return new font instance (will create new one next time from cached path)
+                        return PdfFontFactory.createFont(fontPath, PdfEncodings.IDENTITY_H);
                     }
                 } catch (Exception e) {
                     // Try next path
                 }
             }
             
-            // Fallback to standard monospace
+            // Fallback to standard monospace - create new instance each time
             System.out.println("Warning: No Unicode monospace font file found, using standard Courier.");
-            unicodeMonospaceFont = PdfFontFactory.createFont(StandardFonts.COURIER);
-            return unicodeMonospaceFont;
+            return PdfFontFactory.createFont(StandardFonts.COURIER);
             
         } catch (Exception e) {
             System.err.println("Error loading Unicode monospace font: " + e.getMessage());
             try {
-                unicodeMonospaceFont = PdfFontFactory.createFont(StandardFonts.COURIER);
-                return unicodeMonospaceFont;
+                return PdfFontFactory.createFont(StandardFonts.COURIER);
             } catch (Exception ex) {
                 return PdfFontFactory.createFont(StandardFonts.COURIER);
             }
@@ -883,308 +1034,278 @@ public class PDFReportService {
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
-        document.setMargins(25, 25, 25, 25);
+        document.setMargins(30, 30, 30, 30);
         
         // Get system settings
         SystemSettings settings = systemSettingsService.getSystemSettings();
         
-        // Professional color scheme
-        DeviceRgb headerColor = new DeviceRgb(41, 128, 185); // Professional blue
-        DeviceRgb accentColor = new DeviceRgb(52, 73, 94); // Dark gray
-        DeviceRgb lightGray = new DeviceRgb(236, 240, 241);
-        DeviceRgb successColor = new DeviceRgb(39, 174, 96); // Green for paid
-        DeviceRgb warningColor = new DeviceRgb(231, 76, 60); // Red for pending
+        // Get customer details if available
+        Customer customer = null;
+        if (orderDetail.getCustomerId() != null) {
+            customer = customerService.findCustomer(orderDetail.getCustomerId());
+        }
         
-        // Store/Company Header with professional styling
-        String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
-            ? settings.getBusinessName().toUpperCase()
-            : "KUMARA ENTERPRISES";
+        // Color scheme matching invoice format
+        DeviceRgb borderColor = new DeviceRgb(139, 0, 0); // Dark red/burgundy border
+        DeviceRgb headerTextColor = new DeviceRgb(139, 0, 0); // Dark red for headers
+        DeviceRgb textColor = new DeviceRgb(0, 0, 0); // Black text
+        DeviceRgb lightGray = new DeviceRgb(245, 245, 245); // Light gray for table rows
         
-        // Header box with background
-        Table headerTable = new Table(1);
-        headerTable.setWidth(UnitValue.createPercentValue(100));
-        headerTable.setBackgroundColor(headerColor);
-        headerTable.setPadding(15);
+        // Add border around entire document
+        Table borderTable = new Table(1);
+        borderTable.setWidth(UnitValue.createPercentValue(100));
+        borderTable.setBorder(new SolidBorder(borderColor, 2));
         
-        Cell headerCell = new Cell()
-            .add(new Paragraph(businessName)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(24)
+        Cell borderCell = new Cell().setBorder(Border.NO_BORDER).setPadding(15);
+        
+        // Header Section with GSTIN
+        Paragraph gstinPara = new Paragraph();
+        if (settings.getTaxNumber() != null && !settings.getTaxNumber().trim().isEmpty()) {
+            gstinPara.add(new Text("GSTIN: " + settings.getTaxNumber())
                 .setFont(getUnicodeFont())
-                .setBold()
-                .setFontColor(ColorConstants.WHITE))
-            .setBorder(Border.NO_BORDER)
-            .setPadding(10);
-        headerTable.addCell(headerCell);
-        document.add(headerTable);
-        document.add(new Paragraph().setMarginBottom(10));
+                .setFontSize(10)
+                .setFontColor(headerTextColor));
+        }
+        gstinPara.setTextAlignment(TextAlignment.LEFT);
+        borderCell.add(gstinPara);
         
-        // Store Address - professional styling
+        // Sales Invoice Title
+        Paragraph invoiceTitle = new Paragraph("Sales Invoice")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(20)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginTop(5)
+            .setMarginBottom(10);
+        borderCell.add(invoiceTitle);
+        
+        // Business Name
+        String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
+            ? settings.getBusinessName()
+            : "Kumara Enterprises";
+        Paragraph businessNamePara = new Paragraph(businessName)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(18)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginBottom(5);
+        borderCell.add(businessNamePara);
+        
+        // Business Address
         StringBuilder addressText = new StringBuilder();
         if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
             addressText.append(settings.getAddress());
-            if (!settings.getAddress().toLowerCase().contains("wewala")) {
-                addressText.append("\nWewala, Piliyandala");
-            }
         } else {
-            addressText.append("58k Gagabada Rd,");
-            addressText.append("\nWewala, Piliyandala");
+            addressText.append("58k Gagabada Rd, Wewala, Piliyandala");
         }
         
-        if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
-            addressText.append("\n").append(settings.getContactNumber());
-        } else {
-            addressText.append("\n077 781 5955 / 011 261 3606");
-        }
-        
-        Paragraph storeAddress = new Paragraph(addressText.toString())
+        Paragraph addressPara = new Paragraph(addressText.toString())
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(11)
+            .setFontSize(10)
             .setFont(getUnicodeFont())
-            .setFontColor(accentColor)
-            .setMarginBottom(20);
-        document.add(storeAddress);
+            .setFontColor(textColor)
+            .setMarginBottom(3);
+        borderCell.add(addressPara);
         
-        // Receipt Title with accent line
-        Paragraph receiptTitle = new Paragraph("SALES RECEIPT")
+        // Contact and Email
+        StringBuilder contactText = new StringBuilder();
+        if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
+            contactText.append("Ph. ").append(settings.getContactNumber());
+        } else {
+            contactText.append("Ph. 077 781 5955 / 011 261 3606");
+        }
+        if (settings.getEmail() != null && !settings.getEmail().trim().isEmpty()) {
+            contactText.append(", Email: ").append(settings.getEmail());
+        }
+        
+        Paragraph contactPara = new Paragraph(contactText.toString())
             .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(16)
+            .setFontSize(10)
+            .setFont(getUnicodeFont())
+            .setFontColor(textColor)
+            .setMarginBottom(15);
+        borderCell.add(contactPara);
+        
+        // Invoice Details Table
+        Table invoiceDetailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        invoiceDetailsTable.setWidth(UnitValue.createPercentValue(100));
+        invoiceDetailsTable.setMarginBottom(10);
+        
+        PdfFont detailFont = getUnicodeFont();
+        
+        // Invoice Number
+        invoiceDetailsTable.addCell(createInfoCell("No.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(String.valueOf(orderDetail.getCode()), false, detailFont));
+        
+        // Invoice Date
+        String dateStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+        invoiceDetailsTable.addCell(createInfoCell("Dt.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(dateStr, false, detailFont));
+        
+        // Invoice Time
+        String timeStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        invoiceDetailsTable.addCell(createInfoCell("Time:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(timeStr, false, detailFont));
+        
+        borderCell.add(invoiceDetailsTable);
+        
+        // Customer Section
+        Paragraph customerLabel = new Paragraph("To, " + orderDetail.getCustomerName())
+            .setFont(getUnicodeFont())
+            .setFontSize(11)
             .setBold()
-            .setFontColor(headerColor)
+            .setFontColor(textColor)
+            .setMarginTop(10)
             .setMarginBottom(5);
-        document.add(receiptTitle);
+        borderCell.add(customerLabel);
         
-        // Accent line
-        Table accentLine = new Table(1);
-        accentLine.setWidth(UnitValue.createPercentValue(30));
-        accentLine.setHorizontalAlignment(HorizontalAlignment.CENTER);
-        accentLine.setBackgroundColor(headerColor);
-        accentLine.addCell(new Cell().setHeight(3).setBorder(Border.NO_BORDER));
-        document.add(accentLine);
-        document.add(new Paragraph().setMarginBottom(15));
+        // Customer contact if available
+        if (customer != null && customer.getContact() != null && !customer.getContact().trim().isEmpty()) {
+            Paragraph customerContact = new Paragraph("Ph: " + customer.getContact())
+                .setFont(getUnicodeFont())
+                .setFontSize(10)
+                .setFontColor(textColor)
+                .setMarginBottom(10);
+            borderCell.add(customerContact);
+        } else {
+            borderCell.add(new Paragraph().setMarginBottom(10));
+        }
         
-        // Order Information in professional table
-        Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
-        infoTable.setWidth(UnitValue.createPercentValue(100));
-        infoTable.setMarginBottom(15);
-        
-        PdfFont infoFont = getUnicodeFont();
-        
-        // Receipt No
-        infoTable.addCell(createInfoCell("Receipt No:", true, infoFont));
-        infoTable.addCell(createInfoCell(String.valueOf(orderDetail.getCode()), false, infoFont));
-        
-        // Date
-        infoTable.addCell(createInfoCell("Date:", true, infoFont));
-        infoTable.addCell(createInfoCell(orderDetail.getIssuedDate().format(RECEIPT_DATE_FORMATTER), false, infoFont));
-        
-        // Customer
-        infoTable.addCell(createInfoCell("Customer:", true, infoFont));
-        infoTable.addCell(createInfoCell(orderDetail.getCustomerName(), false, infoFont));
-        
-        // Cashier
-        infoTable.addCell(createInfoCell("Cashier:", true, infoFont));
-        infoTable.addCell(createInfoCell(orderDetail.getOperatorEmail(), false, infoFont));
-        
-        // Payment Method
-        infoTable.addCell(createInfoCell("Payment Method:", true, infoFont));
-        infoTable.addCell(createInfoCell(orderDetail.getPaymentMethod(), false, infoFont));
-        
-        // Order Type
-        String orderTypeDisplay = orderDetail.getOrderType() != null && orderDetail.getOrderType().equals("CONSTRUCTION") 
-            ? "Construction" : "Hardware";
-        infoTable.addCell(createInfoCell("Order Type:", true, infoFont));
-        infoTable.addCell(createInfoCell(orderTypeDisplay, false, infoFont));
-        
-        document.add(infoTable);
-        
-        // Items table with professional styling
-        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{3, 1.2F, 1, 1, 1.5F}));
+        // Items Table
+        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{0.5f, 3f, 1f, 1f, 1f}));
         itemsTable.setWidth(UnitValue.createPercentValue(100));
-        itemsTable.setMarginBottom(15);
+        itemsTable.setMarginBottom(10);
         
-        // Header row with background
-        DeviceRgb tableHeaderColor = new DeviceRgb(52, 73, 94);
-        itemsTable.addHeaderCell(createTableHeaderCell("Item", tableHeaderColor));
-        itemsTable.addHeaderCell(createTableHeaderCell("Price", tableHeaderColor));
-        itemsTable.addHeaderCell(createTableHeaderCell("Qty", tableHeaderColor));
-        itemsTable.addHeaderCell(createTableHeaderCell("Disc", tableHeaderColor));
-        itemsTable.addHeaderCell(createTableHeaderCell("Total", tableHeaderColor));
+        // Table Header
+        DeviceRgb headerBgColor = new DeviceRgb(139, 0, 0);
+        itemsTable.addHeaderCell(createTableHeaderCell("Sr.", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Description", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Qty", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Rate", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Total", headerBgColor));
         
-        // Items rows with alternating background
+        // Items rows
         PdfFont itemFont = getUnicodeFont();
         PdfFont monospaceFont = getUnicodeMonospaceFont();
         boolean alternate = false;
+        int srNo = 1;
         
         for (OrderItem item : orderItems) {
             String itemName = item.getProductName();
-            double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
             Double qty = item.getQuantity();
             double quantity = qty != null ? qty : 0.0;
+            double rate = item.getUnitPrice();
+            double total = item.getLineTotal();
             
-            Cell itemNameCell = new Cell()
+            // Serial Number
+            Cell srCell = new Cell()
+                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                srCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(srCell);
+            
+            // Description
+            Cell descCell = new Cell()
                 .add(new Paragraph(itemName).setFont(itemFont).setFontSize(10))
-                .setPadding(8)
-                .setBorder(new SolidBorder(lightGray, 0.5f));
+                .setPadding(6)
+                .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
-                itemNameCell.setBackgroundColor(lightGray);
+                descCell.setBackgroundColor(lightGray);
             }
+            itemsTable.addCell(descCell);
             
-            Cell priceCell = new Cell()
-                .add(new Paragraph(String.format("%,.2f", item.getUnitPrice())).setFont(monospaceFont).setFontSize(10))
-                .setPadding(8)
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setBorder(new SolidBorder(lightGray, 0.5f));
-            if (alternate) {
-                priceCell.setBackgroundColor(lightGray);
-            }
-            
+            // Quantity
             Cell qtyCell = new Cell()
                 .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(8)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setBorder(new SolidBorder(lightGray, 0.5f));
+                .setPadding(6)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
                 qtyCell.setBackgroundColor(lightGray);
             }
+            itemsTable.addCell(qtyCell);
             
-            Cell discCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", discount)).setFont(monospaceFont).setFontSize(10))
-                .setPadding(8)
+            // Rate
+            Cell rateCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", rate)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
                 .setTextAlignment(TextAlignment.RIGHT)
-                .setBorder(new SolidBorder(lightGray, 0.5f));
+                .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
-                discCell.setBackgroundColor(lightGray);
+                rateCell.setBackgroundColor(lightGray);
             }
+            itemsTable.addCell(rateCell);
             
+            // Total
             Cell totalCell = new Cell()
-                .add(new Paragraph(String.format("%,.2f", item.getLineTotal())).setFont(monospaceFont).setFontSize(10))
-                .setPadding(8)
+                .add(new Paragraph(String.format("%.2f", total)).setFont(monospaceFont).setFontSize(10))
+                .setPadding(6)
                 .setTextAlignment(TextAlignment.RIGHT)
-                .setBorder(new SolidBorder(lightGray, 0.5f));
+                .setBorder(new SolidBorder(textColor, 0.5f));
             if (alternate) {
                 totalCell.setBackgroundColor(lightGray);
             }
-            
-            itemsTable.addCell(itemNameCell);
-            itemsTable.addCell(priceCell);
-            itemsTable.addCell(qtyCell);
-            itemsTable.addCell(discCell);
             itemsTable.addCell(totalCell);
             
             alternate = !alternate;
         }
         
-        document.add(itemsTable);
+        borderCell.add(itemsTable);
         
-        // Totals section with professional styling
-        double subtotal = orderItems.stream().mapToDouble(item -> 
-            item.getUnitPrice() * (item.getQuantity() != null ? item.getQuantity() : 0.0)).sum();
-        double totalDiscount = orderDetail.getDiscount();
-        double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
-        double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
+        // Summary Section
+        double discount = orderDetail.getDiscount();
+        double finalTotal = orderDetail.getTotalCost();
         
-        Table totalsTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
-        totalsTable.setWidth(UnitValue.createPercentValue(60));
-        totalsTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
-        totalsTable.setMarginBottom(15);
+        Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
+        summaryTable.setWidth(UnitValue.createPercentValue(50));
+        summaryTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        summaryTable.setMarginBottom(10);
         
-        // Subtotal
-        totalsTable.addCell(createTotalLabelCell("Subtotal:", monospaceFont));
-        totalsTable.addCell(createTotalValueCell(String.format("%,.2f", subtotal), monospaceFont));
-        
-        // Total Discount
-        totalsTable.addCell(createTotalLabelCell("Total Discount:", monospaceFont));
-        totalsTable.addCell(createTotalValueCell(String.format("%,.2f", totalDiscount), monospaceFont));
-        
-        // Items count
-        totalsTable.addCell(createTotalLabelCell("Items:", monospaceFont));
-        totalsTable.addCell(createTotalValueCell(String.valueOf(orderItems.size()), monospaceFont));
-        
-        // Divider
-        Cell dividerCell = new Cell(1, 2)
-            .setHeight(1)
-            .setBackgroundColor(accentColor)
-            .setBorder(Border.NO_BORDER)
-            .setPadding(0);
-        totalsTable.addCell(dividerCell);
-        
-        // TOTAL - highlighted
-        Cell totalLabelCell = new Cell()
-            .add(new Paragraph("TOTAL").setFont(monospaceFont).setFontSize(12).setBold())
-            .setPadding(8)
-            .setBackgroundColor(headerColor)
-            .setFontColor(ColorConstants.WHITE)
-            .setBorder(new SolidBorder(headerColor, 1));
-        totalsTable.addCell(totalLabelCell);
-        
-        Cell totalValueCell = new Cell()
-            .add(new Paragraph(String.format("%,.2f", orderDetail.getTotalCost())).setFont(monospaceFont).setFontSize(12).setBold())
-            .setPadding(8)
-            .setTextAlignment(TextAlignment.RIGHT)
-            .setBackgroundColor(headerColor)
-            .setFontColor(ColorConstants.WHITE)
-            .setBorder(new SolidBorder(headerColor, 1));
-        totalsTable.addCell(totalValueCell);
-        
-        // Customer Paid
-        totalsTable.addCell(createTotalLabelCell("Customer Paid:", monospaceFont));
-        totalsTable.addCell(createTotalValueCell(String.format("%,.2f", customerPaid), monospaceFont));
-        
-        // Change
-        if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
-            double change = customerPaid - orderDetail.getTotalCost();
-            totalsTable.addCell(createTotalLabelCell("Change:", monospaceFont));
-            totalsTable.addCell(createTotalValueCell(String.format("%,.2f", change), monospaceFont));
+        // Less (discount)
+        if (discount > 0) {
+            summaryTable.addCell(createTotalLabelCell("Less:", monospaceFont));
+            summaryTable.addCell(createTotalValueCell(String.format("%.2f", discount), monospaceFont));
         }
         
-        // Balance
-        totalsTable.addCell(createTotalLabelCell("Balance:", monospaceFont, true));
-        totalsTable.addCell(createTotalValueCell(String.format("%,.2f", balance), monospaceFont, true));
+        // Total
+        summaryTable.addCell(createTotalLabelCell("Total:", monospaceFont, true));
+        summaryTable.addCell(createTotalValueCell(String.format("%.2f", finalTotal), monospaceFont, true));
         
-        document.add(totalsTable);
+        borderCell.add(summaryTable);
         
-        // Payment Status badge
-        String paymentStatusText = "PAID".equals(orderDetail.getPaymentStatus()) ? 
-            "✓ PAID" : "⚠ PAYMENT PENDING";
-        DeviceRgb statusColor = "PAID".equals(orderDetail.getPaymentStatus()) ? successColor : warningColor;
-        
-        Table statusTable = new Table(1);
-        statusTable.setWidth(UnitValue.createPercentValue(50));
-        statusTable.setHorizontalAlignment(HorizontalAlignment.CENTER);
-        statusTable.setBackgroundColor(statusColor);
-        statusTable.setMarginBottom(20);
-        
-        Cell statusCell = new Cell()
-            .add(new Paragraph(paymentStatusText)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontSize(14)
-                .setBold()
-                .setFontColor(ColorConstants.WHITE))
-            .setBorder(Border.NO_BORDER)
-            .setPadding(12);
-        statusTable.addCell(statusCell);
-        document.add(statusTable);
-        
-        // Footer - use footer message from settings
-        String footerMessage = settings.getFooterMessage() != null && !settings.getFooterMessage().trim().isEmpty()
-            ? settings.getFooterMessage()
-            : "Thank you for your business!";
-        Paragraph footer = new Paragraph(footerMessage)
-            .setTextAlignment(TextAlignment.CENTER)
-            .setFontSize(11)
+        // Footer with legal notes
+        Paragraph footerNote1 = new Paragraph("Subject to Vadodara jurisdiction E & ce")
             .setFont(getUnicodeFont())
-            .setFontColor(accentColor)
-            .setItalic()
-            .setMarginBottom(10);
-        document.add(footer);
+            .setFontSize(9)
+            .setFontColor(textColor)
+            .setMarginTop(15)
+            .setMarginBottom(3);
+        borderCell.add(footerNote1);
         
-        // Footer line
-        Table footerLine = new Table(1);
-        footerLine.setWidth(UnitValue.createPercentValue(100));
-        footerLine.setBackgroundColor(accentColor);
-        footerLine.addCell(new Cell().setHeight(2).setBorder(Border.NO_BORDER));
-        document.add(footerLine);
+        Paragraph footerNote2 = new Paragraph("Goods once sold will not be taken back")
+            .setFont(getUnicodeFont())
+            .setFontSize(9)
+            .setFontColor(textColor)
+            .setMarginBottom(15);
+        borderCell.add(footerNote2);
+        
+        // Signature line
+        Paragraph signatureLine = new Paragraph("For " + businessName)
+            .setFont(getUnicodeFont())
+            .setFontSize(10)
+            .setFontColor(textColor)
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setMarginTop(20);
+        borderCell.add(signatureLine);
+        
+        borderTable.addCell(borderCell);
+        document.add(borderTable);
         
         document.close();
         return filePath;

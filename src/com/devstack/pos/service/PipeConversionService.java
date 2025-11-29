@@ -310,18 +310,22 @@ public class PipeConversionService {
     }
     
     /**
-     * Convert quantity to pipe count by dividing by feet measurement for pipe products in PDF display
-     * Returns the number of pipes (quantity divided by feet measurement: 12, 13, or 19.5)
+     * Get quantity with "Feet" suffix for pipe products in PDF display
+     * Returns the actual quantity value with "Feet" appended if it's a pipe product
      * 
      * @param productName Product name containing pipe code
-     * @param originalQuantity Original quantity value (in feet)
+     * @param originalQuantity Original quantity value
      * @param productCode Integer product code to look up Product description if needed
      * @param batchCode Batch code to look up ProductDetail.code if available
-     * @return Number of pipes as string (e.g., "1", "2", "1.5") if it's a pipe product, otherwise original quantity as string
+     * @return Quantity with "Feet" suffix (e.g., "12 Feet", "13 Feet", "19.5 Feet") if it's a pipe product, otherwise original quantity as string
      */
     public String convertQuantityToFeet(String productName, Double originalQuantity, Integer productCode, String batchCode) {
-        if (productName == null || productName.trim().isEmpty() || originalQuantity == null || originalQuantity <= 0) {
+        if (productName == null || productName.trim().isEmpty()) {
             return originalQuantity != null ? String.valueOf(originalQuantity) : "0";
+        }
+        
+        if (originalQuantity == null || originalQuantity <= 0) {
+            return "0";
         }
         
         String productCodeStr = extractProductCode(productName);
@@ -361,19 +365,17 @@ public class PipeConversionService {
             }
         }
         
-        // Determine feet divisor based on product code
+        // Determine feet divisor based on product code or feet measurement
         double feetDivisor = 0.0;
         
-        if (productCodeStr != null) {
-            // Get the divisor directly from the mapping
+        if (productCodeStr != null && PRODUCT_CODE_TO_FEET_DIVISOR.containsKey(productCodeStr)) {
+            // Get the divisor from the mapping
             Double divisor = PRODUCT_CODE_TO_FEET_DIVISOR.get(productCodeStr);
             if (divisor != null) {
                 feetDivisor = divisor;
             }
-        }
-        
-        // If feet measurement found but no product code, use feet measurement directly
-        if (feetDivisor == 0.0 && feetMeasurement != null) {
+        } else if (feetMeasurement != null) {
+            // Check if feet measurement matches known pipe types
             if (feetMeasurement.equals("12'")) {
                 feetDivisor = 12.0;
             } else if (feetMeasurement.equals("13'")) {
@@ -383,16 +385,32 @@ public class PipeConversionService {
             }
         }
         
-        // If we have a valid feet divisor, calculate number of pipes
+        // If it's a pipe product, check if quantity is >= feet divisor
         if (feetDivisor > 0) {
-            double pipeCount = originalQuantity / feetDivisor;
-            // Format: show as integer if whole number, otherwise show 2 decimal places
-            if (pipeCount == (int)pipeCount) {
-                System.out.println("PipeConversion Qty: " + originalQuantity + " / " + feetDivisor + " = " + (int)pipeCount + " pipes");
-                return String.valueOf((int)pipeCount);
+            if (originalQuantity >= feetDivisor) {
+                // Divide quantity by feet divisor to get number of pipes
+                double pipeCount = originalQuantity / feetDivisor;
+                // Format: show as integer if whole number, otherwise show 2 decimal places
+                String result;
+                if (pipeCount == (int)pipeCount) {
+                    result = String.valueOf((int)pipeCount);
+                } else {
+                    result = String.format("%.2f", pipeCount);
+                }
+                System.out.println("PipeConversion Qty: " + originalQuantity + " / " + feetDivisor + " = " + result + " pipes");
+                return result;
             } else {
-                System.out.println("PipeConversion Qty: " + originalQuantity + " / " + feetDivisor + " = " + pipeCount + " pipes");
-                return String.format("%.2f", pipeCount);
+                // Quantity is less than feet divisor, show quantity with "Feet" suffix
+                String quantityStr;
+                if (originalQuantity == originalQuantity.intValue()) {
+                    quantityStr = String.valueOf(originalQuantity.intValue());
+                } else {
+                    quantityStr = String.format("%.2f", originalQuantity);
+                }
+                // Format: "quantity Feet" (e.g., "6 Feet", "10 Feet")
+                String result ="Feet " + quantityStr ;
+                System.out.println("PipeConversion Qty: " + originalQuantity + " < " + feetDivisor + ", returning: " + result);
+                return result;
             }
         }
         

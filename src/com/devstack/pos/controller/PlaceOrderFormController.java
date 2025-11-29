@@ -37,9 +37,6 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -838,94 +835,130 @@ public class PlaceOrderFormController extends BaseController {
             double totalCost = Double.parseDouble(txtTotal.getText().split(" /=")[0]);
             double balance = customerPaid - totalCost;
             
-            // Check if user is super admin - use separate tables for super admin orders
+            // Check if user is super admin - skip creating records for regular products, but keep general items
             boolean isSuperAdmin = UserSessionData.isSuperAdmin();
             
             if (isSuperAdmin) {
-                // Save to super admin tables
-                SuperAdminOrderDetail superAdminOrderDetail = new SuperAdminOrderDetail();
-                superAdminOrderDetail.setIssuedDate(LocalDateTime.now());
-                superAdminOrderDetail.setTotalCost(totalCost);
-                superAdminOrderDetail.setCustomerId(selectedCustomerId);
-                superAdminOrderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
-                superAdminOrderDetail.setDiscount(totalDiscount);
-                superAdminOrderDetail.setOperatorEmail(UserSessionData.email);
-                superAdminOrderDetail.setPaymentMethod(paymentMethod);
-                superAdminOrderDetail.setPaymentStatus(paymentStatus);
-                superAdminOrderDetail.setOrderType(getCurrentOrderType());
-                superAdminOrderDetail.setCustomerPaid(customerPaid);
-                superAdminOrderDetail.setBalance(balance);
+                // For super admin: Don't create SuperAdminOrderDetail, SuperAdminOrderItem records for regular products
+                // Don't reduce stock for regular products
+                // BUT still create records for general items (GEN_* and TRANSPORT_*)
                 
-                // Save super admin order
-                SuperAdminOrderDetail savedSuperAdminOrder = superAdminOrderDetailService.saveSuperAdminOrderDetail(superAdminOrderDetail);
+                // Check if there are any general items in the cart
+                boolean hasGeneralItems = tms.stream()
+                    .anyMatch(tm -> tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"));
                 
-                // Save super admin order items
-                List<SuperAdminOrderItem> superAdminOrderItems = new ArrayList<>();
-                for (CartTm tm : tms) {
-                    ProductDetail productDetail = productDetailService.findProductDetailByCode(tm.getCode());
+                if (hasGeneralItems) {
+                    // Calculate total cost and discount for general items only
+                    double generalItemsTotalCost = tms.stream()
+                        .filter(tm -> tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"))
+                        .mapToDouble(CartTm::getTotalCost)
+                        .sum();
                     
-                    // Check if this is a general item (not in product_detail table)
-                    boolean isGeneralItem = (tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"));
+                    double generalItemsTotalDiscount = tms.stream()
+                        .filter(tm -> tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"))
+                        .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
+                        .sum();
                     
-                    double itemTotalDiscount = tm.getDiscount() * tm.getQty();
+                    // Create SuperAdminOrderDetail for general items only
+                    SuperAdminOrderDetail superAdminOrderDetail = new SuperAdminOrderDetail();
+                    superAdminOrderDetail.setIssuedDate(LocalDateTime.now());
+                    superAdminOrderDetail.setTotalCost(generalItemsTotalCost);
+                    superAdminOrderDetail.setCustomerId(selectedCustomerId);
+                    superAdminOrderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
+                    superAdminOrderDetail.setDiscount(generalItemsTotalDiscount);
+                    superAdminOrderDetail.setOperatorEmail(UserSessionData.email);
+                    superAdminOrderDetail.setPaymentMethod(paymentMethod);
+                    superAdminOrderDetail.setPaymentStatus(paymentStatus);
+                    superAdminOrderDetail.setOrderType(getCurrentOrderType());
+                    superAdminOrderDetail.setCustomerPaid(customerPaid);
+                    superAdminOrderDetail.setBalance(balance);
                     
-                    SuperAdminOrderItem superAdminOrderItem = SuperAdminOrderItem.builder()
-                        .orderId(savedSuperAdminOrder.getCode())
-                        .productCode(productDetail != null ? productDetail.getProductCode() : null)
-                        .productName(tm.getDescription())
-                        .batchCode(tm.getCode())
-                        .batchNumber(productDetail != null ? productDetail.getBatchNumber() : null)
-                        .quantity(tm.getQty())
-                        .unitPrice(tm.getSellingPrice())
-                        .discountPerUnit(tm.getDiscount())
-                        .totalDiscount(itemTotalDiscount)
-                        .lineTotal(tm.getTotalCost())
-                        .isGeneralItem(isGeneralItem) // Set flag to identify general items at DB level
-                        .build();
-                    superAdminOrderItems.add(superAdminOrderItem);
-                }
-                superAdminOrderItemService.saveAllSuperAdminOrderItems(superAdminOrderItems);
-                
-                // Reduce stock immediately (skip general items and transport fees)
-                for (CartTm tm : tms) {
-                    // Skip stock reduction for general items (GEN_*) and transport fees (TRANSPORT_*)
-                    if (!tm.getCode().startsWith("GEN_") && !tm.getCode().startsWith("TRANSPORT_")) {
-                        try {
-                            productDetailService.reduceStock(tm.getCode(), tm.getQty());
-                        } catch (Exception e) {
-                            // Log error but don't fail the order if stock reduction fails for a specific item
-                            System.err.println("Warning: Could not reduce stock for " + tm.getCode() + ": " + e.getMessage());
+                    // Save super admin order
+                    SuperAdminOrderDetail savedSuperAdminOrder = superAdminOrderDetailService.saveSuperAdminOrderDetail(superAdminOrderDetail);
+                    
+                    // Save super admin order items - ONLY for general items
+                    List<SuperAdminOrderItem> superAdminOrderItems = new ArrayList<>();
+                    for (CartTm tm : tms) {
+                        // Only process general items
+                        if (tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_")) {
+                            boolean isGeneralItem = true; // Always true for GEN_* and TRANSPORT_*
+                            double itemTotalDiscount = tm.getDiscount() * tm.getQty();
+                            
+                            SuperAdminOrderItem superAdminOrderItem = SuperAdminOrderItem.builder()
+                                .orderId(savedSuperAdminOrder.getCode())
+                                .productCode(null) // General items don't have product codes
+                                .productName(tm.getDescription())
+                                .batchCode(tm.getCode())
+                                .batchNumber(null) // General items don't have batch numbers
+                                .quantity(tm.getQty())
+                                .unitPrice(tm.getSellingPrice())
+                                .discountPerUnit(tm.getDiscount())
+                                .totalDiscount(itemTotalDiscount)
+                                .lineTotal(tm.getTotalCost())
+                                .isGeneralItem(isGeneralItem)
+                                .build();
+                            superAdminOrderItems.add(superAdminOrderItem);
                         }
                     }
-                }
-                
-                // Store the super admin order code for printing later
-                lastCompletedOrderCode = savedSuperAdminOrder.getCode();
-                
-                // Generate PDF for super admin order using separate service
-                try {
-                    String receiptPath = superAdminPDFReportService.generateSuperAdminBillReceipt(savedSuperAdminOrder.getCode());
+                    superAdminOrderItemService.saveAllSuperAdminOrderItems(superAdminOrderItems);
                     
+                    // Store the super admin order code for printing later
+                    lastCompletedOrderCode = savedSuperAdminOrder.getCode();
+                    
+                    // Generate PDF for super admin order using separate service
+                    try {
+                        String receiptPath = superAdminPDFReportService.generateSuperAdminBillReceipt(savedSuperAdminOrder.getCode());
+                        
+                        if ("PAID".equals(paymentStatus)) {
+                            new Alert(Alert.AlertType.CONFIRMATION, 
+                                "Super Admin Payment Completed Successfully!\n\n" +
+                                "General items recorded in database.\n" +
+                                "Regular products: No records created, stock not reduced.\n" +
+                                "PDF saved to: " + receiptPath + 
+                                "\nClick Print button to print receipt.").show();
+                        } else {
+                            new Alert(Alert.AlertType.INFORMATION, 
+                                "Super Admin Payment processed with " + paymentMethod + " payment.\n\n" +
+                                "General items recorded in database.\n" +
+                                "Regular products: No records created, stock not reduced.\n" +
+                                "PDF saved to: " + receiptPath + 
+                                "\nClick Print button to print receipt.").show();
+                        }
+                        
+                    } catch (Exception receiptEx) {
+                        receiptEx.printStackTrace();
+                        if ("PAID".equals(paymentStatus)) {
+                            new Alert(Alert.AlertType.WARNING, 
+                                "Super Admin Payment completed. General items recorded, but PDF generation failed: " + receiptEx.getMessage()).show();
+                        } else {
+                            new Alert(Alert.AlertType.WARNING, 
+                                "Super Admin Payment processed. General items recorded, but PDF generation failed: " + receiptEx.getMessage()).show();
+                        }
+                    }
+                } else {
+                    // No general items - don't create any records
+                    lastCompletedOrderCode = null;
+                    
+                    // Show success message without creating database records
                     if ("PAID".equals(paymentStatus)) {
                         new Alert(Alert.AlertType.CONFIRMATION, 
-                            "Super Admin Order Completed Successfully!\nPDF saved to: " + receiptPath + 
-                            "\nClick Print button to print receipt.").show();
+                            "Super Admin Payment Completed Successfully!\n\n" +
+                            "Total: " + String.format("%.2f", totalCost) + " /=\n" +
+                            "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
+                            "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
+                            "Note: No order records created. Stock not reduced.").show();
                     } else {
                         new Alert(Alert.AlertType.INFORMATION, 
-                            "Super Admin Order created with " + paymentMethod + " payment. Status: PENDING.\nPDF saved to: " + receiptPath + 
-                            "\nStock reduced immediately to reflect pending order.\nClick Print button to print receipt.").show();
-                    }
-                    
-                } catch (Exception receiptEx) {
-                    receiptEx.printStackTrace();
-                    if ("PAID".equals(paymentStatus)) {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Super Admin Order completed but PDF generation failed: " + receiptEx.getMessage()).show();
-                    } else {
-                        new Alert(Alert.AlertType.WARNING, 
-                            "Super Admin Order created but PDF generation failed: " + receiptEx.getMessage()).show();
+                            "Super Admin Payment processed with " + paymentMethod + " payment.\n\n" +
+                            "Total: " + String.format("%.2f", totalCost) + " /=\n" +
+                            "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
+                            "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
+                            "Note: No order records created. Stock not reduced.").show();
                     }
                 }
+                
+                // Don't reduce stock for any items (regular or general)
+                // General items don't have stock anyway, so this is fine
             } else {
                 // Regular user - save to existing tables (existing logic)
             OrderDetail orderDetail = new OrderDetail();
@@ -1009,9 +1042,14 @@ public class PlaceOrderFormController extends BaseController {
                 }
             }
             
-            // Enable print button after order is completed (keep it enabled for printing)
+            // Enable print button after order is completed (only if order was created)
             if (btnPrint != null) {
-                btnPrint.setDisable(false);
+                // For super admin, enable print button only if general items were recorded
+                if (isSuperAdmin) {
+                    btnPrint.setDisable(lastCompletedOrderCode == null);
+                } else {
+                    btnPrint.setDisable(false);
+                }
             }
             
             clearFields();

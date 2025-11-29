@@ -43,6 +43,7 @@ public class SuperAdminPDFReportService {
     private final SuperAdminOrderItemService superAdminOrderItemService;
     private final SystemSettingsService systemSettingsService;
     private final CustomerService customerService;
+    private final PipeConversionService pipeConversionService;
     
     private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
@@ -973,6 +974,8 @@ public class SuperAdminPDFReportService {
             // Items
             for (SuperAdminOrderItem item : orderItems) {
                 String itemName = item.getProductName();
+                // Convert pipe measurements to pipe numbers for display
+                itemName = pipeConversionService.convertProductName(itemName);
                 if (itemName.length() > 14) {
                     itemName = itemName.substring(0, 11) + "...";
                 }
@@ -1327,6 +1330,8 @@ public class SuperAdminPDFReportService {
         
         for (SuperAdminOrderItem item : orderItems) {
             String itemName = item.getProductName();
+            // Convert pipe measurements to pipe numbers for display - pass productCode and batchCode to lookup ProductDetail.code
+            itemName = pipeConversionService.convertProductName(itemName, item.getProductCode(), item.getBatchCode());
             Double qty = item.getQuantity();
             double quantity = qty != null ? qty : 0.0;
             double rate = item.getUnitPrice();
@@ -1353,9 +1358,15 @@ public class SuperAdminPDFReportService {
             }
             itemsTable.addCell(descCell);
             
-            // Quantity
+            // Quantity - convert to feet measurement if it's a pipe product
+            String quantityDisplay;
+            if (pipeConversionService.shouldConvertQuantity(item.getProductName(), item.getProductCode(), item.getBatchCode())) {
+                quantityDisplay = pipeConversionService.convertQuantityToFeet(item.getProductName(), quantity, item.getProductCode(), item.getBatchCode());
+            } else {
+                quantityDisplay = String.format("%.2f", quantity);
+            }
             Cell qtyCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(8))
+                .add(new Paragraph(quantityDisplay).setFont(monospaceFont).setFontSize(8))
                 .setPadding(4)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(new SolidBorder(textColor, 0.5f));

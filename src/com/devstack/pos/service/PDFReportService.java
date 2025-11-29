@@ -47,6 +47,7 @@ public class PDFReportService {
     private final ProductDetailService productDetailService;
     private final OrderItemService orderItemService;
     private final SystemSettingsService systemSettingsService;
+    private final PipeConversionService pipeConversionService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -871,6 +872,8 @@ public class PDFReportService {
             // Items - all details on one line, properly aligned
             for (OrderItem item : orderItems) {
                 String itemName = item.getProductName();
+                // Convert pipe measurements to pipe numbers for display
+                itemName = pipeConversionService.convertProductName(itemName);
                 if (itemName.length() > 14) {
                     itemName = itemName.substring(0, 11) + "...";
                 }
@@ -1231,6 +1234,8 @@ public class PDFReportService {
         
         for (OrderItem item : orderItems) {
             String itemName = item.getProductName();
+            // Convert pipe measurements to pipe numbers for display - pass productCode and batchCode to lookup ProductDetail.code
+            itemName = pipeConversionService.convertProductName(itemName, item.getProductCode(), item.getBatchCode());
             Double qty = item.getQuantity();
             double quantity = qty != null ? qty : 0.0;
             double rate = item.getUnitPrice();
@@ -1257,9 +1262,15 @@ public class PDFReportService {
             }
             itemsTable.addCell(descCell);
             
-            // Quantity
+            // Quantity - convert to feet measurement if it's a pipe product
+            String quantityDisplay;
+            if (pipeConversionService.shouldConvertQuantity(item.getProductName(), item.getProductCode(), item.getBatchCode())) {
+                quantityDisplay = pipeConversionService.convertQuantityToFeet(item.getProductName(), quantity, item.getProductCode(), item.getBatchCode());
+            } else {
+                quantityDisplay = String.format("%.2f", quantity);
+            }
             Cell qtyCell = new Cell()
-                .add(new Paragraph(String.format("%.2f", quantity)).setFont(monospaceFont).setFontSize(8))
+                .add(new Paragraph(quantityDisplay).setFont(monospaceFont).setFontSize(8))
                 .setPadding(4)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(new SolidBorder(textColor, 0.5f));

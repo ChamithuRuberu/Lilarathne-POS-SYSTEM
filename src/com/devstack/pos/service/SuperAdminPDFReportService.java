@@ -1,9 +1,11 @@
 package com.devstack.pos.service;
 
 import com.devstack.pos.entity.Customer;
+import com.devstack.pos.entity.ProductDetail;
 import com.devstack.pos.entity.SuperAdminOrderDetail;
 import com.devstack.pos.entity.SuperAdminOrderItem;
 import com.devstack.pos.entity.SystemSettings;
+import com.devstack.pos.view.tm.CartTm;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.io.font.constants.StandardFonts;
@@ -44,6 +46,7 @@ public class SuperAdminPDFReportService {
     private final SystemSettingsService systemSettingsService;
     private final CustomerService customerService;
     private final PipeConversionService pipeConversionService;
+    private final ProductDetailService productDetailService;
     
     private static final DateTimeFormatter RECEIPT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     
@@ -1077,6 +1080,419 @@ public class SuperAdminPDFReportService {
         }
         int padding = (width - text.length()) / 2;
         return " ".repeat(padding) + text;
+    }
+    
+    /**
+     * Generate bill receipt PDF for super admin order from cart items (includes all items, not just saved ones)
+     * This method is used when super admin makes payment directly from PlaceOrderForm
+     */
+    public String generateSuperAdminBillReceiptFromCart(
+            SuperAdminOrderDetail orderDetail,
+            List<CartTm> cartItems,
+            String operatorEmail) throws IOException {
+        
+        // Create directory structure: ~/POS_Receipts/SuperAdmin/[OperatorName]/[CustomerName]/
+        String userHome = System.getProperty("user.home");
+        
+        // Extract operator username from email
+        String operatorName = operatorEmail != null && operatorEmail.contains("@") 
+            ? operatorEmail.substring(0, operatorEmail.indexOf("@")) 
+            : (operatorEmail != null ? operatorEmail : "unknown");
+        
+        // Sanitize operator name for file system
+        operatorName = operatorName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        
+        // Get customer name - use "Guest" if null or empty
+        String customerName = orderDetail.getCustomerName();
+        if (customerName == null || customerName.trim().isEmpty() || "Guest".equalsIgnoreCase(customerName.trim())) {
+            customerName = "Guest";
+        }
+        
+        // Sanitize customer name for file system
+        customerName = customerName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        
+        // Create nested directory path: ~/POS_Receipts/SuperAdmin/[OperatorName]/[CustomerName]/
+        String receiptsDir = userHome + File.separator + "POS_Receipts" + File.separator + "SuperAdmin" + File.separator + operatorName + File.separator + customerName;
+        File directory = new File(receiptsDir);
+        
+        // Create directory if it doesn't exist
+        if (!directory.exists()) {
+            boolean created = directory.mkdirs();
+            if (!created) {
+                System.err.println("Failed to create receipts directory: " + receiptsDir);
+                // Fallback to Downloads folder
+                receiptsDir = userHome + File.separator + "Downloads";
+            }
+        }
+        
+        // Create file name and path
+        String fileName = "SuperAdmin_Receipt_" + orderDetail.getCode() + "_" + System.currentTimeMillis() + ".pdf";
+        String filePath = receiptsDir + File.separator + fileName;
+        
+        // Generate PDF with cart items
+        return generateSuperAdminBillReceiptPDFFromCart(orderDetail, cartItems, filePath, operatorName);
+    }
+    
+    /**
+     * Helper method to generate PDF from cart items
+     */
+    private String generateSuperAdminBillReceiptPDFFromCart(
+            SuperAdminOrderDetail orderDetail,
+            List<CartTm> cartItems,
+            String filePath,
+            String operatorName) throws IOException {
+        
+        // Create PDF
+        PdfWriter writer = new PdfWriter(filePath);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf);
+        document.setMargins(15, 15, 15, 15);
+        
+        // Get system settings
+        SystemSettings settings = systemSettingsService.getSystemSettings();
+        
+        // Color scheme matching invoice format
+        DeviceRgb borderColor = new DeviceRgb(139, 0, 0); // Dark red/burgundy border
+        DeviceRgb headerTextColor = new DeviceRgb(139, 0, 0); // Dark red for headers
+        DeviceRgb textColor = new DeviceRgb(0, 0, 0); // Black text
+        DeviceRgb lightGray = new DeviceRgb(245, 245, 245); // Light gray for table rows
+        
+        // Add border around entire document
+        Table borderTable = new Table(1);
+        borderTable.setWidth(UnitValue.createPercentValue(100));
+        borderTable.setBorder(new SolidBorder(borderColor, 2));
+        
+        Cell borderCell = new Cell().setBorder(Border.NO_BORDER).setPadding(8);
+        
+        // Header Section with GSTIN
+        Paragraph gstinPara = new Paragraph();
+        if (settings.getTaxNumber() != null && !settings.getTaxNumber().trim().isEmpty()) {
+            gstinPara.add(new Text("GSTIN: " + settings.getTaxNumber())
+                .setFont(getUnicodeFont())
+                .setFontSize(8)
+                .setFontColor(headerTextColor));
+        }
+        gstinPara.setTextAlignment(TextAlignment.LEFT);
+        borderCell.add(gstinPara);
+        
+        // Sales Invoice Title
+        Paragraph invoiceTitle = new Paragraph("Sales Invoice")
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(14)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginTop(2)
+            .setMarginBottom(5);
+        borderCell.add(invoiceTitle);
+        
+        // Business Name
+        String businessName = settings.getBusinessName() != null && !settings.getBusinessName().trim().isEmpty()
+            ? settings.getBusinessName()
+            : "Kumara Enterprises";
+        Paragraph businessNamePara = new Paragraph(businessName)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(12)
+            .setFont(getUnicodeFont())
+            .setBold()
+            .setFontColor(headerTextColor)
+            .setMarginBottom(2);
+        borderCell.add(businessNamePara);
+        
+        // Business Address
+        StringBuilder addressText = new StringBuilder();
+        if (settings.getAddress() != null && !settings.getAddress().trim().isEmpty()) {
+            addressText.append(settings.getAddress());
+        } else {
+            addressText.append("58k Gagabada Rd, Wewala, Piliyandala");
+        }
+        
+        Paragraph addressPara = new Paragraph(addressText.toString())
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(8)
+            .setFont(getUnicodeFont())
+            .setFontColor(textColor)
+            .setMarginBottom(1);
+        borderCell.add(addressPara);
+        
+        // Contact and Email
+        StringBuilder contactText = new StringBuilder();
+        if (settings.getContactNumber() != null && !settings.getContactNumber().trim().isEmpty()) {
+            contactText.append("Ph. ").append(settings.getContactNumber());
+        } else {
+            contactText.append("Ph. 077 781 5955 / 011 261 3606");
+        }
+        if (settings.getEmail() != null && !settings.getEmail().trim().isEmpty()) {
+            contactText.append(", Email: ").append(settings.getEmail());
+        }
+        
+        Paragraph contactPara = new Paragraph(contactText.toString())
+            .setTextAlignment(TextAlignment.CENTER)
+            .setFontSize(8)
+            .setFont(getUnicodeFont())
+            .setFontColor(textColor)
+            .setMarginBottom(5);
+        borderCell.add(contactPara);
+        
+        // Get customer details if available (needed for mobile number in invoice details)
+        Customer customer = null;
+        if (orderDetail.getCustomerId() != null) {
+            customer = customerService.findCustomer(orderDetail.getCustomerId());
+        }
+        
+        // Invoice Details and User/Transaction Details in Two Columns
+        Table detailsContainerTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}));
+        detailsContainerTable.setWidth(UnitValue.createPercentValue(100));
+        detailsContainerTable.setMarginBottom(5);
+        
+        PdfFont detailFont = getUnicodeFont();
+        
+        // Left Column: Invoice Details
+        Table invoiceDetailsTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        invoiceDetailsTable.setWidth(UnitValue.createPercentValue(100));
+        
+        // Invoice Number
+        invoiceDetailsTable.addCell(createInfoCell("No.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(String.valueOf(orderDetail.getCode()), false, detailFont));
+        
+        // Invoice Date
+        String dateStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy"));
+        invoiceDetailsTable.addCell(createInfoCell("Dt.:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(dateStr, false, detailFont));
+        
+        // Invoice Time
+        String timeStr = orderDetail.getIssuedDate().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        invoiceDetailsTable.addCell(createInfoCell("Time:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(timeStr, false, detailFont));
+        
+        // Customer Mobile Number
+        String customerMobile = "";
+        if (customer != null && customer.getContact() != null && !customer.getContact().trim().isEmpty()) {
+            customerMobile = customer.getContact();
+        }
+        invoiceDetailsTable.addCell(createInfoCell("Mobile:", true, detailFont));
+        invoiceDetailsTable.addCell(createInfoCell(customerMobile.isEmpty() ? "-" : customerMobile, false, detailFont));
+        
+        Cell leftCell = new Cell().setBorder(Border.NO_BORDER).setPadding(0);
+        leftCell.add(invoiceDetailsTable);
+        detailsContainerTable.addCell(leftCell);
+        
+        // Right Column: User/Transaction Details
+        Table userTransactionTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}));
+        userTransactionTable.setWidth(UnitValue.createPercentValue(100));
+        
+        // Operator/User Details
+        if (orderDetail.getOperatorEmail() != null && !orderDetail.getOperatorEmail().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Operator:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(operatorName, false, detailFont));
+        }
+        
+        // Payment Method
+        if (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Method:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentMethod(), false, detailFont));
+        }
+        
+        // Payment Status
+        if (orderDetail.getPaymentStatus() != null && !orderDetail.getPaymentStatus().trim().isEmpty()) {
+            userTransactionTable.addCell(createInfoCell("Payment Status:", true, detailFont));
+            userTransactionTable.addCell(createInfoCell(orderDetail.getPaymentStatus(), false, detailFont));
+        }
+        
+        // Transaction ID/Reference
+        userTransactionTable.addCell(createInfoCell("Transaction ID:", true, detailFont));
+        userTransactionTable.addCell(createInfoCell("SA-ORD-" + orderDetail.getCode(), false, detailFont));
+        
+        Cell rightCell = new Cell().setBorder(Border.NO_BORDER).setPadding(0);
+        rightCell.add(userTransactionTable);
+        detailsContainerTable.addCell(rightCell);
+        
+        borderCell.add(detailsContainerTable);
+        
+        // Customer Section
+        Paragraph customerLabel = new Paragraph("To, " + orderDetail.getCustomerName())
+            .setFont(getUnicodeFont())
+            .setFontSize(9)
+            .setBold()
+            .setFontColor(textColor)
+            .setMarginTop(5)
+            .setMarginBottom(5);
+        borderCell.add(customerLabel);
+        
+        // Items Table
+        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{0.5f, 3f, 1f, 1f, 1f}));
+        itemsTable.setWidth(UnitValue.createPercentValue(100));
+        itemsTable.setMarginBottom(5);
+        
+        // Table Header
+        DeviceRgb headerBgColor = new DeviceRgb(139, 0, 0);
+        itemsTable.addHeaderCell(createTableHeaderCell("Sr.", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Description", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Qty", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Rate", headerBgColor));
+        itemsTable.addHeaderCell(createTableHeaderCell("Total", headerBgColor));
+        
+        // Items rows from cart
+        PdfFont itemFont = getUnicodeFont();
+        PdfFont monospaceFont = getUnicodeMonospaceFont();
+        boolean alternate = false;
+        int srNo = 1;
+        
+        for (CartTm cartItem : cartItems) {
+            String itemName = cartItem.getDescription();
+            
+            // Get productCode from ProductDetail if available (for regular products)
+            Integer productCode = null;
+            if (cartItem.getCode() != null && !cartItem.getCode().startsWith("GEN_") && !cartItem.getCode().startsWith("TRANSPORT_")) {
+                try {
+                    ProductDetail productDetail = productDetailService.findProductDetail(cartItem.getCode());
+                    if (productDetail != null) {
+                        productCode = productDetail.getProductCode();
+                    }
+                } catch (Exception e) {
+                    // Ignore - productCode will remain null
+                }
+            }
+            
+            // Convert pipe measurements to pipe numbers for display
+            itemName = pipeConversionService.convertProductName(itemName, productCode, cartItem.getCode());
+            
+            double quantity = cartItem.getQty();
+            double rate = cartItem.getSellingPrice();
+            double total = cartItem.getTotalCost();
+            
+            // Serial Number
+            Cell srCell = new Cell()
+                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                srCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(srCell);
+            
+            // Description
+            Cell descCell = new Cell()
+                .add(new Paragraph(itemName).setFont(itemFont).setFontSize(8))
+                .setPadding(4)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                descCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(descCell);
+            
+            // Quantity - convert to feet measurement if it's a pipe product
+            String quantityDisplay;
+            if (pipeConversionService.shouldConvertQuantity(cartItem.getDescription(), productCode, cartItem.getCode())) {
+                quantityDisplay = pipeConversionService.convertQuantityToFeet(cartItem.getDescription(), quantity, productCode, cartItem.getCode());
+            } else {
+                quantityDisplay = String.format("%.2f", quantity);
+            }
+            Cell qtyCell = new Cell()
+                .add(new Paragraph(quantityDisplay).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                qtyCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(qtyCell);
+            
+            // Rate
+            Cell rateCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", rate)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                rateCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(rateCell);
+            
+            // Total
+            Cell totalCell = new Cell()
+                .add(new Paragraph(String.format("%.2f", total)).setFont(monospaceFont).setFontSize(8))
+                .setPadding(4)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(textColor, 0.5f));
+            if (alternate) {
+                totalCell.setBackgroundColor(lightGray);
+            }
+            itemsTable.addCell(totalCell);
+            
+            alternate = !alternate;
+        }
+        
+        borderCell.add(itemsTable);
+        
+        // Summary Section - calculate from cart items
+        double totalCost = cartItems.stream().mapToDouble(CartTm::getTotalCost).sum();
+        double discount = orderDetail.getDiscount();
+        double finalTotal = totalCost - discount;
+        
+        Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
+        summaryTable.setWidth(UnitValue.createPercentValue(50));
+        summaryTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        summaryTable.setMarginBottom(5);
+        
+        // Less (discount)
+        if (discount > 0) {
+            summaryTable.addCell(createTotalLabelCell("Less:", monospaceFont));
+            summaryTable.addCell(createTotalValueCell(String.format("%.2f", discount), monospaceFont));
+        }
+        
+        // Total
+        summaryTable.addCell(createTotalLabelCell("Total:", monospaceFont, true));
+        summaryTable.addCell(createTotalValueCell(String.format("%.2f", finalTotal), monospaceFont, true));
+        
+        borderCell.add(summaryTable);
+        
+        // Payment Details Section
+        if (orderDetail.getCustomerPaid() != null || orderDetail.getBalance() != null || 
+            (orderDetail.getPaymentMethod() != null && !orderDetail.getPaymentMethod().isEmpty())) {
+            Table paymentTable = new Table(UnitValue.createPercentArray(new float[]{2, 1}));
+            paymentTable.setWidth(UnitValue.createPercentValue(50));
+            paymentTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+            paymentTable.setMarginTop(5);
+            paymentTable.setMarginBottom(5);
+            
+            // Customer Paid
+            if (orderDetail.getCustomerPaid() != null && orderDetail.getCustomerPaid() > 0) {
+                paymentTable.addCell(createTotalLabelCell("Paid:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", orderDetail.getCustomerPaid()), monospaceFont));
+            }
+            
+            // Change (if customer paid more than total)
+            if (orderDetail.getCustomerPaid() != null && orderDetail.getCustomerPaid() > finalTotal) {
+                double change = orderDetail.getCustomerPaid() - finalTotal;
+                paymentTable.addCell(createTotalLabelCell("Change:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", change), monospaceFont));
+            }
+            
+            // Balance (if customer paid less than total)
+            if (orderDetail.getBalance() != null && orderDetail.getBalance() > 0) {
+                paymentTable.addCell(createTotalLabelCell("Balance:", monospaceFont));
+                paymentTable.addCell(createTotalValueCell(String.format("%.2f", orderDetail.getBalance()), monospaceFont));
+            }
+            
+            borderCell.add(paymentTable);
+        }
+        
+        // Signature line
+        Paragraph signatureLine = new Paragraph("For " + businessName)
+            .setFont(getUnicodeFont())
+            .setFontSize(8)
+            .setFontColor(textColor)
+            .setTextAlignment(TextAlignment.RIGHT)
+            .setMarginTop(10);
+        borderCell.add(signatureLine);
+        
+        borderTable.addCell(borderCell);
+        document.add(borderTable);
+        
+        document.close();
+        return filePath;
     }
     
     /**

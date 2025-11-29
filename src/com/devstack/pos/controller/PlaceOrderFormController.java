@@ -848,7 +848,7 @@ public class PlaceOrderFormController extends BaseController {
                     .anyMatch(tm -> tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"));
                 
                 if (hasGeneralItems) {
-                    // Calculate total cost and discount for general items only
+                    // Calculate total cost and discount for general items only (for database)
                     double generalItemsTotalCost = tms.stream()
                         .filter(tm -> tm.getCode().startsWith("GEN_") || tm.getCode().startsWith("TRANSPORT_"))
                         .mapToDouble(CartTm::getTotalCost)
@@ -859,7 +859,7 @@ public class PlaceOrderFormController extends BaseController {
                         .mapToDouble(tm -> tm.getDiscount() * tm.getQty())
                         .sum();
                     
-                    // Create SuperAdminOrderDetail for general items only
+                    // Create SuperAdminOrderDetail for general items only (for database)
                     SuperAdminOrderDetail superAdminOrderDetail = new SuperAdminOrderDetail();
                     superAdminOrderDetail.setIssuedDate(LocalDateTime.now());
                     superAdminOrderDetail.setTotalCost(generalItemsTotalCost);
@@ -905,9 +905,14 @@ public class PlaceOrderFormController extends BaseController {
                     // Store the super admin order code for printing later
                     lastCompletedOrderCode = savedSuperAdminOrder.getCode();
                     
-                    // Generate PDF for super admin order using separate service
+                    // Update orderDetail with actual total cost from all cart items for PDF display
+                    superAdminOrderDetail.setTotalCost(totalCost);
+                    superAdminOrderDetail.setDiscount(totalDiscount);
+                    
+                    // Generate PDF for super admin order with ALL cart items (including regular products)
                     try {
-                        String receiptPath = superAdminPDFReportService.generateSuperAdminBillReceipt(savedSuperAdminOrder.getCode());
+                        String receiptPath = superAdminPDFReportService.generateSuperAdminBillReceiptFromCart(
+                            superAdminOrderDetail, tms, UserSessionData.email);
                         
                         if ("PAID".equals(paymentStatus)) {
                             new Alert(Alert.AlertType.CONFIRMATION, 
@@ -936,25 +941,58 @@ public class PlaceOrderFormController extends BaseController {
                         }
                     }
                 } else {
-                    // No general items - don't create any records
-                    lastCompletedOrderCode = null;
+                    // No general items - still generate PDF with all cart items but don't create database records
+                    // Create a temporary SuperAdminOrderDetail for PDF generation
+                    SuperAdminOrderDetail tempOrderDetail = new SuperAdminOrderDetail();
+                    tempOrderDetail.setIssuedDate(LocalDateTime.now());
+                    tempOrderDetail.setTotalCost(totalCost);
+                    tempOrderDetail.setCustomerId(selectedCustomerId);
+                    tempOrderDetail.setCustomerName(txtName.getText().trim().isEmpty() ? "Guest" : txtName.getText().trim());
+                    tempOrderDetail.setDiscount(totalDiscount);
+                    tempOrderDetail.setOperatorEmail(UserSessionData.email);
+                    tempOrderDetail.setPaymentMethod(paymentMethod);
+                    tempOrderDetail.setPaymentStatus(paymentStatus);
+                    tempOrderDetail.setOrderType(getCurrentOrderType());
+                    tempOrderDetail.setCustomerPaid(customerPaid);
+                    tempOrderDetail.setBalance(balance);
+                    // Generate a temporary code for PDF (using timestamp as temporary ID)
+                    // Note: This won't be saved to database, just for PDF generation
+                    tempOrderDetail.setCode(System.currentTimeMillis());
                     
-                    // Show success message without creating database records
-                    if ("PAID".equals(paymentStatus)) {
-                        new Alert(Alert.AlertType.CONFIRMATION, 
-                            "Super Admin Payment Completed Successfully!\n\n" +
-                            "Total: " + String.format("%.2f", totalCost) + " /=\n" +
-                            "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
-                            "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
-                            "Note: No order records created. Stock not reduced.").show();
-                    } else {
-                        new Alert(Alert.AlertType.INFORMATION, 
-                            "Super Admin Payment processed with " + paymentMethod + " payment.\n\n" +
-                            "Total: " + String.format("%.2f", totalCost) + " /=\n" +
-                            "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
-                            "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
-                            "Note: No order records created. Stock not reduced.").show();
+                    // Generate PDF with all cart items
+                    try {
+                        String receiptPath = superAdminPDFReportService.generateSuperAdminBillReceiptFromCart(
+                            tempOrderDetail, tms, UserSessionData.email);
+                        
+                        if ("PAID".equals(paymentStatus)) {
+                            new Alert(Alert.AlertType.CONFIRMATION, 
+                                "Super Admin Payment Completed Successfully!\n\n" +
+                                "Total: " + String.format("%.2f", totalCost) + " /=\n" +
+                                "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
+                                "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
+                                "PDF saved to: " + receiptPath + 
+                                "\nNote: No order records created. Stock not reduced.").show();
+                        } else {
+                            new Alert(Alert.AlertType.INFORMATION, 
+                                "Super Admin Payment processed with " + paymentMethod + " payment.\n\n" +
+                                "Total: " + String.format("%.2f", totalCost) + " /=\n" +
+                                "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
+                                "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
+                                "PDF saved to: " + receiptPath + 
+                                "\nNote: No order records created. Stock not reduced.").show();
+                        }
+                    } catch (Exception receiptEx) {
+                        receiptEx.printStackTrace();
+                        if ("PAID".equals(paymentStatus)) {
+                            new Alert(Alert.AlertType.WARNING, 
+                                "Super Admin Payment completed, but PDF generation failed: " + receiptEx.getMessage()).show();
+                        } else {
+                            new Alert(Alert.AlertType.WARNING, 
+                                "Super Admin Payment processed, but PDF generation failed: " + receiptEx.getMessage()).show();
+                        }
                     }
+                    
+                    lastCompletedOrderCode = null;
                 }
                 
                 // Don't reduce stock for any items (regular or general)

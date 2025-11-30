@@ -74,43 +74,51 @@ public class PipeConversionService {
         FEET_TO_PIPE_MAPPING.put("13'", pipe13List);
         
         // Initialize product code to pipe number mapping
-        // Note: Pipe numbers are unique per measurement type
+        // Note: Using full product descriptions instead of simple pipe numbers
         // Key format: "feetMeasurement|productCode"
         
         // For 12' pipes
-        PRODUCT_CODE_TO_PIPE.put("12'|PE 14", "12 pipe 1");
-        PRODUCT_CODE_TO_PIPE.put("12'|NP 8", "12 pipe 2");
+        PRODUCT_CODE_TO_PIPE.put("12'|PE 14", "Slon 3 1/2\" Down Pipe");
+        PRODUCT_CODE_TO_PIPE.put("12'|NP 8", "Nemsu 3 1/2\" Down Pipe");
         
         // For 19 1/2' pipes
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|PE 13", "19 1/2 pipe 1");
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|PE 15", "19 1/2 pipe 2");
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 9", "19 1/2 pipe 3");
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 10", "19 1/2 pipe 4");
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 13", "19 1/2 pipe 5");
-        PRODUCT_CODE_TO_PIPE.put("19 1/2'|WP 1", "19 1/2 pipe 6");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|PE 13", "Slon 4\" T250 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|PE 15", "Slon 4\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 9", "Nemsu 4\" T250 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 10", "Nemsu 4\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|NP 13", "Nemsu 4\" Irrigation Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19 1/2'|WP 1", "Watermate 4\" Pipe");
         // Also support "19.5'" format
-        PRODUCT_CODE_TO_PIPE.put("19.5'|PE 13", "19 1/2 pipe 1");
-        PRODUCT_CODE_TO_PIPE.put("19.5'|PE 15", "19 1/2 pipe 2");
-        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 9", "19 1/2 pipe 3");
-        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 10", "19 1/2 pipe 4");
-        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 13", "19 1/2 pipe 5");
-        PRODUCT_CODE_TO_PIPE.put("19.5'|WP 1", "19 1/2 pipe 6");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|PE 13", "Slon 4\" T250 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|PE 15", "Slon 4\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 9", "Nemsu 4\" T250 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 10", "Nemsu 4\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|NP 13", "Nemsu 4\" Irrigation Pipe");
+        PRODUCT_CODE_TO_PIPE.put("19.5'|WP 1", "Watermate 4\" Pipe");
         
-        // For 13' pipes - assign pipe numbers sequentially starting from 1
-        int pipeNumber = 1;
-        // PE 1 to PE 12
-        for (int i = 1; i <= 12; i++) {
-            PRODUCT_CODE_TO_PIPE.put("13'|PE " + i, "13 pipe " + pipeNumber++);
-        }
-        // NP 1 to NP 8
-        for (int i = 1; i <= 8; i++) {
-            PRODUCT_CODE_TO_PIPE.put("13'|NP " + i, "13 pipe " + pipeNumber++);
-        }
-        // NP 11, NP 12
-        PRODUCT_CODE_TO_PIPE.put("13'|NP 11", "13 pipe " + pipeNumber++);
-        PRODUCT_CODE_TO_PIPE.put("13'|NP 12", "13 pipe " + pipeNumber++);
-        // AP 1
-        PRODUCT_CODE_TO_PIPE.put("13'|AP 1", "13 pipe " + pipeNumber);
+        // For 13' pipes - using full product descriptions
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 1", "Slon 1/2\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 2", "Slon 3/4\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 3", "Slon 1\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 4", "Slon 1 1/4\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 5", "Slon 1 1/2\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 6", "Slon 2\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 7", "Slon 1\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 8", "Slon 1 1/4\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 9", "Slon 1 1/2\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 10", "Slon 2\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 11", "Slon 1 1/2\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|PE 12", "Slon 2\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 1", "Nemsu 1/2\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 2", "Nemsu 3/4\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 3", "Nemsu 1\" T1000 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 4", "Nemsu 1\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 5", "Nemsu 1 1/4\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 6", "Nemsu 1 1/2\" T600 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 7", "Nemsu 2\" T400 Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 11", "Nemsu 1 1/2\" Irrigation Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|NP 12", "Nemsu 2\" Irrigation Pipe");
+        PRODUCT_CODE_TO_PIPE.put("13'|AP 1", "Anton 1\" T600 Pipe");
         
         // Initialize product code to feet divisor mapping for PDF quantity calculation
         // 12' pipes - divide quantity by 12.0
@@ -400,15 +408,15 @@ public class PipeConversionService {
                 System.out.println("PipeConversion Qty: " + originalQuantity + " / " + feetDivisor + " = " + result + " pipes");
                 return result;
             } else {
-                // Quantity is less than feet divisor, show quantity with "Feet" suffix
+                // Quantity is less than feet divisor, show quantity with "ft" suffix
                 String quantityStr;
                 if (originalQuantity == originalQuantity.intValue()) {
                     quantityStr = String.valueOf(originalQuantity.intValue());
                 } else {
                     quantityStr = String.format("%.2f", originalQuantity);
                 }
-                // Format: "quantity Feet" (e.g., "6 Feet", "10 Feet")
-                String result ="Feet " + quantityStr ;
+                // Format: "quantity ft" (e.g., "6 ft", "10 ft")
+                String result = quantityStr + " ft";
                 System.out.println("PipeConversion Qty: " + originalQuantity + " < " + feetDivisor + ", returning: " + result);
                 return result;
             }

@@ -1149,16 +1149,11 @@ public class SuperAdminPDFReportService {
             List<CartTm> cartItems,
             String operatorEmail) throws IOException {
         
-        // Create directory structure: ~/POS_Receipts/SuperAdmin/[OperatorName]/[CustomerName]/
-        String userHome = System.getProperty("user.home");
-        
+        // Use default storage location in Documents/POS_System/
         // Extract operator username from email
         String operatorName = operatorEmail != null && operatorEmail.contains("@") 
             ? operatorEmail.substring(0, operatorEmail.indexOf("@")) 
             : (operatorEmail != null ? operatorEmail : "unknown");
-        
-        // Sanitize operator name for file system
-        operatorName = operatorName.replaceAll("[^a-zA-Z0-9_-]", "_");
         
         // Get customer name - use "Guest" if null or empty
         String customerName = orderDetail.getCustomerName();
@@ -1166,26 +1161,12 @@ public class SuperAdminPDFReportService {
             customerName = "Guest";
         }
         
-        // Sanitize customer name for file system
-        customerName = customerName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        
-        // Create nested directory path: ~/POS_Receipts/SuperAdmin/[OperatorName]/[CustomerName]/
-        String receiptsDir = userHome + File.separator + "POS_Receipts" + File.separator + "SuperAdmin" + File.separator + operatorName + File.separator + customerName;
-        File directory = new File(receiptsDir);
-        
-        // Create directory if it doesn't exist
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            if (!created) {
-                System.err.println("Failed to create receipts directory: " + receiptsDir);
-                // Fallback to Downloads folder
-                receiptsDir = userHome + File.separator + "Downloads";
-            }
-        }
+        // Get receipt directory using FileStorageUtil
+        String receiptsDir = com.devstack.pos.util.FileStorageUtil.getSuperAdminReceiptDirectory(operatorName, customerName);
         
         // Create file name and path
         String fileName = "SuperAdmin_Receipt_" + orderDetail.getCode() + "_" + System.currentTimeMillis() + ".pdf";
-        String filePath = receiptsDir + File.separator + fileName;
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(receiptsDir, fileName);
         
         // Generate PDF with cart items
         return generateSuperAdminBillReceiptPDFFromCart(orderDetail, cartItems, filePath, operatorName);
@@ -1553,8 +1534,7 @@ public class SuperAdminPDFReportService {
         // Get super admin order items
         List<SuperAdminOrderItem> orderItems = superAdminOrderItemService.findByOrderId(orderId);
         
-        // Create directory structure: ~/POS_Receipts/SuperAdmin/[CustomerName]/
-        String userHome = System.getProperty("user.home");
+        // Use default storage location in Documents/POS_System/SuperAdmin_Receipts/
         String operatorEmail = orderDetail.getOperatorEmail();
         
         // Extract operator username from email
@@ -1562,35 +1542,18 @@ public class SuperAdminPDFReportService {
             ? operatorEmail.substring(0, operatorEmail.indexOf("@")) 
             : (operatorEmail != null ? operatorEmail : "unknown");
         
-        // Sanitize operator name for file system
-        operatorName = operatorName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        
         // Get customer name - use "Guest" if null or empty
         String customerName = orderDetail.getCustomerName();
         if (customerName == null || customerName.trim().isEmpty() || "Guest".equalsIgnoreCase(customerName.trim())) {
             customerName = "Guest";
         }
         
-        // Sanitize customer name for file system
-        customerName = customerName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        
-        // Create nested directory path: ~/POS_Receipts/SuperAdmin/[OperatorName]/[CustomerName]/
-        String receiptsDir = userHome + File.separator + "POS_Receipts" + File.separator + "SuperAdmin" + File.separator + operatorName + File.separator + customerName;
-        File directory = new File(receiptsDir);
-        
-        // Create directory if it doesn't exist
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            if (!created) {
-                System.err.println("Failed to create receipts directory: " + receiptsDir);
-                // Fallback to Downloads folder
-                receiptsDir = userHome + File.separator + "Downloads";
-            }
-        }
+        // Get receipt directory using FileStorageUtil (separate location for super admin)
+        String receiptsDir = com.devstack.pos.util.FileStorageUtil.getSuperAdminReceiptDirectory(operatorName, customerName);
         
         // Create file name and path
         String fileName = "SuperAdmin_Receipt_" + orderDetail.getCode() + "_" + System.currentTimeMillis() + ".pdf";
-        String filePath = receiptsDir + File.separator + fileName;
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(receiptsDir, fileName);
         
         // Create PDF
         PdfWriter writer = new PdfWriter(filePath);

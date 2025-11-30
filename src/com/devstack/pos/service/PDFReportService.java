@@ -1050,8 +1050,7 @@ public class PDFReportService {
         // Get order items
         List<OrderItem> orderItems = orderItemService.findByOrderId(orderId);
         
-        // Create directory structure: ~/POS_Receipts/[CashierName]/[CustomerName]/
-        String userHome = System.getProperty("user.home");
+        // Use default storage location in Documents/POS_System/
         String cashierEmail = orderDetail.getOperatorEmail();
         
         // Extract cashier username from email (everything before @)
@@ -1059,35 +1058,18 @@ public class PDFReportService {
             ? cashierEmail.substring(0, cashierEmail.indexOf("@")) 
             : (cashierEmail != null ? cashierEmail : "unknown");
         
-        // Sanitize cashier name for file system (remove special characters)
-        cashierName = cashierName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        
         // Get customer name - use "Guest" if null or empty
         String customerName = orderDetail.getCustomerName();
         if (customerName == null || customerName.trim().isEmpty() || "Guest".equalsIgnoreCase(customerName.trim())) {
             customerName = "Guest";
         }
         
-        // Sanitize customer name for file system (remove special characters)
-        customerName = customerName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        
-        // Create nested directory path: ~/POS_Receipts/[CashierName]/[CustomerName]/
-        String receiptsDir = userHome + File.separator + "POS_Receipts" + File.separator + cashierName + File.separator + customerName;
-        File directory = new File(receiptsDir);
-        
-        // Create directory if it doesn't exist
-        if (!directory.exists()) {
-            boolean created = directory.mkdirs();
-            if (!created) {
-                System.err.println("Failed to create receipts directory: " + receiptsDir);
-                // Fallback to Downloads folder
-                receiptsDir = userHome + File.separator + "Downloads";
-            }
-        }
+        // Get receipt directory using FileStorageUtil
+        String receiptsDir = com.devstack.pos.util.FileStorageUtil.getRegularReceiptDirectory(cashierName, customerName);
         
         // Create file name and path
         String fileName = "Receipt_" + orderDetail.getCode() + "_" + System.currentTimeMillis() + ".pdf";
-        String filePath = receiptsDir + File.separator + fileName;
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(receiptsDir, fileName);
         
         // Create PDF
         PdfWriter writer = new PdfWriter(filePath);
@@ -1513,7 +1495,8 @@ public class PDFReportService {
     public String generateSalesReportPDF(LocalDateTime startDate, LocalDateTime endDate, String reportType)
             throws IOException {
         String fileName = "Sales_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Sales");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1547,7 +1530,8 @@ public class PDFReportService {
     public String generateReturnOrdersReportPDF(LocalDateTime startDate, LocalDateTime endDate)
             throws IOException {
         String fileName = "Return_Orders_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Returns");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1574,7 +1558,8 @@ public class PDFReportService {
      */
     public String generateInventoryReportPDF() throws IOException {
         String fileName = "Inventory_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Inventory");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1605,7 +1590,8 @@ public class PDFReportService {
     public String generateFinancialReportPDF(LocalDateTime startDate, LocalDateTime endDate)
             throws IOException {
         String fileName = "Financial_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Financial");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1635,7 +1621,8 @@ public class PDFReportService {
      */
     public String generateSupplierReportPDF() throws IOException {
         String fileName = "Supplier_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Supplier");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1663,7 +1650,8 @@ public class PDFReportService {
     public String generateComprehensiveReportPDF(LocalDateTime startDate, LocalDateTime endDate)
             throws IOException {
         String fileName = "Comprehensive_POS_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Comprehensive");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -1703,7 +1691,8 @@ public class PDFReportService {
     public String generateConstructionReportPDF(LocalDateTime startDate, LocalDateTime endDate)
             throws IOException {
         String fileName = "Construction_Report_" + System.currentTimeMillis() + ".pdf";
-        String filePath = System.getProperty("user.home") + File.separator + "Downloads" + File.separator + fileName;
+        String reportsDir = com.devstack.pos.util.FileStorageUtil.getReportDirectory("Construction");
+        String filePath = com.devstack.pos.util.FileStorageUtil.getFilePath(reportsDir, fileName);
         
         PdfWriter writer = new PdfWriter(filePath);
         PdfDocument pdf = new PdfDocument(writer);

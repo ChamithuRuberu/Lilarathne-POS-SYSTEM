@@ -9,10 +9,12 @@ import com.devstack.pos.util.StageManager;
 import com.devstack.pos.util.UserSessionData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 @Component
 @RequiredArgsConstructor
-public class LoginFormController {
+public class LoginFormController implements Initializable {
     public VBox context;
     public TextField txtEmail;
     public PasswordField txtPassword;
@@ -32,6 +36,23 @@ public class LoginFormController {
     private final JwtUtil jwtUtil;
     private final SessionManager sessionManager;
     private final TrialService trialService;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Set up Enter key handler for email field - move to password field
+        txtEmail.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                txtPassword.requestFocus();
+            }
+        });
+
+        // Set up Enter key handler for password field - trigger login
+        txtPassword.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                btnSignInOnAction(new ActionEvent());
+            }
+        });
+    }
 
     public void btnCreateAnAccountOnAction(ActionEvent actionEvent) throws IOException {
         setUi("SignupForm");

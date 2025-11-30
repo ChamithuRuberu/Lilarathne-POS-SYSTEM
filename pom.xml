@@ -155,6 +155,18 @@
             <artifactId>font-asian</artifactId>
             <version>8.0.2</version>
         </dependency>
+        
+        <!-- Apache PDFBox for PDF to Image conversion (Windows support) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox-tools</artifactId>
+            <version>3.0.1</version>
+        </dependency>
 
         <!-- Spring Boot Test -->
         <dependency>

@@ -966,20 +966,19 @@ public class PlaceOrderFormController extends BaseController {
                         
                         if ("PAID".equals(paymentStatus)) {
                             new Alert(Alert.AlertType.CONFIRMATION, 
-                                "Super Admin Payment Completed Successfully!\n\n" +
+                                "Payment Completed Successfully!\n\n" +
                                 "Total: " + String.format("%.2f", totalCost) + " /=\n" +
                                 "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
                                 "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
-                                "PDF saved to: " + receiptPath + 
-                                "\nNote: No order records created. Stock not reduced.").show();
+                                "PDF saved to: " + receiptPath
+                            ).show();
                         } else {
                             new Alert(Alert.AlertType.INFORMATION, 
                                 "Super Admin Payment processed with " + paymentMethod + " payment.\n\n" +
                                 "Total: " + String.format("%.2f", totalCost) + " /=\n" +
                                 "Customer Paid: " + String.format("%.2f", customerPaid) + " /=\n" +
                                 "Balance: " + String.format("%.2f", balance) + " /=\n\n" +
-                                "PDF saved to: " + receiptPath + 
-                                "\nNote: No order records created. Stock not reduced.").show();
+                                "PDF saved to: " + receiptPath).show();
                         }
                     } catch (Exception receiptEx) {
                         receiptEx.printStackTrace();

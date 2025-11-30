@@ -1214,13 +1214,12 @@ public class PDFReportService {
         borderCell.add(customerLabel);
         
         // Items Table
-        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{0.5f, 3f, 1f, 1f, 1f}));
+        Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{3f, 1f, 1f, 1f}));
         itemsTable.setWidth(UnitValue.createPercentValue(100));
         itemsTable.setMarginBottom(5);
         
         // Table Header
         DeviceRgb headerBgColor = new DeviceRgb(139, 0, 0);
-        itemsTable.addHeaderCell(createTableHeaderCell("Sr.", headerBgColor));
         itemsTable.addHeaderCell(createTableHeaderCell("Description", headerBgColor));
         itemsTable.addHeaderCell(createTableHeaderCell("Qty", headerBgColor));
         itemsTable.addHeaderCell(createTableHeaderCell("Rate", headerBgColor));
@@ -1230,7 +1229,6 @@ public class PDFReportService {
         PdfFont itemFont = getUnicodeFont();
         PdfFont monospaceFont = getUnicodeMonospaceFont();
         boolean alternate = false;
-        int srNo = 1;
         
         for (OrderItem item : orderItems) {
             String itemName = item.getProductName();
@@ -1240,17 +1238,6 @@ public class PDFReportService {
             double quantity = qty != null ? qty : 0.0;
             double rate = item.getUnitPrice();
             double total = item.getLineTotal();
-            
-            // Serial Number
-            Cell srCell = new Cell()
-                .add(new Paragraph(String.valueOf(srNo++)).setFont(monospaceFont).setFontSize(8))
-                .setPadding(4)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setBorder(new SolidBorder(textColor, 0.5f));
-            if (alternate) {
-                srCell.setBackgroundColor(lightGray);
-            }
-            itemsTable.addCell(srCell);
             
             // Description
             Cell descCell = new Cell()

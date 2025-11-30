@@ -971,7 +971,7 @@ public class SuperAdminPDFReportService {
             
             // Items header
             receipt.append(String.format("%-14s %9s %5s %6s %9s\n",
-                "Item", "Price", "Qty", "Disc", "Total"));
+                "අයිතම්", "මිල", "ප්‍රමාණය", "වට්ටම", "මුළු"));
             receipt.append("................................................\n");
             
             // Items
@@ -979,9 +979,6 @@ public class SuperAdminPDFReportService {
                 String itemName = item.getProductName();
                 // Convert pipe measurements to pipe numbers for display - pass productCode and batchCode
                 itemName = pipeConversionService.convertProductName(itemName, item.getProductCode(), item.getBatchCode());
-                if (itemName.length() > 14) {
-                    itemName = itemName.substring(0, 11) + "...";
-                }
                 
                 double discount = item.getDiscountPerUnit() != null ? item.getDiscountPerUnit() : 0.0;
                 
@@ -1006,13 +1003,25 @@ public class SuperAdminPDFReportService {
                 } else {
                     qtyStr = "x0  ";
                 }
-                receipt.append(String.format("%-14s %9.1f %s %6.2f %9.2f\n",
-                    itemName,
-                    item.getUnitPrice(),
-                    qtyStr,
-                    discount,
-                    item.getLineTotal()
-                ));
+                
+                // Wrap long item names into multiple lines if needed
+                String[] itemNameLines = wrapText(itemName, 14);
+                for (int i = 0; i < itemNameLines.length; i++) {
+                    if (i == 0) {
+                        // First line: show item name, price, qty, discount, total
+                        receipt.append(String.format("%-14s %9.1f %s %6.2f %9.2f\n",
+                            itemNameLines[i],
+                            item.getUnitPrice(),
+                            qtyStr,
+                            discount,
+                            item.getLineTotal()
+                        ));
+                    } else {
+                        // Additional lines: show only item name continuation, align other columns
+                        receipt.append(String.format("%-14s %9s %5s %6s %9s\n",
+                            itemNameLines[i], "", "", "", ""));
+                    }
+                }
             }
             
             receipt.append("................................................\n");
@@ -1024,24 +1033,25 @@ public class SuperAdminPDFReportService {
             }).sum();
             double totalDiscount = orderDetail.getDiscount();
             
-            receipt.append(String.format("%-30s %17.2f\n", "Subtotal", subtotal));
-            receipt.append(String.format("%-30s %17.2f\n", "Total Discount", totalDiscount));
-            receipt.append(String.format("%-30s %17.2f\n", "Items", (double)orderItems.size()));
+            receipt.append(String.format("%-30s %17.2f\n", "එකතුව", subtotal));
+            receipt.append(String.format("%-30s %17.2f\n", "මුළු වට්ටම", totalDiscount));
+            receipt.append(String.format("%-30s %17.2f\n", "අයිතම්", (double)orderItems.size()));
             receipt.append("------------------------------------------------\n");
-            receipt.append(String.format("%-30s %17.2f\n", "TOTAL", orderDetail.getTotalCost()));
+            receipt.append(String.format("%-30s %17.2f\n", "මුළු එකතුව", orderDetail.getTotalCost()));
             
             // Customer Paid
             double customerPaid = orderDetail.getCustomerPaid() != null ? orderDetail.getCustomerPaid() : orderDetail.getTotalCost();
-            receipt.append(String.format("%-30s %17.2f\n", "Customer Paid", customerPaid));
+            receipt.append(String.format("%-30s %17.2f\n", "පාරිභෝගිකයා ගෙවූ මුදල", customerPaid));
             
             // Payment method
-            receipt.append(String.format("%-30s %17s\n", 
-                "Payment: " + orderDetail.getPaymentMethod(), ""));
+            String paymentMethod = orderDetail.getPaymentMethod() != null ? orderDetail.getPaymentMethod() : "CASH";
+            String paymentSinhala = "CASH".equals(paymentMethod) ? "ගෙවීම (මුදල්)" : "ගෙවීම";
+            receipt.append(String.format("%-30s %17s\n", paymentSinhala, ""));
             
             // Change
             if ("PAID".equals(orderDetail.getPaymentStatus()) && customerPaid > orderDetail.getTotalCost()) {
                 double change = customerPaid - orderDetail.getTotalCost();
-                receipt.append(String.format("%-30s %17.2f\n", "Change", change));
+                receipt.append(String.format("%-30s %17.2f\n", "ඉතිරි මුදල", change));
             }
             
             receipt.append("------------------------------------------------\n");
@@ -1056,9 +1066,9 @@ public class SuperAdminPDFReportService {
             // Balance
             double balance = orderDetail.getBalance() != null ? orderDetail.getBalance() : 0.00;
             if (balance != 0.00) {
-                receipt.append(String.format("%-30s %17.2f\n", "Balance", balance));
+                receipt.append(String.format("%-30s %17.2f\n", "ශේෂය", balance));
             } else {
-                receipt.append(String.format("%-30s %17.2f\n", "Balance", 0.00));
+                receipt.append(String.format("%-30s %17.2f\n", "ශේෂය", 0.00));
             }
             receipt.append("................................................\n");
             
@@ -1090,6 +1100,44 @@ public class SuperAdminPDFReportService {
         }
         int padding = (width - text.length()) / 2;
         return " ".repeat(padding) + text;
+    }
+    
+    /**
+     * Wrap text into multiple lines, breaking at word boundaries when possible
+     * @param text Text to wrap
+     * @param maxWidth Maximum width per line
+     * @return Array of lines
+     */
+    private String[] wrapText(String text, int maxWidth) {
+        if (text == null || text.length() <= maxWidth) {
+            return new String[]{text != null ? text : ""};
+        }
+        
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        String remaining = text;
+        
+        while (remaining.length() > maxWidth) {
+            // Try to break at word boundary (space)
+            int breakPoint = maxWidth;
+            int lastSpace = remaining.lastIndexOf(' ', maxWidth);
+            
+            if (lastSpace > maxWidth / 2) {
+                // Break at word boundary if it's not too early
+                breakPoint = lastSpace;
+                lines.add(remaining.substring(0, breakPoint).trim());
+                remaining = remaining.substring(breakPoint).trim();
+            } else {
+                // Break at exact position if no good word boundary
+                lines.add(remaining.substring(0, breakPoint));
+                remaining = remaining.substring(breakPoint);
+            }
+        }
+        
+        if (!remaining.isEmpty()) {
+            lines.add(remaining);
+        }
+        
+        return lines.toArray(new String[0]);
     }
     
     /**

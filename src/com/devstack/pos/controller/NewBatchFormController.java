@@ -835,9 +835,6 @@ public class NewBatchFormController {
                 return;
             }
             
-            // Create or update product detail
-            ProductDetail productDetail = new ProductDetail();
-            
             // Set batch code - use manual code if provided, otherwise use auto-generated
             String batchCodeToUse = null;
             if (isEditMode && existingBatchCode != null) {
@@ -859,10 +856,43 @@ public class NewBatchFormController {
                 return;
             }
             
+            // Check if batch with this code already exists (for manual code entry in new batch mode)
+            ProductDetail productDetail = null;
+            if (!isEditMode) {
+                // Check if a batch with this code already exists
+                ProductDetail existingBatch = productDetailService.findProductDetail(batchCodeToUse);
+                if (existingBatch != null) {
+                    // Verify the batch belongs to the same product
+                    int targetProductCode = currentProductCode != null ? currentProductCode : 
+                        (txtProductCode != null && !txtProductCode.getText().trim().isEmpty() ? 
+                         Integer.parseInt(txtProductCode.getText().trim()) : -1);
+                    
+                    if (targetProductCode != -1 && existingBatch.getProductCode() != targetProductCode) {
+                        showError("Batch code already exists for a different product! Please use a different code.");
+                        return;
+                    }
+                    
+                    // Batch exists and belongs to same product, update it instead of creating duplicate
+                    productDetail = existingBatch;
+                    // Update edit mode flags to handle update correctly
+                    isEditMode = true;
+                    existingBatchCode = batchCodeToUse;
+                }
+            } else {
+                // Edit mode - load existing batch
+                productDetail = productDetailService.findProductDetail(existingBatchCode);
+            }
+            
+            // If no existing batch found, create new one
+            if (productDetail == null) {
+                productDetail = new ProductDetail();
+            }
+            
             productDetail.setCode(batchCodeToUse);
             
             // Generate and set barcode image
-            if (!isEditMode) {
+            if (productDetail.getId() == null) {
+                // New batch - generate barcode
                 try {
                     // Generate barcode for display using the batch code
                     Code128Writer barcodeWriter = new Code128Writer();
@@ -885,25 +915,45 @@ public class NewBatchFormController {
                     productDetail.setBarcode("");
                 }
             } else {
-                // Keep existing barcode for edit mode
-                ProductDetail existing = productDetailService.findProductDetail(existingBatchCode);
-                if (existing != null && existing.getBarcode() != null) {
-                    productDetail.setBarcode(existing.getBarcode());
+                // Existing batch - keep existing barcode if it exists, otherwise generate new one
+                if (productDetail.getBarcode() == null || productDetail.getBarcode().isEmpty()) {
+                    try {
+                        // Generate barcode if it doesn't exist
+                        Code128Writer barcodeWriter = new Code128Writer();
+                        BitMatrix bitMatrix = barcodeWriter.encode(
+                            batchCodeToUse,
+                            BarcodeFormat.CODE_128,
+                            300,
+                            80
+                        );
+                        
+                        BufferedImage barcodeBufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+                        
+                        // Convert to Base64 for storage
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        javax.imageio.ImageIO.write(barcodeBufferedImage, "png", baos);
+                        byte[] barcodeBytes = baos.toByteArray();
+                        productDetail.setBarcode(Base64.getEncoder().encodeToString(barcodeBytes));
+                    } catch (Exception e) {
+                        System.err.println("Error generating barcode: " + e.getMessage());
+                    }
                 }
+                // Otherwise keep existing barcode
             }
             
             // Set quantity fields (supports decimal quantities like 2.5, 3.75)
             double qty = Double.parseDouble(txtQty.getText().trim());
             productDetail.setQtyOnHand(qty);
             
-            if (isEditMode) {
-                // Keep initial qty for edit mode
-                ProductDetail existing = productDetailService.findProductDetail(existingBatchCode);
-                if (existing != null) {
-                    productDetail.setInitialQty(existing.getInitialQty());
+            // Preserve initial quantity if updating existing batch, otherwise set it
+            if (productDetail.getId() != null) {
+                // Existing batch - keep initial qty (don't change it)
+                if (productDetail.getInitialQty() == 0) {
+                    // If initial qty is 0 or not set, set it to current qty
+                    productDetail.setInitialQty(qty);
                 }
             } else {
-                // Set initial qty for new batch
+                // New batch - set initial qty
                 productDetail.setInitialQty(qty);
             }
             
@@ -985,7 +1035,9 @@ public class NewBatchFormController {
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setTitle("Success");
             successAlert.setHeaderText(null);
-            successAlert.setContentText(isEditMode ? "Batch updated successfully!" : "Batch created successfully!");
+            // Check if this was an update (existing batch) or new batch
+            boolean wasUpdate = productDetail.getId() != null;
+            successAlert.setContentText(wasUpdate ? "Batch updated successfully!" : "Batch created successfully!");
             successAlert.showAndWait();
             
             // Close the form

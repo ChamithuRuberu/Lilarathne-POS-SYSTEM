@@ -7,7 +7,9 @@ import com.devstack.pos.service.CategoryService;
 import com.devstack.pos.service.ProductDetailService;
 import com.devstack.pos.service.ProductService;
 import com.devstack.pos.service.SupplierService;
+import com.devstack.pos.util.AuthorizationUtil;
 import com.devstack.pos.util.BarcodeGenerator;
+import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.ProductDetailTm;
 import com.devstack.pos.view.tm.ProductTm;
 import com.google.zxing.WriterException;
@@ -69,6 +71,8 @@ public class ProductMainPageController extends BaseController {
     public TableColumn colPDViewBarcode;
     public TableColumn colPDDelete;
     public com.jfoenix.controls.JFXTextField txtSearchProducts;
+    public javafx.scene.layout.VBox vboxGeneralItems;
+    public com.jfoenix.controls.JFXButton btnManageGeneralItems;
     private final String searchText = "";
     private Integer currentProductCode = null;
     private FilteredList<ProductTm> filteredProducts;
@@ -151,6 +155,13 @@ public class ProductMainPageController extends BaseController {
 
         // Load products
         loadAllProducts(searchText);
+        
+        // Set visibility of general items section based on superadmin role
+        if (vboxGeneralItems != null) {
+            boolean isSuperAdmin = UserSessionData.isSuperAdmin();
+            vboxGeneralItems.setVisible(isSuperAdmin);
+            vboxGeneralItems.setManaged(isSuperAdmin);
+        }
 
         // Setup search filter listener
         if (txtSearchProducts != null) {
@@ -845,6 +856,32 @@ public class ProductMainPageController extends BaseController {
         } catch (IOException e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error opening category management: " + e.getMessage()).show();
+        }
+    }
+    
+    /**
+     * Opens general items management form (Super Admin only)
+     */
+    public void btnManageGeneralItemsOnAction(ActionEvent actionEvent) {
+        // Check authorization
+        if (!AuthorizationUtil.canAccessGeneralItems()) {
+            AuthorizationUtil.showUnauthorizedAlert();
+            return;
+        }
+        
+        try {
+            Stage stage = new Stage();
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/com/devstack/pos/view/GeneralItemManagementForm.fxml"));
+            loader.setControllerFactory(com.devstack.pos.PosApplication.getApplicationContext()::getBean);
+            Parent parent = loader.load();
+            stage.setScene(new Scene(parent));
+            stage.setTitle("General Items Management");
+            stage.show();
+            stage.centerOnScreen();
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error opening general items management: " + e.getMessage()).show();
         }
     }
 

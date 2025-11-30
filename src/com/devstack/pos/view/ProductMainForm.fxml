@@ -72,6 +72,29 @@
                   </ComboBox>
                </VBox>
                
+               <!-- General Items Management (Super Admin Only) -->
+               <VBox spacing="8" fx:id="vboxGeneralItems" visible="false" managed="false">
+                  <HBox alignment="CENTER_LEFT" spacing="8">
+                     <Text text="General Items" styleClass="form-label">
+                        <font>
+                           <Font name="System Bold" size="14.0" />
+                        </font>
+                     </Text>
+                     <Region HBox.hgrow="ALWAYS" />
+                     <JFXButton fx:id="btnManageGeneralItems" onAction="#btnManageGeneralItemsOnAction" text="+ Manage" 
+                                style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 11px; -fx-padding: 4 12;">
+                        <cursor>
+                           <Cursor fx:constant="HAND" />
+                        </cursor>
+                     </JFXButton>
+                  </HBox>
+                  <Text text="Manage general items (Super Admin Only)" style="-fx-font-size: 12px; -fx-fill: #7f8c8d; -fx-font-style: italic;">
+                     <font>
+                        <Font name="System" size="12.0" />
+                     </font>
+                  </Text>
+               </VBox>
+               
                <VBox spacing="8">
                   <Text text="Description" styleClass="form-label">
                      <font>

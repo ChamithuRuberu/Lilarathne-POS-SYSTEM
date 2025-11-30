@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.devstack.pos.controller.GeneralItemManagementController"
+            prefWidth="650.0" prefHeight="600.0" style="-fx-background-color: #f8f9fa;">
+   <children>
+      <VBox spacing="20" style="-fx-padding: 24;" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" 
+            AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+         
+         <!-- Header -->
+         <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: #2c3e50; -fx-padding: 16; -fx-background-radius: 8;">
+            <Text text="General Items Management" style="-fx-fill: white; -fx-font-weight: bold; -fx-font-size: 20px;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <JFXButton fx:id="btnClose" onAction="#btnCloseOnAction" text="✕ Close" 
+                       style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 8 16;">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+            </JFXButton>
+         </HBox>
+         
+         <!-- Form Section -->
+         <VBox spacing="16" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
+            <Text text="Add/Edit General Item" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #2c3e50;"/>
+            
+            <VBox spacing="8">
+               <Text text="Item Name *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #34495e;"/>
+               <JFXTextField fx:id="txtItemName" promptText="Enter general item name" 
+                             style="-fx-prompt-text-fill: #95a5a6; -fx-font-size: 14px;">
+                  <font>
+                     <Font name="System" size="14.0" />
+                  </font>
+               </JFXTextField>
+            </VBox>
+            
+            <HBox spacing="12" alignment="CENTER_LEFT">
+               <JFXButton fx:id="btnSave" onAction="#btnSaveOnAction" text="Save Item" 
+                          prefWidth="150.0" prefHeight="40.0"
+                          style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;">
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+               <JFXButton onAction="#btnClearOnAction" text="Clear" 
+                          prefWidth="100.0" prefHeight="40.0"
+                          style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;">
+                  <cursor>
+                     <Cursor fx:constant="HAND" />
+                  </cursor>
+               </JFXButton>
+            </HBox>
+         </VBox>
+         
+         <!-- General Items List -->
+         <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);" VBox.vgrow="ALWAYS">
+            <Text text="Existing General Items" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #2c3e50;"/>
+            
+            <TableView fx:id="tblGeneralItems" prefHeight="250.0" VBox.vgrow="ALWAYS" style="-fx-background-color: white;">
+               <columns>
+                  <TableColumn fx:id="colItemId" prefWidth="80.0" minWidth="60.0" text="ID" />
+                  <TableColumn fx:id="colItemName" prefWidth="450.0" minWidth="300.0" text="Item Name" />
+                  <TableColumn fx:id="colItemDelete" prefWidth="100.0" minWidth="80.0" text="Delete" />
+               </columns>
+            </TableView>
+         </VBox>
+      </VBox>
+   </children>
+</AnchorPane>
+

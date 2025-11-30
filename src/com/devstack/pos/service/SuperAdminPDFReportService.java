@@ -977,8 +977,8 @@ public class SuperAdminPDFReportService {
             // Items
             for (SuperAdminOrderItem item : orderItems) {
                 String itemName = item.getProductName();
-                // Convert pipe measurements to pipe numbers for display
-                itemName = pipeConversionService.convertProductName(itemName);
+                // Convert pipe measurements to pipe numbers for display - pass productCode and batchCode
+                itemName = pipeConversionService.convertProductName(itemName, item.getProductCode(), item.getBatchCode());
                 if (itemName.length() > 14) {
                     itemName = itemName.substring(0, 11) + "...";
                 }
@@ -988,10 +988,20 @@ public class SuperAdminPDFReportService {
                 Double qty = item.getQuantity();
                 String qtyStr;
                 if (qty != null) {
-                    if (qty == qty.intValue()) {
-                        qtyStr = String.format("x%-3d", qty.intValue());
+                    // Convert quantity to feet measurement if it's a pipe product
+                    if (pipeConversionService.shouldConvertQuantity(item.getProductName(), item.getProductCode(), item.getBatchCode())) {
+                        String convertedQty = pipeConversionService.convertQuantityToFeet(item.getProductName(), qty, item.getProductCode(), item.getBatchCode());
+                        qtyStr = "x" + convertedQty;
+                        // Pad to ensure consistent width
+                        if (qtyStr.length() < 5) {
+                            qtyStr = String.format("%-5s", qtyStr);
+                        }
                     } else {
-                        qtyStr = String.format("x%-5.2f", qty);
+                        if (qty == qty.intValue()) {
+                            qtyStr = String.format("x%-3d", qty.intValue());
+                        } else {
+                            qtyStr = String.format("x%-5.2f", qty);
+                        }
                     }
                 } else {
                     qtyStr = "x0  ";

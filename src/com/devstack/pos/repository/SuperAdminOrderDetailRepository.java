@@ -39,5 +39,13 @@ public interface SuperAdminOrderDetailRepository extends JpaRepository<SuperAdmi
     // Find orders by date range
     @Query("SELECT o FROM SuperAdminOrderDetail o WHERE o.issuedDate BETWEEN :startDate AND :endDate")
     List<SuperAdminOrderDetail> findSuperAdminOrdersByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    // Find all pending payments
+    @Query("SELECT o FROM SuperAdminOrderDetail o WHERE o.paymentStatus = 'PENDING' ORDER BY o.issuedDate ASC")
+    List<SuperAdminOrderDetail> findPendingPayments();
+    
+    // Find pending payments by payment method
+    @Query("SELECT o FROM SuperAdminOrderDetail o WHERE o.paymentStatus = 'PENDING' AND o.paymentMethod = :paymentMethod ORDER BY o.issuedDate ASC")
+    List<SuperAdminOrderDetail> findPendingPaymentsByMethod(@Param("paymentMethod") String paymentMethod);
 }
 

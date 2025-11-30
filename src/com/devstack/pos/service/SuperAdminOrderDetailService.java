@@ -143,5 +143,43 @@ public class SuperAdminOrderDetailService {
         }
         return superAdminOrderDetailRepository.findSuperAdminOrdersByDateRange(startDate, endDate);
     }
+    
+    /**
+     * Find all pending payments for super admin orders - only accessible by Super Admin
+     */
+    @Transactional(readOnly = true)
+    public List<SuperAdminOrderDetail> findPendingPayments() {
+        if (!UserSessionData.isSuperAdmin()) {
+            return new ArrayList<>();
+        }
+        return superAdminOrderDetailRepository.findPendingPayments();
+    }
+    
+    /**
+     * Find pending payments by payment method for super admin orders - only accessible by Super Admin
+     */
+    @Transactional(readOnly = true)
+    public List<SuperAdminOrderDetail> findPendingPaymentsByMethod(String paymentMethod) {
+        if (!UserSessionData.isSuperAdmin()) {
+            return new ArrayList<>();
+        }
+        return superAdminOrderDetailRepository.findPendingPaymentsByMethod(paymentMethod);
+    }
+    
+    /**
+     * Complete payment for a super admin order - only accessible by Super Admin
+     */
+    public boolean completePayment(Long orderCode) {
+        if (!UserSessionData.isSuperAdmin()) {
+            throw new SecurityException("Access Denied: Super Admin orders can only be managed by Super Admin users.");
+        }
+        SuperAdminOrderDetail order = superAdminOrderDetailRepository.findById(orderCode).orElse(null);
+        if (order != null && "PENDING".equals(order.getPaymentStatus())) {
+            order.setPaymentStatus("PAID");
+            superAdminOrderDetailRepository.save(order);
+            return true;
+        }
+        return false;
+    }
 }
 

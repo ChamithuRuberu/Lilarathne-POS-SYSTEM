@@ -2,10 +2,13 @@ package com.devstack.pos.controller;
 
 import com.devstack.pos.entity.OrderDetail;
 import com.devstack.pos.entity.OrderItem;
+import com.devstack.pos.entity.SuperAdminOrderDetail;
 import com.devstack.pos.service.OrderDetailService;
 import com.devstack.pos.service.OrderItemService;
 import com.devstack.pos.service.ProductDetailService;
+import com.devstack.pos.service.SuperAdminOrderDetailService;
 import com.devstack.pos.util.AuthorizationUtil;
+import com.devstack.pos.util.UserSessionData;
 import com.devstack.pos.view.tm.PendingPaymentTm;
 import com.jfoenix.controls.JFXButton;
 import javafx.collections.FXCollections;
@@ -29,6 +32,7 @@ public class PendingPaymentsFormController extends BaseController {
     private final OrderDetailService orderDetailService;
     private final OrderItemService orderItemService;
     private final ProductDetailService productDetailService;
+    private final SuperAdminOrderDetailService superAdminOrderDetailService;
     
     @FXML
     private Text lblTotalPending;
@@ -131,6 +135,7 @@ public class PendingPaymentsFormController extends BaseController {
     
     private void loadPendingPayments() {
         try {
+            // Load regular pending orders - visible to ALL authorized users (ADMIN, CASHIER, and SUPER_ADMIN)
             List<OrderDetail> pendingOrders;
             
             // Get pending orders based on filter
@@ -149,6 +154,7 @@ public class PendingPaymentsFormController extends BaseController {
             int chequeCount = 0;
             double totalAmount = 0.0;
             
+            // Add regular orders (visible to all authorized users including super admin)
             for (OrderDetail order : pendingOrders) {
                 // Create complete payment button
                 JFXButton completeBtn = new JFXButton("Complete Payment");
@@ -174,10 +180,54 @@ public class PendingPaymentsFormController extends BaseController {
                 }
             }
             
+            // Load super admin pending orders - ONLY visible to SUPER_ADMIN users
+            List<SuperAdminOrderDetail> superAdminPendingOrders = null;
+            if (UserSessionData.isSuperAdmin()) {
+                // Get super admin pending orders based on filter
+                if ("CREDIT".equals(currentFilter)) {
+                    superAdminPendingOrders = superAdminOrderDetailService.findPendingPaymentsByMethod("CREDIT");
+                } else if ("CHEQUE".equals(currentFilter)) {
+                    superAdminPendingOrders = superAdminOrderDetailService.findPendingPaymentsByMethod("CHEQUE");
+                } else {
+                    superAdminPendingOrders = superAdminOrderDetailService.findPendingPayments();
+                }
+                
+                // Add super admin orders (only visible to super admin)
+                for (SuperAdminOrderDetail order : superAdminPendingOrders) {
+                    // Create complete payment button
+                    JFXButton completeBtn = new JFXButton("Complete Payment");
+                    completeBtn.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5;");
+                    completeBtn.setOnAction(e -> completeSuperAdminPayment(order));
+                    
+                    PendingPaymentTm tm = new PendingPaymentTm();
+                    tm.setCode(order.getCode());
+                    tm.setCustomerName(order.getCustomerName() != null ? order.getCustomerName() : "Guest");
+                    tm.setIssuedDate(order.getIssuedDate());
+                    tm.setPaymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod() : "CASH");
+                    tm.setTotalCost(order.getTotalCost());
+                    tm.setOperatorEmail(order.getOperatorEmail());
+                    tm.setCompletePaymentButton(completeBtn);
+                    observableList.add(tm);
+                    
+                    // Update statistics
+                    totalAmount += order.getTotalCost();
+                    if ("CREDIT".equals(order.getPaymentMethod())) {
+                        creditCount++;
+                    } else if ("CHEQUE".equals(order.getPaymentMethod())) {
+                        chequeCount++;
+                    }
+                }
+            }
+            
             tblPendingPayments.setItems(observableList);
             
             // Update statistics labels
-            lblTotalPending.setText(String.valueOf(pendingOrders.size()));
+            int totalPendingCount = pendingOrders.size();
+            if (superAdminPendingOrders != null) {
+                totalPendingCount += superAdminPendingOrders.size();
+            }
+            
+            lblTotalPending.setText(String.valueOf(totalPendingCount));
             lblTotalAmount.setText(String.format("LKR %.2f", totalAmount));
             lblCreditOrders.setText(String.valueOf(creditCount));
             lblChequeOrders.setText(String.valueOf(chequeCount));
@@ -216,6 +266,40 @@ public class PendingPaymentsFormController extends BaseController {
                     
                     new Alert(Alert.AlertType.INFORMATION, 
                         "Payment completed successfully! Stock has been reduced.").show();
+                    
+                    // Reload pending payments
+                    loadPendingPayments();
+                } else {
+                    new Alert(Alert.AlertType.ERROR, 
+                        "Failed to complete payment. Order may have already been paid or does not exist.").show();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error completing payment: " + ex.getMessage()).show();
+        }
+    }
+    
+    private void completeSuperAdminPayment(SuperAdminOrderDetail order) {
+        try {
+            // Confirm payment completion
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Complete Payment");
+            confirmAlert.setHeaderText("Complete Payment for Super Admin Order #" + order.getCode());
+            confirmAlert.setContentText("Customer: " + order.getCustomerName() + "\n" +
+                                       "Amount: LKR " + String.format("%.2f", order.getTotalCost()) + "\n" +
+                                       "Payment Method: " + order.getPaymentMethod() + "\n\n" +
+                                       "Are you sure you want to mark this payment as completed?");
+            
+            var result = confirmAlert.showAndWait();
+            if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+                // Update payment status
+                boolean success = superAdminOrderDetailService.completePayment(order.getCode());
+                
+                if (success) {
+                    // Note: Super admin orders don't reduce stock (by design)
+                    new Alert(Alert.AlertType.INFORMATION, 
+                        "Super Admin payment completed successfully!").show();
                     
                     // Reload pending payments
                     loadPendingPayments();

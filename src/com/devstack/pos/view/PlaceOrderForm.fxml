@@ -91,12 +91,6 @@
                             <Font name="System" size="13.0"/>
                         </font>
                     </JFXTextField>
-                    <JFXTextField fx:id="txtBuyingPrice" editable="false" promptText="Buying Price"
-                                  styleClass="text-field-modern" prefWidth="110.0" prefHeight="36.0">
-                        <font>
-                            <Font name="System" size="13.0"/>
-                        </font>
-                    </JFXTextField>
                     <JFXTextField fx:id="txtDiscount" promptText="Discount" styleClass="text-field-modern"
                                   prefWidth="100.0" prefHeight="36.0">
                         <font>

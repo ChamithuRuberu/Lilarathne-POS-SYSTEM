@@ -55,7 +55,6 @@ public class PlaceOrderFormController extends BaseController {
     public TextField txtSellingPrice;
     public TextField txtDiscount;
     public TextField txtQtyOnHand;
-    public TextField txtBuyingPrice;
     public TextField txtQty;
     public TableView<CartTm> tblCart;
     public TableColumn colCode;
@@ -471,7 +470,6 @@ public class PlaceOrderFormController extends BaseController {
                 } else {
                     txtQtyOnHand.setText(String.format("%.2f", qtyOnHand));
                 }
-                txtBuyingPrice.setText(String.format("%.2f", productDetail.getBuyingPrice()));
                 
                 // Show stock status
                 if (productDetail.getQtyOnHand() <= 0) {
@@ -725,7 +723,6 @@ public class PlaceOrderFormController extends BaseController {
         txtSellingPrice.clear();
         txtDiscount.clear();
         txtQtyOnHand.clear();
-        txtBuyingPrice.clear();
         txtQty.clear();
         txtBarcode.clear();
         txtBarcode.requestFocus();
@@ -1107,7 +1104,6 @@ public class PlaceOrderFormController extends BaseController {
         txtSellingPrice.clear();
         txtDiscount.clear();
         txtQtyOnHand.clear();
-        txtBuyingPrice.clear();
         txtQty.clear();
         txtCustomerPaid.clear();
         txtBalance.setText("0.00 /=");
